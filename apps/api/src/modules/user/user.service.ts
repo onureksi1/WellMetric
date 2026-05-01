@@ -894,24 +894,11 @@ export class UserService {
 
     const companyId = user.company_id;
 
-    try {
-      // Delete associated records first to avoid foreign key constraints
-      await this.invitationRepository.delete({ user_id: id });
-      await this.responseRepository.delete({ user_id: id });
-      await this.assignmentRepository.delete({ user_id: id });
-      await this.surveyTokenRepository.delete({ user_id: id });
-      await this.throttleRepository.delete({ user_id: id });
-      
-      // Hard delete user
-      await this.userRepository.delete(id);
-    } catch (error) {
-      console.error(`[DeletePlatformUser] Error deleting user ${id}:`, error);
-      throw new InternalServerErrorException({
-        message: 'Kullanıcı silinirken bir hata oluştu (İlişkili veriler temizlenemedi).',
-        detail: error.message,
-        table: error.table
-      });
-    }
+    // Delete associated records first (invitations, etc)
+    await this.invitationRepository.delete({ user_id: id });
+    
+    // Hard delete
+    await this.userRepository.delete(id);
 
     await this.auditService.logAction(
       deletedBy,
