@@ -16,6 +16,16 @@ import { SurveyAssignment } from '../survey/entities/survey-assignment.entity';
 import { SurveyResponse } from '../response/entities/survey-response.entity';
 import { SurveyThrottle } from '../response/entities/survey-throttle.entity';
 
+// Missing entities for cleanup
+import { Payment } from '../billing/entities/payment.entity';
+import { Subscription } from '../billing/entities/subscription.entity';
+import { CreditTransaction } from '../billing/entities/credit-transaction.entity';
+import { CreditBalance } from '../billing/entities/credit-balance.entity';
+import { Action } from '../action/entities/action.entity';
+import { ContentItem } from '../content/entities/content-item.entity';
+import { MailTemplate } from '../notification/entities/mail-template.entity';
+import { Demo } from '../demo/entities/demo.entity';
+
 
 @Module({
   imports: [
@@ -28,6 +38,14 @@ import { SurveyThrottle } from '../response/entities/survey-throttle.entity';
       SurveyAssignment,
       SurveyResponse,
       SurveyThrottle,
+      Payment,
+      Subscription,
+      CreditTransaction,
+      CreditBalance,
+      Action,
+      ContentItem,
+      MailTemplate,
+      Demo,
     ]),
 
 
