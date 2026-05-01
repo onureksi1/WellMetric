@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   User, 
@@ -19,13 +19,37 @@ import { useAuthStore } from '@/lib/store/auth.store';
 import { toast } from 'react-hot-toast';
 import client from '@/lib/api/client';
 
-export default function ConsultantSettingsPage() {
+// Local type extension for safe UI display
+type ConsultantUserView = any & {
+  first_name?: string;
+  last_name?: string;
+  name?: string;
+  full_name?: string;
+  email?: string;
+};
+
+const getUserInitials = (rawUser: ConsultantUserView | null | undefined) => {
+  const first = rawUser?.first_name || rawUser?.name || rawUser?.full_name || rawUser?.email || 'U';
+  const last = rawUser?.last_name || '';
+  return `${first[0] || 'U'}${last[0] || ''}`.toUpperCase();
+};
+
+const getDisplayName = (rawUser: ConsultantUserView | null | undefined) => {
+  if (rawUser?.name) return rawUser.name;
+  if (rawUser?.first_name) return `${rawUser.first_name} ${rawUser?.last_name || ''}`.trim();
+  if (rawUser?.full_name) return rawUser.full_name;
+  return 'User';
+};
+
+function SettingsContent() {
   const { t } = useTranslation('consultant');
   const { user, clearAuth } = useAuthStore();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
   const [loading, setLoading] = useState(true);
   const [planData, setPlanData] = useState<any>(null);
+
+  const consultantUser = user as ConsultantUserView;
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -64,7 +88,6 @@ export default function ConsultantSettingsPage() {
     );
   }
 
-  // Dökümana uygun sadeleştirilmiş menü
   const tabs = [
     { id: 'profile', label: t('settings.profile_title'), icon: User },
     { id: 'auto-reporting', label: t('reports.auto_reporting'), icon: Clock },
@@ -81,7 +104,6 @@ export default function ConsultantSettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Navigation Sidebar */}
         <div className="md:col-span-1 space-y-2">
           {tabs.map((tab) => (
             <button
@@ -108,7 +130,6 @@ export default function ConsultantSettingsPage() {
           </div>
         </div>
 
-        {/* Content Area */}
         <div className="md:col-span-3">
           {activeTab === 'profile' && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -116,15 +137,15 @@ export default function ConsultantSettingsPage() {
                 <div className="flex items-center gap-6">
                   <div className="relative group">
                     <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-white shadow-md font-bold text-2xl uppercase">
-                      {(user?.name || 'U')[0]}
+                      {getUserInitials(consultantUser)}
                     </div>
                     <button className="absolute bottom-0 right-0 p-1.5 bg-blue-600 text-white rounded-full border-2 border-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
                       <Camera size={12} />
                     </button>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900">{user?.name || 'User'}</h3>
-                    <p className="text-sm text-slate-500">{user?.role === 'consultant' ? 'Wellbeing Consultant' : user?.role}</p>
+                    <h3 className="text-xl font-bold text-slate-900">{getDisplayName(consultantUser)}</h3>
+                    <p className="text-sm text-slate-500">{consultantUser?.role === 'consultant' ? 'Wellbeing Consultant' : consultantUser?.role}</p>
                   </div>
                 </div>
                 <button 
@@ -140,7 +161,7 @@ export default function ConsultantSettingsPage() {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.full_name')}</label>
                   <input 
                     type="text" 
-                    defaultValue={user?.name || ''}
+                    defaultValue={getDisplayName(consultantUser)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
@@ -328,5 +349,18 @@ export default function ConsultantSettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConsultantSettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+        <p className="text-slate-500 font-medium">Ayarlar yükleniyor...</p>
+      </div>
+    }>
+      <SettingsContent />
+    </Suspense>
   );
 }

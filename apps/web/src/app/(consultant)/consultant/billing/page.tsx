@@ -44,7 +44,9 @@ const TABS = [
   { key: 'usage', icon: BarChart3 },
 ];
 
-export default function BillingPage() {
+import { Suspense } from 'react';
+
+function BillingContent() {
   const { t } = useTranslation('consultant');
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -93,6 +95,14 @@ export default function BillingPage() {
         {activeTab === 'usage' && <UsageTab />}
       </div>
     </div>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<TabSkeleton />}>
+      <BillingContent />
+    </Suspense>
   );
 }
 

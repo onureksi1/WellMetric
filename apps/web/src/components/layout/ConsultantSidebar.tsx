@@ -14,7 +14,8 @@ import {
   ChevronRight,
   TrendingUp,
   X,
-  CreditCard
+  CreditCard,
+  Video
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/lib/store/auth.store';
