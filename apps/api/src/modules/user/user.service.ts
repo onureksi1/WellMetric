@@ -53,25 +53,6 @@ export class UserService {
     private readonly responseRepository: Repository<SurveyResponse>,
     @InjectRepository(SurveyThrottle)
     private readonly throttleRepository: Repository<SurveyThrottle>,
-    
-    // Cleanup repos
-    @InjectRepository(Payment)
-    private readonly paymentRepository: Repository<Payment>,
-    @InjectRepository(Subscription)
-    private readonly subscriptionRepository: Repository<Subscription>,
-    @InjectRepository(CreditTransaction)
-    private readonly creditTransactionRepository: Repository<CreditTransaction>,
-    @InjectRepository(CreditBalance)
-    private readonly creditBalanceRepository: Repository<CreditBalance>,
-    @InjectRepository(Action)
-    private readonly actionRepository: Repository<Action>,
-    @InjectRepository(ContentItem)
-    private readonly contentItemRepository: Repository<ContentItem>,
-    @InjectRepository(MailTemplate)
-    private readonly mailTemplateRepository: Repository<MailTemplate>,
-    @InjectRepository(Demo)
-    private readonly demoRepository: Repository<Demo>,
-
     private readonly auditService: AuditService,
     private readonly notificationService: NotificationService,
     private readonly uploadService: UploadService,
@@ -914,41 +895,21 @@ export class UserService {
     const companyId = user.company_id;
 
     try {
-      console.log(`[DeletePlatformUser] Starting atomic cleanup for user: ${id} (${user.email})`);
-      
-      // 1. Survey & Auth Cleanup
+      // Delete associated records first to avoid foreign key constraints
       await this.invitationRepository.delete({ user_id: id });
       await this.responseRepository.delete({ user_id: id });
       await this.assignmentRepository.delete({ user_id: id });
       await this.surveyTokenRepository.delete({ user_id: id });
       await this.throttleRepository.delete({ user_id: id });
-
-      // 2. Billing Cleanup
-      await this.paymentRepository.delete({ consultant_id: id });
-      await this.subscriptionRepository.delete({ consultant_id: id });
-      await this.creditTransactionRepository.delete({ consultant_id: id });
-      await this.creditBalanceRepository.delete({ consultant_id: id });
-
-      // 3. Content & Activity Cleanup (Update references to null to preserve history)
-      await this.actionRepository.update({ created_by: id }, { created_by: null });
-      await this.contentItemRepository.update({ created_by: id }, { created_by: null });
-      await this.mailTemplateRepository.update({ updated_by: id }, { updated_by: null });
-      await this.demoRepository.delete({ user_id: id });
-
-      // 4. Critical: If this user is a consultant for any company, nullify it
-      await this.companyRepository.update({ consultant_id: id }, { consultant_id: null });
-
-      // 5. Final Blow: Hard delete user
-      await this.userRepository.delete(id);
       
-      console.log(`[DeletePlatformUser] Successfully deleted user: ${id}`);
+      // Hard delete user
+      await this.userRepository.delete(id);
     } catch (error) {
-      console.error(`[DeletePlatformUser] CRITICAL ERROR deleting user ${id}:`, error);
+      console.error(`[DeletePlatformUser] Error deleting user ${id}:`, error);
       throw new InternalServerErrorException({
         message: 'Kullanıcı silinirken bir hata oluştu (İlişkili veriler temizlenemedi).',
         detail: error.message,
-        table: error.table,
-        hint: 'Veritabanında hala bu kullanıcıya bağlı kayıtlar olabilir.'
+        table: error.table
       });
     }
 
