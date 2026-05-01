@@ -1,0 +1,36 @@
+FROM node:22-slim AS builder
+
+WORKDIR /app
+
+# Bağımlılık dosyalarını kopyala
+COPY package*.json ./
+COPY packages/shared/package*.json ./packages/shared/
+COPY apps/web/package*.json ./apps/web/
+
+# Yükle (devDependencies dahil)
+RUN npm install --include=dev
+
+# Tüm kodu kopyala
+COPY . .
+
+# Environment variables (Build time)
+# API URL'sini buraya ekliyoruz
+ARG NEXT_PUBLIC_API_URL=https://api.wellbeingmetric.com/api/v1
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# Build et
+RUN npm run build -w @wellanalytics/web
+
+# --- RUN STAGE ---
+FROM node:22-slim
+
+WORKDIR /app
+
+# Sadece gerekli dosyaları al
+COPY --from=builder /app /app
+
+# Web portu (Next.js genelde 3000 kullanır)
+EXPOSE 3000
+
+# Uygulamayı başlat
+CMD ["npm", "run", "start", "-w", "@wellanalytics/web"]
