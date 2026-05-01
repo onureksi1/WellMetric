@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: #C0392B; padding: 24px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #C0392B; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+    .metric { text-align: center; padding: 32px; background: #FFF0EE; border-radius: 12px; margin: 24px 0; border: 1px solid #FADBD8; }
+    .metric .number { font-size: 48px; font-weight: bold; color: #C0392B; display: block; }
+    .metric .label { font-size: 14px; color: #666; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚠️ Kritik Skor Uyarısı</h1>
+    </div>
+    <div class="body">
+      <h2>Merhaba {{hr_name}},</h2>
+      <p><b>{{company_name}}</b> verilerinde <b>{{dimension}}</b> boyutunda kritik bir skor düşüşü tespit edildi. Bu durum çalışan esenliği için dikkat gerektiriyor olabilir.</p>
+      
+      <div class="metric">
+        <span class="number">{{score}}/100</span>
+        <span class="label">Güncel {{dimension}} Skoru</span>
+      </div>
+
+      <p>Önceki dönem skoru <b>{{previous_score}}</b> olarak kaydedilmişti. Detaylı analizi ve olası nedenleri dashboard üzerinden inceleyebilirsiniz:</p>
+
+      <div style="text-align: center;">
+        <a href="{{dashboard_link}}" class="btn">Dashboard'a Git →</a>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Wellbeing Platformu</p>
+      <p>Bu maili almak istemiyorsanız yöneticinizle iletişime geçin.</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,389 @@
+{
+  "menu": {
+    "overview": "Genel Bakış",
+    "departments": "Departmanlar",
+    "employees": "Çalışanlar",
+    "surveys": "Anketler",
+    "actions": "Aksiyonlar",
+    "segments": "Segmentasyon",
+    "reports": "Raporlar",
+    "ai": "AI Asistan",
+    "ai_assistant": "AI Asistan",
+    "campaigns": "Kampanyalar",
+    "logout": "Çıkış Yap"
+  },
+  "overview": {
+    "title": "Genel Bakış",
+    "subtitle": "{{company_name}} wellbeing durumu",
+    "score_card": {
+      "this_month": "Bu Ay",
+      "last_month": "Geçen Ay",
+      "sector_avg": "Sektör Ort.",
+      "above_sector": "Sektör ortalamasının üzerinde",
+      "below_sector": "Sektör ortalamasının altında",
+      "no_benchmark": "Karşılaştırma için yeterli sektör verisi yok"
+    },
+    "participation": {
+      "title": "Katılım Oranı",
+      "responded": "{{count}} çalışan yanıtladı",
+      "of_total": "{{total}} kişiden"
+    },
+    "risk_alerts": {
+      "title": "Risk Alarmları",
+      "no_alerts": "Tüm boyutlar normal seviyede",
+      "critical": "{{dimension}} boyutu kritik seviyede ({{score}})"
+    },
+    "ai_insight": {
+      "title": "AI Analizi",
+      "no_insight": "Bu dönem için henüz analiz yapılmadı.",
+      "generated": "{{date}} tarihinde oluşturuldu"
+    },
+    "trend": {
+      "title": "Son 6 Ay Trendi",
+      "select_dimension": "Boyut seçin"
+    },
+    "benchmark": {
+      "title": "Sektör Karşılaştırması",
+      "your_score": "Sizin Skorunuz",
+      "sector_avg": "Sektör Ortalaması",
+      "difference": "Fark",
+      "avg_suffix": "ortalaması",
+      "unavailable": "Sektörünüzden yeterli firma verisi henüz yok."
+    }
+  },
+  "departments": {
+    "title": "Departman Analizi",
+    "subtitle": "Departman bazlı wellbeing karşılaştırması",
+    "view_table": "Tablo",
+    "view_heatmap": "Isı Haritası",
+    "anonymity_note": "5'ten az yanıtı olan departmanlar gösterilmez",
+    "columns": {
+      "department": "Departman",
+      "employees": "Çalışan",
+      "overall": "Genel",
+      "physical": "Fiziksel",
+      "mental": "Zihinsel",
+      "social": "Sosyal",
+      "financial": "Finansal",
+      "work": "İş&Anlam",
+      "status": "Durum"
+    },
+    "detail": {
+      "title": "Departman Detayı",
+      "trend": "6 Aylık Trend",
+      "questions": "Soru Bazlı Dağılım",
+      "create_action": "Aksiyon Oluştur"
+    },
+    "manage": {
+      "title": "Departman Yönetimi",
+      "subtitle": "Şirket yapısını ve departmanları yönetin.",
+      "new": "Yeni Departman",
+      "search": "Departman ara...",
+      "no_results": "Aramanızla eşleşen departman bulunamadı.",
+      "empty": "Henüz departman eklenmemiş.",
+      "created": "Departman oluşturuldu",
+      "create_error": "Bu departman adı zaten var",
+      "updated": "Departman güncellendi",
+      "deleted": "Departman silindi",
+      "users_moved": "Çalışanlar taşındı",
+      "edit_title": "Departmanı Düzenle",
+      "dept_name": "Departman Adı",
+      "move_users": "Çalışan Taşı",
+      "move_hint": "{{dept_name}} departmanındaki tüm çalışanlar taşınacak.",
+      "target_dept": "Hedef Departman",
+      "move_action": "Taşı",
+      "delete_title": "Departmanı Sil",
+      "delete_warning_title": "Departman Silinemez",
+      "delete_warning_desc": "Bu departmanda {{count}} çalışan var. Silmeden önce çalışanları taşıyın.",
+      "delete_confirm_title": "Silmek istediğinize emin misiniz?",
+      "delete_confirm_desc": "{{name}} departmanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+      "info_error": "Departman bilgisi alınamadı",
+      "name_placeholder": "Örn: Pazarlama"
+    }
+  },
+  "employees": {
+    "title": "Çalışan Yönetimi",
+    "subtitle": "Çalışanları davet et ve yönet",
+    "search_placeholder": "İsim veya e-posta ara...",
+    "filter_department": "Departman",
+    "filter_seniority": "Kıdem",
+    "filter_status": "Durum",
+    "invite_single": "Tekil Davet",
+    "invite_csv": "CSV Yükle",
+    "columns": {
+      "name": "Ad Soyad",
+      "email": "E-posta",
+      "department": "Departman",
+      "position": "Pozisyon",
+      "seniority": "Kıdem",
+      "location": "Konum",
+      "language": "Dil",
+      "invite_status": "Davet Durumu",
+      "survey_count": "Anket",
+      "actions": "İşlemler"
+    },
+    "invite_status": {
+      "invited": "Davet Gönderildi",
+      "active": "Hesap Aktif",
+      "expired": "Süresi Doldu",
+      "token_sent": "Link Gönderildi"
+    },
+    "actions": {
+      "edit": "Düzenle",
+      "resend": "Davet Yenile",
+      "deactivate": "Devre Dışı Bırak",
+      "activate": "Aktifleştir"
+    },
+    "invite_modal": {
+      "title": "Çalışan Davet Et",
+      "email": "E-posta",
+      "full_name": "Ad Soyad",
+      "department": "Departman",
+      "position": "Pozisyon",
+      "location": "Konum",
+      "seniority": "Kıdem",
+      "age_group": "Yaş Grubu",
+      "gender": "Cinsiyet",
+      "start_date": "Başlangıç Tarihi",
+      "language": "Dil",
+      "submit": "Davet Gönder",
+      "success": "Davet başarıyla gönderildi."
+    },
+    "csv_modal": {
+      "title": "Toplu CSV Yükle",
+      "step1_title": "CSV Formatı",
+      "step1_desc": "Aşağıdaki formatta hazırlayın:",
+      "download_template": "Şablon İndir",
+      "step2_title": "Dosya Yükle",
+      "step3_title": "Sonuç",
+      "success_count": "{{count}} çalışan başarıyla eklendi",
+      "error_count": "{{count}} satırda hata var",
+      "errors_title": "Hatalar",
+      "error_row": "Satır {{row}}"
+    }
+  },
+  "surveys": {
+    "title": "Anket Takibi",
+    "subtitle": "Devam eden ve tamamlanan anketlerin katılım oranları ve sonuçları.",
+    "no_distribution": "Bu anket için henüz dağıtım yapılmadı.",
+    "participation_status": "Katılım Durumu",
+    "distributed": "Dağıtım Yapıldı",
+    "view_results": "Sonuçları Gör",
+    "start_distribution": "Dağıtım Başlat",
+    "campaign_details": "Kampanya Detayları",
+    "no_active_survey": "Şu an aktif bir anket bulunmuyor.",
+    "past_surveys": "Geçmiş Anketler",
+    "survey_title": "Anket Başlığı",
+    "no_past_surveys": "Geçmiş anket bulunamadı.",
+    "active": "Aktif Anketler",
+    "completed": "Tamamlanan Anketler",
+    "new_survey": "Yeni Anket Oluştur",
+    "columns": {
+      "title": "Başlık",
+      "type": "Tip",
+      "period": "Dönem",
+      "participation": "Katılım",
+      "avg_score": "Ort. Skor",
+      "due_date": "Son Tarih",
+      "status": "Durum"
+    },
+    "results": {
+      "title": "Anket Sonuçları",
+      "participation_rate": "Katılım Oranı",
+      "dimension_scores": "Boyut Skorları",
+      "question_distribution": "Soru Dağılımı",
+      "open_answers": "Açık Yanıtlar",
+      "ai_summary": "AI Özeti",
+      "no_open_answers": "Açık uçlu soru yanıtı yok."
+    }
+  },
+  "actions": {
+    "title": "Aksiyon Merkezi",
+    "subtitle": "Wellbeing iyileştirme aksiyonları",
+    "new_action": "Yeni Aksiyon",
+    "suggestions_title": "AI Önerileri",
+    "suggestions_subtitle": "Düşük skorlu boyutlar için önerilen aksiyonlar",
+    "create_action": "Aksiyon Oluştur",
+    "existing_action": "Aksiyon mevcut",
+    "columns": {
+      "planned": "Planlandı",
+      "in_progress": "Devam Ediyor",
+      "completed": "Tamamlandı"
+    },
+    "card": {
+      "dimension": "Boyut",
+      "department": "Departman",
+      "due_date": "Son Tarih",
+      "content": "İçerik",
+      "update_status": "Durum Güncelle"
+    },
+    "create_modal": {
+      "title": "Yeni Aksiyon Oluştur",
+      "action_title": "Başlık",
+      "description": "Açıklama",
+      "dimension": "Boyut",
+      "department": "Departman",
+      "content": "İlgili İçerik",
+      "due_date": "Son Tarih",
+      "submit": "Aksiyon Oluştur",
+      "success": "Aksiyon oluşturuldu."
+    }
+  },
+  "segments": {
+    "title": "Segmentasyon Analizi",
+    "subtitle": "Çalışan grupları bazında wellbeing karşılaştırması",
+    "tabs": {
+      "location": "Lokasyon",
+      "seniority": "Kıdem",
+      "age_group": "Yaş Grubu",
+      "gender": "Cinsiyet"
+    },
+    "anonymity_note": "5'ten az yanıtı olan segmentler gizlenir",
+    "insight_prefix": "💡",
+    "no_data": "Bu segment için yeterli veri yok."
+  },
+  "reports": {
+    "title": "Raporlar",
+    "subtitle": "PDF veya Excel formatında indirin",
+    "create_title": "Yeni Rapor Oluştur",
+    "period": "Dönem",
+    "format": "Format",
+    "language": "Rapor Dili",
+    "create": "Rapor Oluştur",
+    "creating": "Rapor hazırlanıyor...",
+    "email_notice": "Hazır olduğunda mail ile bildirileceksiniz.",
+    "contents_title": "Rapor İçeriği",
+    "contents": [
+      "Kapak Sayfası",
+      "Yönetici Özeti",
+      "5 Boyut Detayı ve Grafikler",
+      "Departman Karşılaştırma Tablosu",
+      "Çalışan Sesi (AI Özeti)",
+      "Aksiyon Planı"
+    ]
+  },
+  "ai": {
+    "title": "AI Asistan",
+    "subtitle": "Verileriniz hakkında sorular sorun",
+    "chat": {
+      "placeholder": "Verileriniz hakkında soru sorun...",
+      "agent_name": "İK Veri Asistanı",
+      "clear": "SOHBETİ TEMİZLE",
+      "welcome": "Merhaba! Şirketinizin esenlik verileriyle ilgili size nasıl yardımcı olabilirim? Departman analizleri yapabilir veya trendleri yorumlayabilirim.",
+      "mock_response": "Analizime göre Yazılım departmanındaki stres seviyesi son 3 ayda %15 arttı. Bu durum genellikle son teslim tarihlerine yakın dönemlerde pik yapıyor. İlgili ekibe esnek çalışma saatleri veya mindfulness seansları önerebilirim.",
+      "send": "Gönder",
+      "clear_btn": "Temizle",
+      "thinking": "Analiz ediliyor...",
+      "error": "Yanıt alınamadı. Lütfen tekrar deneyin.",
+      "example_questions": [
+        "Bu ay zihinsel skor neden düştü?",
+        "En riskli departman hangisi?",
+        "Hangi aksiyonlar en etkili oldu?",
+        "Remote çalışanların durumu nasıl?"
+      ],
+      "examples": {
+        "why_score_dropped": "Bu ay neden skor düştü?",
+        "risky_dept": "En riskli departman hangisi?",
+        "wellbeing_trend": "Esenlik trendimiz nasıl?"
+      }
+    },
+    "insights": {
+      "title": "AI Analizleri",
+      "recent_title": "Son Analizler",
+      "empty_hint": "Daha fazla analiz için yeni bir anket tamamlanmalı",
+      "filter": "Analiz Tipi",
+      "no_insights": "Henüz analiz yok.",
+      "types": {
+        "open_text_summary": "Metin Özeti",
+        "risk_alert": "Risk Uyarısı",
+        "trend_analysis": "Trend Analizi",
+        "action_suggestion": "Aksiyon Önerisi"
+      },
+      "mock": {
+        "risk_text": "Yazılım departmanı stres seviyesi kritik seviyeye ulaştı.",
+        "trend_text": "Sosyal etkileşim skorları şirket genelinde %12 artış gösterdi."
+      }
+    }
+  },
+  "campaigns": {
+    "new_distribution": "Yeni Dağıtım",
+    "scheduled": "Zamanlandı",
+    "sending": "Gönderiliyor",
+    "sent": "Gönderildi",
+    "cancelled": "İptal Edildi",
+    "sent_short": "Gönder.",
+    "open_rate": "Açılma",
+    "click_rate": "Tıklama",
+    "completion_short": "Tamam.",
+    "remind_confirm": "Anketi tamamlamayanlara hatırlatma gönderilsin mi?",
+    "remind": "Hatırlat",
+    "no_campaigns": "Henüz kampanya yok",
+    "no_campaigns_desc": "Anketlerinizi çalışanlarınıza ulaştırmak için yeni bir dağıtım başlatın.",
+    "create_first": "İlk Dağıtımı Oluştur",
+    "title": "Kampanya Yönetimi",
+    "subtitle": "Anket dağıtım kampanyalarını yönetin",
+    "new": "Yeni Dağıtım",
+    "metrics": {
+      "sent": "Gönderilen",
+      "open_rate": "Açılma Oranı",
+      "click_rate": "Tıklama Oranı",
+      "completion_rate": "Tamamlama Oranı"
+    },
+    "remind_success": "Hatırlatma gönderildi.",
+    "cancel": "Kampanyayı İptal Et",
+    "cancel_confirm": "Bu kampanyayı iptal etmek istiyor musunuz?",
+    "wizard": {
+      "step1": "Anket Seç",
+      "step2": "Alıcılar",
+      "step3": "Zamanlama",
+      "select_survey": "Anket seçin",
+      "use_existing_list": "Mevcut Listeyi Kullan",
+      "upload_new_csv": "Yeni CSV Yükle",
+      "existing_count": "{{count}} çalışan bu listede",
+      "send_now": "Hemen Gönder",
+      "schedule": "Zamanla",
+      "schedule_date": "Gönderim Tarihi",
+      "summary": "Özet",
+      "submit": "Gönder / Zamanla",
+      "success": "Kampanya oluşturuldu."
+    },
+    "detail": {
+      "title": "Kampanya Detayı",
+      "time_chart": "Zaman İçinde Açılmalar",
+      "trend_title": "Etkileşim Trendi",
+      "trend_opened": "AÇILMA",
+      "trend_completed": "TAMAMLANMA",
+      "distribution_chart": "Alıcı Durumu Dağılımı",
+      "distribution_title": "Durum Dağılımı",
+      "log_title": "Alıcı Detayları",
+      "filter_all": "Tüm Durumlar",
+      "filter_completed": "Tamamladı",
+      "filter_not_completed": "Tamamlamadı",
+      "filter_bounced": "Bounce",
+      "metrics": {
+        "sent": "Gönderilen",
+        "sent_sub": "Kişi",
+        "open_rate": "Açılma Oranı",
+        "open_sub": "{{count}} kişi açtı",
+        "click_rate": "Tıklama Oranı",
+        "click_sub": "{{count}} kişi tıkladı",
+        "completion_rate": "Tamamlama Oranı",
+        "completion_sub": "{{count}} kişi bitirdi"
+      },
+      "columns": {
+        "email": "E-posta",
+        "status": "Durum",
+        "opened": "Açıldı",
+        "clicked": "Tıkladı",
+        "completed": "Tamamladı",
+        "bounce_reason": "Bounce Nedeni",
+        "bounce_hint": "Mail adresi geçersiz veya posta kutusu dolu."
+      },
+      "actions": {
+        "remind": "Hatırlatma Gönder",
+        "remind_success": "Hatırlatma kampanyası oluşturuldu.",
+        "download_report": "Rapor İndir"
+      }
+    }
+  }
+}

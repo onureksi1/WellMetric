@@ -1,0 +1,90 @@
+{
+  "welcome": {
+    "title": "Wellbeing Survey",
+    "greeting": "Hello {{name}}! 👋",
+    "intro": "We kindly ask you to fill out this period's wellbeing survey on behalf of {{company_name}}.",
+    "duration": "~{{minutes}} minutes",
+    "anonymous": "Anonymous",
+    "sections": "{{count}} Sections",
+    "start": "Start Survey →",
+    "continue_draft": "You have a partially completed survey",
+    "continue": "Continue",
+    "restart": "Start Over"
+  },
+  "progress": {
+    "section": "{{current}}/{{total}}",
+    "completed_sections": "{{count}} sections completed",
+    "questions_answered": "{{answered}}/{{total}} questions answered"
+  },
+  "navigation": {
+    "previous": "← Previous Section",
+    "next": "Next Section →",
+    "submit": "Submit Survey"
+  },
+  "question": {
+    "required": "Answer this question",
+    "optional": "Optional",
+    "characters_remaining": "{{count}}/{{max}} characters",
+    "open_text_placeholder": "Share your thoughts... (optional)",
+    "number_hint": "Min: {{min}} — Max: {{max}}",
+    "rank_hint": "Rank by priority (most important on top)",
+    "select_all_that_apply": "Select all that apply",
+    "nps_low": "Not likely at all",
+    "nps_high": "Extremely likely"
+  },
+  "likert_labels": {
+    "1": "Strongly disagree",
+    "2": "Disagree",
+    "3": "Neutral",
+    "4": "Agree",
+    "5": "Strongly agree"
+  },
+  "yes_no": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "confirmation": {
+    "title": "You are about to submit the survey",
+    "answered": "{{count}} questions answered",
+    "skipped": "{{count}} questions skipped (optional)",
+    "review": "← Review",
+    "submit": "Submit ✓"
+  },
+  "submitting": "Your answers are being saved...",
+  "success": {
+    "title": "Thanks {{name}}! 🎉",
+    "message": "You have successfully completed the wellbeing survey.",
+    "impact": "Your contribution will add value to your company's wellbeing journey. 🌱",
+    "anonymous_note": "Your answers will be processed anonymously.",
+    "close": "Close Page"
+  },
+  "errors": {
+    "token_invalid": "Invalid survey link. Please check your email.",
+    "token_used": "You have already filled out this survey. Thank you for your participation! ✅",
+    "token_expired": "This survey link has expired. Please contact your HR department. ⏰",
+    "submit_failed": "Survey could not be submitted. Please try again.",
+    "contact_hr": "You can contact your HR department for any questions."
+  },
+  "dimensions": {
+    "physical": {
+      "title": "Physical Wellbeing",
+      "description": "This section has questions about your energy, sleep, and general health status."
+    },
+    "mental": {
+      "title": "Mental & Emotional Wellbeing",
+      "description": "Questions about stress, focus, and emotional balance."
+    },
+    "social": {
+      "title": "Social & Relational Wellbeing",
+      "description": "Questions about team harmony, belonging, and support."
+    },
+    "financial": {
+      "title": "Financial Wellbeing",
+      "description": "Questions about financial security and satisfaction."
+    },
+    "work": {
+      "title": "Work & Meaning",
+      "description": "Questions about work meaning, career growth, and balance."
+    }
+  }
+}

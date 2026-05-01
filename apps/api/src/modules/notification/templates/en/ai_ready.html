@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: linear-gradient(135deg, #2E865A 0%, #6D28D9 100%); padding: 24px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #2E865A; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+    .ai-badge { display: inline-block; background: #EDE9FE; color: #6D28D9; padding: 4px 12px; border-radius: 99px; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🤖 AI Analysis Ready</h1>
+    </div>
+    <div class="body">
+      <div class="ai-badge">Artificial Intelligence Insights</div>
+      <h2>Hello {{hr_name}},</h2>
+      <p>The data for <b>{{company_name}}</b> for the <b>{{period}}</b> period has been analyzed by AI. In-depth insights and action suggestions to assist your strategic decisions are ready.</p>
+      
+      <p>The AI analysis includes:</p>
+      <ul style="padding-left: 20px; color: #555;">
+        <li>Department-based risk analysis</li>
+        <li>Trend predictions</li>
+        <li>Personalized improvement suggestions</li>
+      </ul>
+
+      <div style="text-align: center;">
+        <a href="{{dashboard_link}}" class="btn">View Analysis →</a>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Wellbeing Platform</p>
+      <p>If you do not wish to receive these emails, please contact your administrator.</p>
+    </div>
+  </div>
+</body>
+</html>

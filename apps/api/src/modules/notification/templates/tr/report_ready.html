@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: #2E865A; padding: 24px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #2E865A; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+    .alert { background: #f8fafc; border-left: 4px solid #cbd5e1; padding: 12px; margin: 16px 0; font-size: 13px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📑 Raporunuz Hazır</h1>
+    </div>
+    <div class="body">
+      <h2>Merhaba {{hr_name}},</h2>
+      <p>Talep ettiğiniz <b>{{period}}</b> dönemine ait <b>{{format}}</b> formatındaki wellbeing raporu başarıyla oluşturuldu.</p>
+      
+      <div style="text-align: center;">
+        <a href="{{download_link}}" class="btn">Raporu İndir →</a>
+      </div>
+
+      <div class="alert">
+        <p>⚠️ Güvenlik nedeniyle bu indirme bağlantısı <b>{{expires_in}}</b> (15 dakika) süreyle geçerlidir.</p>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Wellbeing Platformu</p>
+      <p>Bu maili almak istemiyorsanız yöneticinizle iletişime geçin.</p>
+    </div>
+  </div>
+</body>
+</html>

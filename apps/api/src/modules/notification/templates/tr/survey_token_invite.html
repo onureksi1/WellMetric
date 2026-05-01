@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: #2E865A; padding: 24px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #2E865A; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+    .metric-container { display: flex; justify-content: space-between; gap: 10px; margin: 24px 0; }
+    .metric-box { flex: 1; background: #f0fdf4; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #dcfce7; }
+    .metric-box span { display: block; font-size: 10px; color: #888; font-weight: bold; text-transform: uppercase; }
+    .metric-box b { font-size: 14px; color: #2E865A; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌱 Wellbeing Platformu</h1>
+    </div>
+    <div class="body">
+      <h2>Merhaba {{full_name}},</h2>
+      <p><b>{{company_name}}</b> adına bu dönem wellbeing anketini doldurmanızı rica ediyoruz. Cevaplarınız, şirketinizdeki çalışma ortamını ve esenliği iyileştirmemize yardımcı olacaktır.</p>
+      
+      <div class="metric-container">
+        <div class="metric-box">
+          <span>Süre</span>
+          <b>~{{estimated_minutes}} Dakika</b>
+        </div>
+        <div class="metric-box">
+          <span>Güvenlik</span>
+          <b>%100 Anonim</b>
+        </div>
+        <div class="metric-box">
+          <span>Son Tarih</span>
+          <b>{{due_date}}</b>
+        </div>
+      </div>
+
+      <div style="text-align: center;">
+        <a href="{{survey_link}}" class="btn">Ankete Başla →</a>
+      </div>
+      
+      <p style="font-size: 13px; color: #666; font-style: italic; text-align: center;">"Verileriniz tamamen anonim tutulur ve kişisel cevaplarınız yöneticilerle paylaşılmaz."</p>
+    </div>
+    <div class="footer">
+      <p>Wellbeing Platformu</p>
+      <p>Bu maili almak istemiyorsanız yöneticinizle iletişime geçin.</p>
+    </div>
+  </div>
+</body>
+</html>

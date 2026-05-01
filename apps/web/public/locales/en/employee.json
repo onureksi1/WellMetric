@@ -1,0 +1,53 @@
+{
+  "me": {
+    "title": "My Wellbeing Status",
+    "greeting": "Hello {{name}} 👋",
+    "subtitle": "{{position}} · {{company}}",
+    "score_card": {
+      "title": "Your Wellbeing Score This Month",
+      "vs_last_month": "vs last month"
+    },
+    "strongest": "Your strongest area",
+    "needs_attention": "We suggest you pay attention to"
+  },
+  "pending_surveys": {
+    "title": "Pending Surveys",
+    "due_date": "Due date: {{date}}",
+    "duration": "~{{minutes}} minutes",
+    "start": "Fill Out Survey →",
+    "no_pending": "You have no pending surveys at the moment. ✓",
+    "throttled": "You have completed your survey for this month.",
+    "next_survey": "Next survey: {{date}}"
+  },
+  "content": {
+    "title": "Recommendations for You",
+    "subtitle": "Personalized content based on wellbeing dimensions",
+    "go_to": "Go to Source →",
+    "no_content": "No recommendations at the moment."
+  },
+  "history": {
+    "title": "My Survey History",
+    "columns": {
+      "survey": "Survey",
+      "date": "Date",
+      "score": "Your Score",
+      "detail": "Detail"
+    },
+    "detail_modal": {
+      "title": "Survey Detail",
+      "your_score": "Your Score",
+      "trend": "Trend"
+    },
+    "no_history": "No completed surveys yet."
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "full_name": "Full Name",
+    "language": "Interface Language",
+    "notifications": "Notification Preferences",
+    "notification_survey": "Survey invitations",
+    "notification_reminder": "Reminders",
+    "save": "Save",
+    "success": "Profile updated."
+  }
+}

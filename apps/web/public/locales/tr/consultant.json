@@ -1,0 +1,201 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "companies": "Firmalarım",
+    "surveys": "Anketler",
+    "reports": "Raporlar",
+    "ai": "AI Analiz",
+    "settings": "Ayarlar",
+    "logout": "Çıkış Yap"
+  },
+  "dashboard": {
+    "title": "Eğitmen Paneli",
+    "subtitle": "Hoş geldiniz, bugün firmalarınızın durumu nasıl?",
+    "plan_usage": "{{used}}/{{max}} Firma",
+    "upgrade_plan": "Plan Yükselt",
+    "metrics": {
+      "total_companies": "Toplam Firma",
+      "total_employees": "Toplam Çalışan",
+      "avg_wellbeing_score": "Ort. Skor",
+      "participation_rate": "Katılım Oranı",
+      "active_surveys": "Aktif Anket",
+      "risk_alerts": "Risk Alarmı"
+    },
+    "comparison_table": "Firma Karşılaştırması",
+    "health_map": "Sağlık Haritası",
+    "risk_alerts": "Risk Alarmları",
+    "no_alerts": "Tüm firmalar normal seviyede",
+    "view_all": "Tümünü Gör"
+  },
+  "companies": {
+    "title": "Firmalarım",
+    "subtitle": "Müşteri firmalarınızı yönetin",
+    "new": "Yeni Firma Ekle",
+    "limit_reached": "Plan limitinize ulaştınız",
+    "search_placeholder": "Firma ara...",
+    "columns": {
+      "name": "Firma",
+      "score": "Skor",
+      "change": "Değişim",
+      "participation": "Katılım",
+      "employees": "Çalışan",
+      "last_survey": "Son Anket",
+      "status": "Durum",
+      "actions": "İşlemler"
+    },
+    "status": {
+      "healthy": "Sağlıklı",
+      "at_risk": "Riskli",
+      "critical": "Kritik",
+      "new": "Yeni"
+    },
+    "create": {
+      "title": "Yeni Firma Ekle",
+      "company_name": "Firma Adı",
+      "industry": "Sektör",
+      "size_band": "Büyüklük",
+      "contact_email": "İletişim E-postası",
+      "hr_admin_email": "HR Admin E-postası",
+      "hr_admin_name": "HR Admin Adı",
+      "default_language": "Varsayılan Dil",
+      "submit": "Firma Oluştur ve HR Davet Et",
+      "success": "Firma oluşturuldu, HR Admin davet edildi."
+    }
+  },
+  "surveys": {
+    "title": "Anket Yönetimi",
+    "subtitle": "Anketleri firmalarınıza atayın",
+    "assign": "Anket Ata",
+    "select_survey": "Anket Seçin",
+    "select_companies": "Firmalar",
+    "period": "Dönem",
+    "due_date": "Son Tarih",
+    "link_duration": "Link Süresi",
+    "submit": "Ata",
+    "success": "Anket atandı.",
+    "history": "Geçmiş Atamalar"
+  },
+  "reports": {
+    "title": "Raporlar",
+    "subtitle": "Karşılaştırmalı raporlar oluşturun",
+    "comparative": "Karşılaştırmalı Rapor",
+    "select_companies": "Firmalar Seçin",
+    "period": "Dönem",
+    "format": "Format",
+    "create": "Rapor Oluştur",
+    "email_notice": "Hazır olunca mail ile bildirilir",
+    "history": "Geçmiş Raporlar",
+    "download": "İndir",
+    "auto_reporting": "Otomatik Raporlama",
+    "auto_reporting_desc": "Firmalarınız için periyodik raporları otomatikleştirin. Her çeyrek başında raporlarınız hazır olsun."
+  },
+  "ai": {
+    "title": "AI Analiz",
+    "subtitle": "Karşılaştırmalı AI analizleri",
+    "comparative_title": "Karşılaştırmalı Analiz",
+    "select_companies": "Firmalar Seçin",
+    "period": "Dönem",
+    "start": "Analiz Başlat",
+    "intelligence_report": "İstihbarat Raporu",
+    "select_company": "Firma Seçin",
+    "generate": "Rapor Oluştur",
+    "generating": "Rapor hazırlanıyor..."
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "profile_title": "Profil Bilgileri",
+    "full_name": "Ad Soyad",
+    "email": "E-posta",
+    "language": "Dil",
+    "change_password": "Şifre Değiştir",
+    "save": "Kaydet",
+    "save_settings": "Ayarları Kaydet",
+    "cancel": "İptal",
+    "configure_settings": "Ayarları Yapılandır",
+    "delete": "Sil",
+    "success": "Ayarlar güncellendi.",
+    "plan_title": "Plan Bilgisi",
+    "plan_name": "Plan",
+    "companies_used": "Firma Kullanımı",
+    "employee_limit": "Çalışan Limiti/Firma",
+    "ai_enabled": "AI Özellikler",
+    "white_label": "White-label",
+    "valid_until": "Geçerlilik",
+    "upgrade": "Plan Yükselt",
+    "upgrade_message": "Plan yükseltme talebinizi ileteceğiz."
+  },
+  "billing": {
+    "title": "Faturalandırma & Plan",
+    "subtitle": "Aboneliğinizi, kredilerinizi ve harcamalarınızı yönetin",
+    "tabs": {
+      "subscription": "Abonelik",
+      "credits": "Krediler",
+      "purchase": "Ek Kredi Al",
+      "invoices": "Faturalar",
+      "usage": "Kullanım"
+    },
+    "subscription": {
+      "active_plan": "Aktif Plan",
+      "free_plan": "Ücretsiz Plan",
+      "no_subscription": "Henüz bir aboneliğiniz yok",
+      "current_status": "Mevcut Durum",
+      "expiry_date": "Bitiş Tarihi",
+      "monthly_price": "Aylık Ücret",
+      "upgrade": "Planı Yükselt",
+      "cancel": "İptal Et",
+      "cancel_confirm": "Dönem sonuna kadar kullanabilirsiniz. İptal etmek istediğinizden emin misiniz?",
+      "cancel_success": "Abonelik dönem sonunda iptal edilecek",
+      "popular_packages": "Popüler Paketler",
+      "view_all": "Tümünü Gör",
+      "quick_buy": "Hızlı Kredi Yükle",
+      "quick_buy_desc": "İhtiyacın kadar kredi al"
+    },
+    "credits": {
+      "remaining": "kaldı",
+      "total": "toplam",
+      "used_this_month": "Bu ay kullanılan",
+      "renewal": "Yenileme",
+      "unlimited": "Sınırsız",
+      "low_credit": "Kredi Azalıyor!",
+      "out_of_credit": "Kredi Tükendi!",
+      "add_credits": "Kredi Ekle"
+    },
+    "purchase": {
+      "select_provider": "Ödeme Yöntemi Seçin",
+      "buy_now": "Satın Al"
+    },
+    "invoices": {
+      "no_records": "Fatura kaydı bulunamadı",
+      "columns": {
+        "id": "Fatura No",
+        "date": "Tarih",
+        "amount": "Tutar",
+        "status": "Durum",
+        "actions": "İşlem"
+      },
+      "status": {
+        "completed": "Ödendi",
+        "pending": "Bekliyor",
+        "failed": "Başarısız",
+        "refunded": "İade Edildi"
+      },
+      "download_pdf": "PDF İndir"
+    },
+    "usage": {
+      "summary": "Harcama Özeti",
+      "daily_trend": "Günlük Tüketim Trendi",
+      "by_company": "Firma Bazlı Dağılım",
+      "history": "İşlem Geçmişi",
+      "columns": {
+        "company": "Firma",
+        "ai": "AI Kredisi",
+        "mail": "Mail Kredisi",
+        "last_action": "Son İşlem",
+        "date": "Tarih",
+        "type": "Tür",
+        "amount": "Miktar",
+        "balance": "Bakiye"
+      }
+    }
+  }
+}

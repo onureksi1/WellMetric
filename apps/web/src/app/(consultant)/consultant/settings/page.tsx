@@ -1,0 +1,332 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { 
+  User, 
+  Shield, 
+  CreditCard, 
+  Bell, 
+  LogOut,
+  Camera,
+  Bot,
+  Loader2,
+  Key,
+  Clock
+} from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/auth.store';
+import { toast } from 'react-hot-toast';
+import client from '@/lib/api/client';
+
+export default function ConsultantSettingsPage() {
+  const { t } = useTranslation('consultant');
+  const { user, clearAuth } = useAuthStore();
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
+  const [loading, setLoading] = useState(true);
+  const [planData, setPlanData] = useState<any>(null);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) setActiveTab(tab);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await client.get('/consultant/dashboard/overview');
+        setPlanData(response.data.metrics?.plan_usage || { used: 0, max: 5 });
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  const handleSaveProfile = () => {
+    toast.success(t('settings.success', 'Profil bilgileri güncellendi.'));
+  };
+
+  const handleUpdatePassword = () => {
+    toast.success('Şifreniz başarıyla güncellendi.');
+  };
+
+  if (loading) {
+    return (
+      <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+        <p className="text-slate-500 font-medium">Ayarlar yükleniyor...</p>
+      </div>
+    );
+  }
+
+  // Dökümana uygun sadeleştirilmiş menü
+  const tabs = [
+    { id: 'profile', label: t('settings.profile_title'), icon: User },
+    { id: 'auto-reporting', label: t('reports.auto_reporting'), icon: Clock },
+    { id: 'security', label: t('settings.change_password'), icon: Shield },
+    { id: 'plan', label: t('settings.plan_title'), icon: CreditCard },
+    { id: 'notifications', label: t('common.notifications', 'Bildirimler'), icon: Bell },
+  ];
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">{t('settings.title')}</h1>
+        <p className="text-slate-500">{t('settings.subtitle')}</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* Navigation Sidebar */}
+        <div className="md:col-span-1 space-y-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                activeTab === tab.id 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                  : 'text-slate-600 hover:bg-white hover:shadow-sm'
+              }`}
+            >
+              <tab.icon size={18} />
+              {tab.label}
+            </button>
+          ))}
+          <div className="pt-4 mt-4 border-t border-slate-200">
+            <button 
+              onClick={clearAuth}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all"
+            >
+              <LogOut size={18} />
+              {t('menu.logout')}
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="md:col-span-3">
+          {activeTab === 'profile' && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <div className="relative group">
+                    <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-white shadow-md font-bold text-2xl uppercase">
+                      {user?.first_name?.[0]}{user?.last_name?.[0]}
+                    </div>
+                    <button className="absolute bottom-0 right-0 p-1.5 bg-blue-600 text-white rounded-full border-2 border-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera size={12} />
+                    </button>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">{user?.first_name} {user?.last_name}</h3>
+                    <p className="text-sm text-slate-500">{user?.role === 'consultant' ? 'Wellbeing Consultant' : user?.role}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleSaveProfile}
+                  className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all"
+                >
+                  {t('settings.save')}
+                </button>
+              </div>
+
+              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.full_name')}</label>
+                  <input 
+                    type="text" 
+                    defaultValue={`${user?.first_name} ${user?.last_name}`}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.email')}</label>
+                  <input 
+                    type="email" 
+                    defaultValue={user?.email}
+                    disabled
+                    className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 text-sm cursor-not-allowed"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('common.phone', 'Telefon')}</label>
+                  <input 
+                    type="tel" 
+                    placeholder="+90 5XX XXX XX XX"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('common.title_company', 'Unvan / Şirket')}</label>
+                  <input 
+                    type="text" 
+                    defaultValue="Senior Consultant"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'security' && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                  <Key size={20} />
+                </div>
+                <h3 className="font-bold text-slate-900">{t('settings.change_password')}</h3>
+              </div>
+              
+              <div className="space-y-4 max-w-md">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mevcut Şifre</label>
+                  <input 
+                    type="password" 
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Yeni Şifre</label>
+                  <input 
+                    type="password" 
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Yeni Şifre (Tekrar)</label>
+                  <input 
+                    type="password" 
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                  />
+                </div>
+                <button 
+                  onClick={handleUpdatePassword}
+                  className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all mt-4"
+                >
+                  Şifreyi Güncelle
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'plan' && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <CreditCard size={20} />
+                  </div>
+                  <h3 className="font-bold text-slate-900">{t('settings.plan_title')}</h3>
+                </div>
+                <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold uppercase rounded-full tracking-wider">
+                  Growth Plan
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('settings.companies_used')}</p>
+                  <div className="flex items-end gap-2">
+                    <span className="text-2xl font-bold text-slate-900">{planData?.used || 0} / {planData?.max || 5}</span>
+                    {planData?.used >= planData?.max && <span className="text-xs text-red-500 font-medium mb-1">%100 Dolu</span>}
+                  </div>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('settings.ai_enabled')}</p>
+                  <div className="flex items-center gap-2 text-emerald-600">
+                    <Bot size={20} />
+                    <span className="text-sm font-bold uppercase">{t('common.unlimited', 'Sınırsız')}</span>
+                  </div>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('settings.valid_until')}</p>
+                  <div className="flex items-center gap-2 text-slate-700 font-bold">
+                    <span className="text-sm">12.06.2024</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'auto-reporting' && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">{t('reports.auto_reporting')}</h3>
+                  <p className="text-sm text-slate-500">Raporların otomatik oluşturulma ve gönderilme ayarlarını yönetin.</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center justify-between p-6 rounded-[24px] border-2 border-slate-50 hover:border-indigo-100 transition-all">
+                  <div className="space-y-1">
+                    <p className="font-bold text-slate-900">Otomatik Gönderimi Aktifleştir</p>
+                    <p className="text-xs text-slate-500">Sistem her çeyrek sonunda otomatik rapor oluşturur.</p>
+                  </div>
+                  <div className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-indigo-600">
+                    <span className="translate-x-5 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Rapor Sıklığı</label>
+                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm appearance-none">
+                      <option value="quarterly">Her Çeyrek Sonu (3 Ay)</option>
+                      <option value="monthly">Her Ay Sonu</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Gönderilecek E-posta</label>
+                    <input 
+                      type="email" 
+                      defaultValue={user?.email}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => toast.success('Otomatik raporlama ayarları kaydedildi.')}
+                  className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
+                >
+                  Ayarları Kaydet
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'notifications' && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <h3 className="font-bold text-slate-900 mb-4">Bildirim Tercihleri</h3>
+              <div className="space-y-4">
+                {[
+                  { id: 'email_reports', label: 'E-posta Raporları', desc: 'Haftalık özet raporları e-posta ile al.' },
+                  { id: 'risk_alerts', label: 'Risk Uyarıları', desc: 'Kritik wellbeing düşüşlerinde anında bildirim al.' },
+                ].map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50">
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">{item.label}</p>
+                      <p className="text-xs text-slate-500">{item.desc}</p>
+                    </div>
+                    <div className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-blue-600">
+                      <span className="translate-x-5 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

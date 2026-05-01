@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: #2E865A; padding: 24px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #2E865A; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌱 Wellbeing Platformu</h1>
+    </div>
+    <div class="body">
+      <h2>Merhaba {{full_name}},</h2>
+      <p><b>{{company_name}}</b> sizi Wellbeing Platformuna davet etti! Bu platform üzerinden esenlik yolculuğunuza başlayabilir, anketlere katılabilir ve size özel önerilere ulaşabilirsiniz.</p>
+      <p>Hesabınızı oluşturmak ve platforma katılmak için aşağıdaki butona tıklayın:</p>
+      <div style="text-align: center;">
+        <a href="{{invite_link}}" class="btn">Hesabımı Oluştur →</a>
+      </div>
+      <p>Bu davet bağlantısı <b>{{expires_in}}</b> (72 saat) süresince geçerlidir.</p>
+      <p>Sizi aramızda görmekten mutluluk duyacağız.</p>
+    </div>
+    <div class="footer">
+      <p>Wellbeing Platformu</p>
+      <p>Bu maili almak istemiyorsanız yöneticinizle iletişime geçin.</p>
+    </div>
+  </div>
+</body>
+</html>

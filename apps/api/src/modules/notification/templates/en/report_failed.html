@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: #C0392B; padding: 24px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+    .error-box { background: #FFF0EE; border: 1px solid #FADBD8; padding: 24px; border-radius: 12px; text-align: center; margin: 24px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>❌ Report Generation Failed</h1>
+    </div>
+    <div class="body">
+      <h2>Hello {{hr_name}},</h2>
+      <p>We're sorry, but there was a technical issue while generating your <b>{{period}}</b> report in <b>{{format}}</b> format.</p>
+      
+      <div class="error-box">
+        <p style="margin: 0; color: #C0392B; font-weight: bold;">Report generation failed.</p>
+      </div>
+
+      <p>Please try again from the dashboard. If the problem persists, you can contact us at <b>{{support_email}}</b>.</p>
+    </div>
+    <div class="footer">
+      <p>Wellbeing Platform</p>
+      <p>If you do not wish to receive these emails, please contact your administrator.</p>
+    </div>
+  </div>
+</body>
+</html>

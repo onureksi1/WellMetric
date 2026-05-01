@@ -1,0 +1,350 @@
+{
+  "menu": {
+    "overview": "Overview",
+    "departments": "Departments",
+    "employees": "Employees",
+    "surveys": "Surveys",
+    "actions": "Actions",
+    "segments": "Segmentation",
+    "reports": "Reports",
+    "ai": "AI Assistant",
+    "campaigns": "Campaigns"
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "{{company_name}} wellbeing status",
+    "score_card": {
+      "this_month": "This Month",
+      "last_month": "Last Month",
+      "sector_avg": "Sector Avg.",
+      "above_sector": "Above sector average",
+      "below_sector": "Below sector average",
+      "no_benchmark": "Not enough sector data for comparison"
+    },
+    "participation": {
+      "title": "Participation Rate",
+      "responded": "{{count}} employees responded",
+      "of_total": "out of {{total}} people"
+    },
+    "risk_alerts": {
+      "title": "Risk Alerts",
+      "no_alerts": "All dimensions are at normal levels",
+      "critical": "{{dimension}} dimension is at critical level ({{score}})"
+    },
+    "ai_insight": {
+      "title": "AI Analysis",
+      "no_insight": "No analysis performed for this period yet.",
+      "generated": "Generated on {{date}}"
+    },
+    "trend": {
+      "title": "Last 6 Months Trend",
+      "select_dimension": "Select dimension"
+    },
+    "benchmark": {
+      "title": "Industry Comparison",
+      "your_score": "Your Score",
+      "sector_avg": "Sector Average",
+      "difference": "Difference",
+      "avg_suffix": "average",
+      "unavailable": "Not enough company data from your industry yet."
+    }
+  },
+  "departments": {
+    "title": "Department Analysis",
+    "subtitle": "Department-based wellbeing comparison",
+    "view_table": "Table",
+    "view_heatmap": "Heatmap",
+    "anonymity_note": "Departments with less than 5 responses are not shown",
+    "columns": {
+      "department": "Department",
+      "employees": "Employees",
+      "overall": "Overall",
+      "physical": "Physical",
+      "mental": "Mental",
+      "social": "Social",
+      "financial": "Financial",
+      "work": "Work & Meaning",
+      "status": "Status"
+    },
+    "detail": {
+      "title": "Department Detail",
+      "trend": "6 Month Trend",
+      "questions": "Question Based Distribution",
+      "create_action": "Create Action"
+    },
+    "manage": {
+      "title": "Department Management",
+      "subtitle": "Manage organizational structure and departments.",
+      "new": "New Department",
+      "search": "Search department...",
+      "no_results": "No departments matching your search found.",
+      "empty": "No departments added yet.",
+      "created": "Department created",
+      "create_error": "This department name already exists",
+      "updated": "Department updated",
+      "deleted": "Department deleted",
+      "users_moved": "Employees moved",
+      "edit_title": "Edit Department",
+      "dept_name": "Department Name",
+      "move_users": "Move Employees",
+      "move_hint": "All employees in the {{dept_name}} department will be moved.",
+      "target_dept": "Target Department",
+      "move_action": "Move",
+      "delete_title": "Delete Department",
+      "delete_warning_title": "Department Cannot Be Deleted",
+      "delete_warning_desc": "There are {{count}} employees in this department. Move employees before deleting.",
+      "delete_confirm_title": "Are you sure you want to delete?",
+      "delete_confirm_desc": "Are you sure you want to delete the {{name}} department? This action cannot be undone."
+    }
+  },
+  "employees": {
+    "title": "Employee Management",
+    "subtitle": "Invite and manage employees",
+    "search_placeholder": "Search name or email...",
+    "filter_department": "Department",
+    "filter_seniority": "Seniority",
+    "filter_status": "Status",
+    "invite_single": "Single Invite",
+    "invite_csv": "Upload CSV",
+    "columns": {
+      "name": "Full Name",
+      "email": "Email",
+      "department": "Department",
+      "position": "Position",
+      "seniority": "Seniority",
+      "location": "Location",
+      "language": "Language",
+      "invite_status": "Invite Status",
+      "survey_count": "Survey",
+      "actions": "Actions"
+    },
+    "invite_status": {
+      "invited": "Invite Sent",
+      "active": "Account Active",
+      "expired": "Expired",
+      "token_sent": "Link Sent"
+    },
+    "actions": {
+      "edit": "Edit",
+      "resend": "Resend Invite",
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "invite_modal": {
+      "title": "Invite Employee",
+      "email": "Email",
+      "full_name": "Full Name",
+      "department": "Department",
+      "position": "Position",
+      "location": "Location",
+      "seniority": "Seniority",
+      "age_group": "Age Group",
+      "gender": "Gender",
+      "start_date": "Start Date",
+      "language": "Language",
+      "submit": "Send Invite",
+      "success": "Invite sent successfully."
+    },
+    "csv_modal": {
+      "title": "Bulk Upload CSV",
+      "step1_title": "CSV Format",
+      "step1_desc": "Prepare in the following format:",
+      "download_template": "Download Template",
+      "step2_title": "Upload File",
+      "step3_title": "Result",
+      "success_count": "{{count}} employees added successfully",
+      "error_count": "Errors in {{count}} rows",
+      "errors_title": "Errors",
+      "error_row": "Row {{row}}"
+    }
+  },
+  "surveys": {
+    "title": "Survey Tracking",
+    "subtitle": "Participation rates and results of ongoing and completed surveys.",
+    "no_distribution": "No distribution has been made for this survey yet.",
+    "participation_status": "Participation Status",
+    "distributed": "Distributed",
+    "view_results": "View Results",
+    "start_distribution": "Start Distribution",
+    "campaign_details": "Campaign Details",
+    "no_active_survey": "There are no active surveys at the moment.",
+    "past_surveys": "Past Surveys",
+    "survey_title": "Survey Title",
+    "no_past_surveys": "No past surveys found.",
+    "active": "Active Surveys",
+    "completed": "Completed Surveys",
+    "new_survey": "Create New Survey",
+    "columns": {
+      "title": "Title",
+      "type": "Type",
+      "period": "Period",
+      "participation": "Participation",
+      "avg_score": "Avg. Score",
+      "due_date": "Due Date",
+      "status": "Status"
+    },
+    "results": {
+      "title": "Survey Results",
+      "participation_rate": "Participation Rate",
+      "dimension_scores": "Dimension Scores",
+      "question_distribution": "Question Distribution",
+      "open_answers": "Open Answers",
+      "ai_summary": "AI Summary",
+      "no_open_answers": "No open-ended question responses."
+    }
+  },
+  "actions": {
+    "title": "Action Center",
+    "subtitle": "Wellbeing improvement actions",
+    "new_action": "New Action",
+    "suggestions_title": "AI Suggestions",
+    "suggestions_subtitle": "Recommended actions for low scoring dimensions",
+    "create_action": "Create Action",
+    "existing_action": "Action exists",
+    "columns": {
+      "planned": "Planned",
+      "in_progress": "In Progress",
+      "completed": "Completed"
+    },
+    "card": {
+      "dimension": "Dimension",
+      "department": "Department",
+      "due_date": "Due Date",
+      "content": "Content",
+      "update_status": "Update Status"
+    },
+    "create_modal": {
+      "title": "Create New Action",
+      "action_title": "Title",
+      "description": "Description",
+      "dimension": "Dimension",
+      "department": "Department",
+      "content": "Related Content",
+      "due_date": "Due Date",
+      "submit": "Create Action",
+      "success": "Action created."
+    }
+  },
+  "segments": {
+    "title": "Segmentation Analysis",
+    "subtitle": "Wellbeing comparison by employee groups",
+    "tabs": {
+      "location": "Location",
+      "seniority": "Seniority",
+      "age_group": "Age Group",
+      "gender": "Gender"
+    },
+    "anonymity_note": "Segments with less than 5 responses are hidden",
+    "insight_prefix": "💡",
+    "no_data": "Not enough data for this segment."
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Download in PDF or Excel format",
+    "create_title": "Create New Report",
+    "period": "Period",
+    "format": "Format",
+    "language": "Report Language",
+    "create": "Create Report",
+    "creating": "Preparing report...",
+    "email_notice": "You will be notified by email when ready.",
+    "contents_title": "Report Content",
+    "contents": [
+      "Cover Page",
+      "Executive Summary",
+      "5 Dimension Details and Charts",
+      "Department Comparison Table",
+      "Voice of Employee (AI Summary)",
+      "Action Plan"
+    ]
+  },
+  "ai": {
+    "title": "AI Assistant",
+    "subtitle": "Ask questions about your data",
+    "chat": {
+      "placeholder": "Ask a question about your data...",
+      "send": "Send",
+      "clear": "Clear",
+      "thinking": "Analyzing...",
+      "error": "Could not get response. Please try again.",
+      "example_questions": [
+        "Why did mental score drop this month?",
+        "Which department is most at risk?",
+        "Which actions were most effective?",
+        "How is the status of remote employees?"
+      ]
+    },
+    "insights": {
+      "title": "AI Insights",
+      "filter": "Analysis Type",
+      "no_insights": "No insights yet.",
+      "types": {
+        "open_text_summary": "Text Summary",
+        "risk_alert": "Risk Alert",
+        "trend_analysis": "Trend Analysis",
+        "action_suggestion": "Action Suggestion"
+      }
+    }
+  },
+  "campaigns": {
+    "new_distribution": "New Distribution",
+    "scheduled": "Scheduled",
+    "sending": "Sending",
+    "sent": "Sent",
+    "cancelled": "Cancelled",
+    "sent_short": "Sent",
+    "open_rate": "Open Rate",
+    "click_rate": "Click Rate",
+    "completion_short": "Comp.",
+    "remind_confirm": "Send reminder to those who haven't completed the survey?",
+    "remind": "Remind",
+    "no_campaigns": "No campaigns yet",
+    "no_campaigns_desc": "Start a new distribution to reach your employees with your surveys.",
+    "create_first": "Create First Distribution",
+    "title": "Campaign Management",
+    "subtitle": "Manage survey distribution campaigns",
+    "new": "New Distribution",
+    "metrics": {
+      "sent": "Sent",
+      "open_rate": "Open Rate",
+      "click_rate": "Click Rate",
+      "completion_rate": "Completion Rate"
+    },
+    "remind_success": "Reminder sent.",
+    "cancel": "Cancel Campaign",
+    "cancel_confirm": "Do you want to cancel this campaign?",
+    "wizard": {
+      "step1": "Select Survey",
+      "step2": "Recipients",
+      "step3": "Scheduling",
+      "select_survey": "Select a survey",
+      "use_existing_list": "Use Existing List",
+      "upload_new_csv": "Upload New CSV",
+      "existing_count": "{{count}} employees in this list",
+      "send_now": "Send Now",
+      "schedule": "Schedule",
+      "schedule_date": "Sending Date",
+      "summary": "Summary",
+      "submit": "Send / Schedule",
+      "success": "Campaign created."
+    },
+    "detail": {
+      "title": "Campaign Detail",
+      "time_chart": "Opens Over Time",
+      "distribution_chart": "Recipient Status Distribution",
+      "log_title": "Individual Log",
+      "filter_all": "All",
+      "filter_completed": "Completed",
+      "filter_not_completed": "Not Completed",
+      "filter_bounced": "Bounce",
+      "columns": {
+        "email": "Email",
+        "status": "Status",
+        "opened": "Opened",
+        "clicked": "Clicked",
+        "completed": "Completed",
+        "bounce_reason": "Bounce Reason"
+      }
+    }
+  }
+}

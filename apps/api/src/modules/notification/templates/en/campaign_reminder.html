@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: #2E865A; padding: 24px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #2E865A; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+    .alert { background: #FFF3CD; border-left: 4px solid #E07B1A; padding: 16px; margin: 24px 0; text-align: center; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌱 Wellbeing Platform</h1>
+    </div>
+    <div class="body">
+      <h2>Hello {{full_name}},</h2>
+      <p>We noticed you haven't yet completed the <b>{{survey_title}}</b> survey for <b>{{company_name}}</b>. Sharing your views is very important to us.</p>
+      
+      <div class="alert">
+        <p style="margin: 0; font-weight: bold; color: #856404;">⏰ Time Left: {{days_remaining}} Days</p>
+      </div>
+
+      <p>Completing the survey only takes a few minutes. You can continue where you left off or start fresh:</p>
+
+      <div style="text-align: center;">
+        <a href="{{survey_link}}" class="btn">Complete Survey →</a>
+      </div>
+      
+      <p style="font-size: 13px; color: #666; font-style: italic; text-align: center;">"We remind you that your answers are completely anonymous and shape our wellbeing strategy."</p>
+    </div>
+    <div class="footer">
+      <p>Wellbeing Platform</p>
+      <p>If you do not wish to receive these emails, please contact your administrator.</p>
+    </div>
+  </div>
+</body>
+</html>

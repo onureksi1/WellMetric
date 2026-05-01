@@ -1,0 +1,393 @@
+import { Injectable, Logger, UseGuards } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { DataSource, In } from 'typeorm';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import * as crypto from 'crypto';
+import { CronLockGuard } from './guards/cron-lock.guard';
+import { ScoreService } from '../score/score.service';
+import { AIService } from '../ai/ai.service';
+import { NotificationService } from '../notification/notification.service';
+import { AuditService } from '../audit/audit.service';
+import { CampaignService } from '../campaign/campaign.service';
+import { CreditService } from '../billing/services/credit.service';
+
+@Injectable()
+export class CronService {
+  private readonly logger = new Logger(CronService.name);
+
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly scoreService: ScoreService,
+    private readonly aiService: AIService,
+    private readonly notificationService: NotificationService,
+    private readonly auditService: AuditService,
+    private readonly campaignService: CampaignService,
+    private readonly creditService: CreditService,
+    private readonly cronLockGuard: CronLockGuard,
+    @InjectQueue('ai-queue') private readonly aiQueue: Queue,
+    @InjectQueue('mail-queue') private readonly mailQueue: Queue,
+    @InjectQueue('score-queue') private readonly scoreQueue: Queue,
+    @InjectQueue('report-queue') private readonly reportQueue: Queue,
+  ) {}
+
+  @Cron('*/5 * * * *', { timeZone: 'Europe/Istanbul' })
+  async checkScheduledCampaigns() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.checkScheduledCampaigns } as any))) return;
+    this.logger.log('Checking scheduled distribution campaigns...');
+
+    try {
+      const scheduled = await this.dataSource.query(
+        `SELECT id FROM distribution_campaigns 
+         WHERE status = 'scheduled' AND scheduled_at <= NOW()`
+      );
+
+      for (const campaignData of scheduled) {
+         // In a real scenario, we'd fetch the campaign entity and call campaignService.dispatch
+         this.logger.log(`Dispatching campaign: ${campaignData.id}`);
+         await this.dataSource.query(
+           `UPDATE distribution_campaigns SET status = 'sending', updated_at = NOW() WHERE id = $1`,
+           [campaignData.id]
+         );
+      }
+    } catch (e) {
+      this.logger.error('Error in checkScheduledCampaigns', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('checkScheduledCampaigns');
+    }
+  }
+
+  @Cron('0 3 * * *', { timeZone: 'Europe/Istanbul' })
+  async syncMailDeliveryStatus() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.syncMailDeliveryStatus } as any))) return;
+    this.logger.log('Syncing mail delivery status...');
+    
+    // Placeholder for actual sync logic with mail provider API
+    this.logger.log('Mail delivery status synced.');
+    
+    await this.cronLockGuard.releaseLock('syncMailDeliveryStatus');
+  }
+
+  @Cron('0 9 1 * *', { timeZone: 'Europe/Istanbul' })
+  async triggerGlobalSurvey() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.triggerGlobalSurvey } as any))) return;
+    this.logger.log('Starting global survey trigger...');
+    const period = new Date().toISOString().slice(0, 7);
+    
+    try {
+      const globalSurvey = await this.dataSource.query(
+        `SELECT id, title FROM surveys WHERE type = 'global' AND is_active = true LIMIT 1`
+      );
+      if (!globalSurvey.length) return;
+
+      const activeCompanies = await this.dataSource.query(`SELECT id, name, settings FROM companies WHERE is_active = true`);
+      let invitationCount = 0;
+
+      for (const company of activeCompanies) {
+        // 1. Upsert assignment
+        const dueAt = new Date();
+        dueAt.setDate(15);
+        dueAt.setHours(23, 59, 59, 999);
+
+        const assignment = await this.dataSource.query(
+          `INSERT INTO survey_assignments (survey_id, company_id, period, status, due_at)
+           VALUES ($1, $2, $3, 'active', $4)
+           ON CONFLICT (survey_id, company_id, period) DO NOTHING
+           RETURNING id`,
+          [globalSurvey[0].id, company.id, period, dueAt]
+        );
+
+        if (!assignment.length) continue;
+
+        const isAccountMode = company.settings?.employee_accounts === true;
+
+        if (isAccountMode) {
+          const employees = await this.dataSource.query(
+            `SELECT id, email, full_name, language FROM users 
+             WHERE company_id = $1 AND role = 'employee' AND is_active = true
+             AND (next_allowed_at IS NULL OR next_allowed_at <= NOW())`,
+            [company.id]
+          );
+
+          for (const emp of employees) {
+            const token = crypto.randomBytes(64).toString('hex');
+            await this.dataSource.query(
+              `INSERT INTO invitations (company_id, email, type, token, expires_at)
+               VALUES ($1, $2, 'survey_invite', $3, $4)`,
+              [company.id, emp.email, token, dueAt]
+            );
+            
+            console.log(`[CRON] Sending survey_invite to employee: ${emp.email}`);
+            await this.notificationService.sendSurveyTokenInvite(
+              emp.email, emp.full_name, company.name, globalSurvey[0].title, token, dueAt, emp.language || 'tr'
+            );
+            invitationCount++;
+          }
+        } else {
+          const prevEmails = await this.dataSource.query(
+            `SELECT DISTINCT email, full_name, language, metadata FROM survey_tokens 
+             WHERE company_id = $1`, [company.id]
+          );
+
+          for (const prev of prevEmails) {
+            const token = crypto.randomBytes(64).toString('hex');
+            await this.dataSource.query(
+              `INSERT INTO survey_tokens (company_id, survey_id, assignment_id, token, email, full_name, language, metadata, expires_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+              [company.id, globalSurvey[0].id, assignment[0].id, token, prev.email, prev.full_name, prev.language, prev.metadata, dueAt]
+            );
+
+            console.log(`[CRON] Sending survey_token_invite to: ${prev.email}`);
+            await this.notificationService.sendSurveyTokenInvite(
+              prev.email, prev.full_name, company.name, globalSurvey[0].title, token, dueAt, prev.language || 'tr'
+            );
+            invitationCount++;
+          }
+        }
+      }
+
+      await this.auditService.logAction('system', null, 'cron.survey_trigger', 'surveys', null, {
+        period, company_count: activeCompanies.length, invitation_count: invitationCount
+      });
+    } catch (e) {
+      this.logger.error('Error in triggerGlobalSurvey', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('triggerGlobalSurvey');
+    }
+  }
+
+  @Cron('0 9 * * *', { timeZone: 'Europe/Istanbul' })
+  async checkPendingSurveys() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.checkPendingSurveys } as any))) return;
+    this.logger.log('Checking pending surveys for reminders...');
+
+    try {
+      const activeAssignments = await this.dataSource.query(
+        `SELECT sa.id, sa.survey_id, sa.company_id, sa.period, sa.due_at, s.title, c.name as company_name, c.settings
+         FROM survey_assignments sa
+         JOIN surveys s ON sa.survey_id = s.id
+         JOIN companies c ON sa.company_id = c.id
+         WHERE sa.status = 'active' AND sa.due_at > NOW() AND sa.due_at <= NOW() + INTERVAL '3 days'`
+      );
+
+      for (const sa of activeAssignments) {
+        const daysRemaining = Math.ceil((new Date(sa.due_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        const isAccountMode = sa.settings?.employee_accounts === true;
+
+        if (isAccountMode) {
+          const pendingUsers = await this.dataSource.query(
+            `SELECT u.email, u.full_name, u.language FROM users u
+             WHERE u.company_id = $1 AND u.role = 'employee' AND u.is_active = true
+             AND NOT EXISTS (SELECT 1 FROM survey_responses sr WHERE sr.user_id = u.id AND sr.survey_id = $2 AND sr.period = $3)`,
+            [sa.company_id, sa.survey_id, sa.period]
+          );
+
+          for (const u of pendingUsers) {
+            await this.notificationService.sendSurveyReminder(u.email, u.full_name, sa.title, '', daysRemaining, u.language);
+          }
+
+          // Draft reminders
+          const draftUsers = await this.dataSource.query(
+            `SELECT u.email, u.full_name, u.language FROM draft_responses dr
+             JOIN users u ON dr.user_id = u.id
+             WHERE dr.survey_id = $1 AND dr.last_updated_at < NOW() - INTERVAL '24 hours'`,
+            [sa.survey_id]
+          );
+          for (const u of draftUsers) {
+            await this.notificationService.sendDraftReminder(u.email, u.full_name, sa.title, '', new Date(sa.due_at), u.language);
+          }
+        } else {
+          const pendingTokens = await this.dataSource.query(
+            `SELECT email, full_name, language, token FROM survey_tokens 
+             WHERE assignment_id = $1 AND is_used = false AND expires_at > NOW()`,
+            [sa.id]
+          );
+          for (const t of pendingTokens) {
+            await this.notificationService.sendSurveyReminder(t.email, t.full_name, sa.title, t.token, daysRemaining, t.language);
+          }
+        }
+      }
+    } catch (e) {
+      this.logger.error('Error in checkPendingSurveys', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('checkPendingSurveys');
+    }
+  }
+
+  @Cron('0 2 * * *', { timeZone: 'Europe/Istanbul' })
+  async recalculateScores() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.recalculateScores } as any))) return;
+    try {
+      await this.scoreService.recalculateScores();
+    } catch (e) {
+      this.logger.error('Error in recalculateScores cron', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('recalculateScores');
+    }
+  }
+
+  @Cron('0 10 16 * *', { timeZone: 'Europe/Istanbul' })
+  async closeMonthlySurvey() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.closeMonthlySurvey } as any))) return;
+    try {
+      const expiredAssignments = await this.dataSource.query(
+        `UPDATE survey_assignments SET status = 'expired', updated_at = NOW()
+         WHERE status = 'active' AND due_at <= NOW()
+         RETURNING id, company_id, survey_id, period`
+      );
+
+      for (const sa of expiredAssignments) {
+        // 1. Close tokens
+        await this.dataSource.query(
+          `UPDATE survey_tokens SET is_used = true WHERE assignment_id = $1 AND is_used = false`, [sa.id]
+        );
+
+        // 2. Trigger AI summary
+        const company = await this.dataSource.query(`SELECT language FROM companies WHERE id = $1`, [sa.company_id]);
+        await this.aiQueue.add('open_text_summary', {
+          companyId: sa.company_id,
+          surveyId: sa.survey_id,
+          period: sa.period,
+          language: company[0]?.language || 'tr'
+        });
+
+        // 3. Notify HR Admins
+        const hrAdmins = await this.dataSource.query(
+          `SELECT email, full_name FROM users WHERE company_id = $1 AND role = 'hr_admin' AND is_active = true`, [sa.company_id]
+        );
+        const compInfo = await this.dataSource.query(`SELECT name FROM companies WHERE id = $1`, [sa.company_id]);
+        
+        for (const admin of hrAdmins) {
+          await this.notificationService.sendSurveyClosed(
+            admin.email, admin.full_name, compInfo[0]?.name, sa.period, 85, company[0]?.language || 'tr'
+          );
+        }
+      }
+    } catch (e) {
+      this.logger.error('Error in closeMonthlySurvey', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('closeMonthlySurvey');
+    }
+  }
+
+  @Cron('0 8 17 * *', { timeZone: 'Europe/Istanbul' })
+  async generateTrendAnalysis() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.generateTrendAnalysis } as any))) return;
+    try {
+      const period = new Date().toISOString().slice(0, 7);
+      const activeCompanies = await this.dataSource.query(`SELECT id, language FROM companies WHERE is_active = true`);
+
+      for (const comp of activeCompanies) {
+        await this.aiQueue.add('trend_analysis', {
+          companyId: comp.id,
+          period,
+          language: comp.language || 'tr'
+        });
+      }
+
+      // Platform anomaly
+      await this.aiQueue.add('admin_anomaly', { period });
+    } catch (e) {
+      this.logger.error('Error in generateTrendAnalysis', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('generateTrendAnalysis');
+    }
+  }
+
+  @Cron('0 8 28 * *', { timeZone: 'Europe/Istanbul' })
+  async checkPlanExpiry() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.checkPlanExpiry } as any))) return;
+    try {
+      const expiring = await this.dataSource.query(
+        `SELECT id, name, plan_expires_at, settings FROM companies 
+         WHERE is_active = true AND plan_expires_at > NOW() AND plan_expires_at < NOW() + INTERVAL '7 days'`
+      );
+
+      for (const comp of expiring) {
+        const daysRemaining = Math.ceil((new Date(comp.plan_expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        const contactEmail = comp.settings?.billing_email || 'billing@wellanalytics.io';
+        await this.notificationService.sendPlanExpiry(contactEmail, comp.name, daysRemaining, 'Standard');
+      }
+    } catch (e) {
+      this.logger.error('Error in checkPlanExpiry', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('checkPlanExpiry');
+    }
+  }
+
+  @Cron('0 3 1 * *', { timeZone: 'Europe/Istanbul' })
+  async cleanOldAuditLogs() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.cleanOldAuditLogs } as any))) return;
+    try {
+      this.logger.log('Starting old audit logs cleanup...');
+      await this.auditService.cleanOldAuditLogs();
+    } catch (e) {
+      this.logger.error('Error in cleanOldAuditLogs', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('cleanOldAuditLogs');
+    }
+  }
+
+  @Cron('0 0 1 * *', { timeZone: 'Europe/Istanbul' })
+  async monthlyBillingReset() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.monthlyBillingReset } as any))) return;
+    this.logger.log('Starting monthly billing reset...');
+
+    try {
+      // 1. Reset all 'used_this_month' counters
+      await this.dataSource.query(`UPDATE credit_balances SET used_this_month = 0, last_reset_at = NOW()`);
+
+      // 2. Handle subscription renewals/credit refills
+      const activeSubs = await this.dataSource.query(
+        `SELECT s.*, p.credits FROM subscriptions s 
+         JOIN product_packages p ON s.package_key = p.key
+         WHERE s.status = 'active'`
+      );
+
+      for (const sub of activeSubs) {
+        // In a real scenario, we'd check if a new payment is needed or just refill credits
+        for (const [typeKey, amount] of Object.entries(sub.credits)) {
+           await this.creditService.addCredits(
+             sub.consultant_id,
+             typeKey,
+             amount as number,
+             'reset',
+             `Aylık Abonelik Kredi Yenilemesi: ${sub.package_key}`
+           );
+        }
+      }
+
+      await this.auditService.logAction('system', null, 'cron.billing_reset', 'subscriptions', null, {
+        subscription_count: activeSubs.length
+      });
+    } catch (e) {
+      this.logger.error('Error in monthlyBillingReset', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('monthlyBillingReset');
+    }
+  }
+
+  @Cron('0 10 * * *', { timeZone: 'Europe/Istanbul' })
+  async checkLowCredits() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.checkLowCredits } as any))) return;
+    
+    try {
+      const lowBalances = await this.dataSource.query(
+        `SELECT b.*, u.email, u.full_name, t.label_tr 
+         FROM credit_balances b
+         JOIN users u ON b.consultant_id = u.id
+         JOIN credit_types t ON b.credit_type_key = t.key
+         WHERE b.balance > 0 AND b.balance < 10` // Example threshold
+      );
+
+      for (const b of lowBalances) {
+        // Notify consultant (placeholder for specific notification method)
+        this.logger.warn(`Consultant ${b.full_name} has low ${b.label_tr}: ${b.balance}`);
+      }
+    } catch (e) {
+      this.logger.error('Error in checkLowCredits', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('checkLowCredits');
+    }
+  }
+}

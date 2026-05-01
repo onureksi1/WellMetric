@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: #2E865A; padding: 24px; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #2E865A; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📝 Yarım Kalan Anketiniz</h1>
+    </div>
+    <div class="body">
+      <h2>Merhaba {{full_name}},</h2>
+      <p><b>{{survey_title}}</b> anketini yarıda bıraktığınızı fark ettik. Cevaplarınızın kaydedildiğini ve dilediğiniz zaman kaldığınız yerden devam edebileceğinizi hatırlatmak isteriz.</p>
+      
+      <p>Anketi tamamlamak için son tarih: <b>{{due_date}}</b></p>
+
+      <div style="text-align: center;">
+        <a href="{{survey_link}}" class="btn">Kaldığım Yerden Devam Et →</a>
+      </div>
+      
+      <p style="font-size: 13px; color: #666; font-style: italic; text-align: center;">"Sadece birkaç dakika ayırarak esenlik yolculuğunuza katkıda bulunabilirsiniz."</p>
+    </div>
+    <div class="footer">
+      <p>Wellbeing Platformu</p>
+      <p>Bu maili almak istemiyorsanız yöneticinizle iletişime geçin.</p>
+    </div>
+  </div>
+</body>
+</html>

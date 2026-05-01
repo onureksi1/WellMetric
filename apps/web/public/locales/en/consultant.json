@@ -1,0 +1,121 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "companies": "My Companies",
+    "surveys": "Surveys",
+    "reports": "Reports",
+    "ai": "AI Analysis",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Consultant Panel",
+    "subtitle": "Welcome back, how are your companies doing today?",
+    "plan_usage": "{{used}}/{{max}} Companies",
+    "upgrade_plan": "Upgrade Plan",
+    "metrics": {
+      "total_companies": "Total Companies",
+      "total_employees": "Total Employees",
+      "avg_wellbeing_score": "Avg. Score",
+      "participation_rate": "Participation Rate",
+      "active_surveys": "Active Surveys",
+      "risk_alerts": "Risk Alerts"
+    },
+    "comparison_table": "Company Comparison",
+    "health_map": "Health Map",
+    "risk_alerts": "Risk Alerts",
+    "no_alerts": "All companies are at normal levels",
+    "view_all": "View All"
+  },
+  "companies": {
+    "title": "My Companies",
+    "subtitle": "Manage your client companies",
+    "new": "Add New Company",
+    "limit_reached": "You have reached your plan limit",
+    "search_placeholder": "Search company...",
+    "columns": {
+      "name": "Company",
+      "score": "Score",
+      "change": "Change",
+      "participation": "Participation",
+      "employees": "Employees",
+      "last_survey": "Last Survey",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "healthy": "Healthy",
+      "at_risk": "At Risk",
+      "critical": "Critical",
+      "new": "New"
+    },
+    "create": {
+      "title": "Add New Company",
+      "company_name": "Company Name",
+      "industry": "Industry",
+      "size_band": "Size Band",
+      "contact_email": "Contact Email",
+      "hr_admin_email": "HR Admin Email",
+      "hr_admin_name": "HR Admin Name",
+      "default_language": "Default Language",
+      "submit": "Create Company & Invite HR",
+      "success": "Company created, HR Admin invited."
+    }
+  },
+  "surveys": {
+    "title": "Survey Management",
+    "subtitle": "Assign surveys to your companies",
+    "assign": "Assign Survey",
+    "select_survey": "Select Survey",
+    "select_companies": "Companies",
+    "period": "Period",
+    "due_date": "Due Date",
+    "link_duration": "Link Duration",
+    "submit": "Assign",
+    "success": "Survey assigned.",
+    "history": "Assignment History"
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Create comparative reports",
+    "comparative": "Comparative Report",
+    "select_companies": "Select Companies",
+    "period": "Period",
+    "format": "Format",
+    "create": "Create Report",
+    "email_notice": "You will be notified via email when ready",
+    "history": "Report History",
+    "download": "Download"
+  },
+  "ai": {
+    "title": "AI Analysis",
+    "subtitle": "Comparative AI analyses",
+    "comparative_title": "Comparative Analysis",
+    "select_companies": "Select Companies",
+    "period": "Period",
+    "start": "Start Analysis",
+    "intelligence_report": "Intelligence Report",
+    "select_company": "Select Company",
+    "generate": "Generate Report",
+    "generating": "Generating report..."
+  },
+  "settings": {
+    "title": "Settings",
+    "profile_title": "Profile Information",
+    "full_name": "Full Name",
+    "email": "Email",
+    "language": "Language",
+    "change_password": "Change Password",
+    "save": "Save",
+    "success": "Settings updated.",
+    "plan_title": "Plan Information",
+    "plan_name": "Plan",
+    "companies_used": "Company Usage",
+    "employee_limit": "Employee Limit/Company",
+    "ai_enabled": "AI Features",
+    "white_label": "White-label",
+    "valid_until": "Validity",
+    "upgrade": "Upgrade Plan",
+    "upgrade_message": "We will process your upgrade request."
+  }
+}

@@ -1,0 +1,574 @@
+{
+  "menu": {
+    "home": "Dashboard",
+    "companies": "Companies",
+    "surveys": "Surveys",
+    "content": "Contents",
+    "settings": "Settings",
+    "ai_center": "AI Center",
+    "audit_log": "Audit Log",
+    "campaigns": "Campaigns",
+    "industries": "Industries",
+    "demo_requests": "Demo Requests",
+    "users": "Users",
+    "consultants": "Consultants",
+    "logout": "Logout"
+  },
+  "consultants": {
+    "title": "Consultant Management",
+    "subtitle": "Manage platform consultants",
+    "new": "New Consultant",
+    "search_placeholder": "Search consultant...",
+    "stats": {
+      "total": "Total Consultants",
+      "active": "Active Consultants",
+      "total_companies": "Total Companies"
+    },
+    "table": {
+      "name": "Name / Email",
+      "plan": "Package",
+      "usage": "Company Usage",
+      "ai": "AI",
+      "valid_until": "Validity",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "create": {
+      "title": "Create New Consultant",
+      "full_name": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "package": "Package Selection",
+      "valid_until": "Validity Date",
+      "custom_limits": "Custom Limits",
+      "max_companies": "Max Companies",
+      "max_employees": "Max Employees/Company",
+      "submit": "Create and Send Invite",
+      "success": "Consultant created, invitation email sent."
+    },
+    "update_plan": {
+      "title": "Update Package",
+      "current": "Current Package",
+      "new_package": "New Package",
+      "submit": "Update Package",
+      "success": "Package updated."
+    },
+    "update_profile": {
+      "title": "Update Information",
+      "success": "Consultant information updated."
+    },
+    "delete_confirm": "Are you sure you want to delete the consultant named {{name}}? This action cannot be undone.",
+    "delete_success": "Consultant successfully deleted.",
+    "status": {
+      "active": "Active",
+      "passive": "Passive"
+    },
+    "status_change": {
+      "deactivate_confirm": "Do you want to deactivate this consultant?",
+      "deactivate_warning": "Consultant's access to companies will be restricted.",
+      "activate_confirm": "Do you want to activate this consultant?",
+      "success_active": "Consultant activated.",
+      "success_passive": "Consultant deactivated."
+    },
+    "expired": "Expired",
+    "expires_in": "{{days}} days left",
+    "view_companies": "View Companies",
+    "companies_title": "Companies",
+    "no_companies": "No companies added yet",
+    "plan": {
+      "starter": "Starter",
+      "growth": "Growth",
+      "enterprise": "Enterprise"
+    }
+  },
+  "users": {
+    "title": "Platform Users",
+    "subtitle": "Manage users from all companies",
+    "add": "Add User",
+    "stats": {
+      "total": "Total Users",
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending Invite",
+      "hr_admins": "HR Admin",
+      "employees": "Employee",
+      "recent_login": "Login last 30 days",
+      "new_month": "New this month"
+    },
+    "columns": {
+      "user": "User",
+      "company": "Company",
+      "role": "Role",
+      "department": "Department",
+      "status": "Status",
+      "last_login": "Last Login",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending_invite": "Pending Invite"
+    },
+    "actions": {
+      "edit": "Edit",
+      "assign_company": "Move to Company",
+      "resend_invite": "Resend Invite",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "delete": "Delete"
+    },
+    "never_logged_in": "Never logged in",
+    "no_users": "No users found",
+    "create": {
+      "title": "Add New User",
+      "invite_note": "An invitation email will be sent to the selected email address.",
+      "submit": "Add and Send Invite",
+      "success": "User added, invitation email sent.",
+      "advanced": "Advanced Settings"
+    },
+    "assign": {
+      "title": "Move User to Company",
+      "current_company": "Current",
+      "new_company": "New Company",
+      "warning": "This action will reset the user's current company connections.",
+      "submit": "Move",
+      "success": "User moved to new company."
+    },
+    "delete": {
+      "confirm": "Do you want to delete this user?",
+      "warning": "Survey history and scores are preserved.",
+      "success": "User deleted."
+    }
+  },
+  "industries": {
+    "title": "Industry Management",
+    "subtitle": "Manage company industries. Default industries cannot be deactivated.",
+    "new": "New Industry",
+    "default": "Default",
+    "custom": "Custom",
+    "default_readonly": "Default industries cannot be deactivated",
+    "updated": "Industry updated",
+    "created": "Industry created",
+    "status_updated": "Status updated",
+    "label_tr": "Industry (TR)",
+    "label_en": "Industry (EN)",
+    "edit_title": "Edit Industry",
+    "new_title": "New Industry",
+    "form_label_tr": "Turkish Label",
+    "form_label_en": "English Label",
+    "placeholder_tr": "e.g. Software Development",
+    "placeholder_en": "e.g. Software Development",
+    "slug_info": "Industry slug has been auto-generated and cannot be changed: {{slug}}",
+    "edit": "Edit Industry",
+    "default_badge": "Default",
+    "custom_badge": "Custom",
+    "cannot_deactivate": "Default industries cannot be deactivated"
+  },
+  "header": {
+    "title": "Super Admin Panel",
+    "search_placeholder": "Search companies, surveys or users...",
+    "notifications": "Notifications"
+  },
+  "home": {
+    "title": "Platform Overview",
+    "subtitle": "Real-time status of all companies",
+    "metrics": {
+      "active_companies": "Active Companies",
+      "new_this_month": "New This Month",
+      "total_responses": "Total Responses",
+      "active_surveys": "Active Surveys",
+      "since_last_month": "since last month"
+    },
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "platform_trend": "Platform Trend",
+    "plan_distribution": "Plan Distribution",
+    "top_active": "Top 5 Active Companies",
+    "top_passive": "Top 5 Passive Companies",
+    "recent_audit": "Recent Critical Actions",
+    "columns": {
+      "company": "Company",
+      "plan": "Plan",
+      "employees": "Employees",
+      "last_survey": "Last Survey",
+      "score": "Score",
+      "participation": "Participation",
+      "status": "Status",
+      "action": "Action",
+      "user": "User",
+      "date": "Date"
+    }
+  },
+  "companies": {
+    "title": "Companies",
+    "subtitle": "Manage all corporate members",
+    "new": "New Company",
+    "search_placeholder": "Search by company name...",
+    "filter_plan": "Plan",
+    "filter_status": "Status",
+    "filter_industry": "Industry",
+    "actions": {
+      "view": "View Details",
+      "edit": "Edit",
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "delete": "Delete"
+    },
+    "confirm_suspend": "Are you sure you want to suspend this company?",
+    "confirm_delete": "Are you sure you want to delete this company? All data will be deleted.",
+    "export": "Export",
+    "empty": "No companies found yet.",
+    "table": {
+      "name": "Company Name",
+      "plan": "Plan",
+      "contact": "Contact / HR Email",
+      "industry": "Industry",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "create": {
+      "title": "Create New Company",
+      "company_name": "Company Name",
+      "company_name_placeholder": "e.g.: TechFlow Inc.",
+      "hr_admin_email": "HR Admin Email",
+      "hr_admin_email_hint": "Invitation email will be sent to this address",
+      "plan": "Plan",
+      "contact_email": "Contact Email",
+      "industry": "Industry",
+      "industry_placeholder": "Select industry",
+      "size_band": "Employee Count",
+      "default_language": "Default Language",
+      "success": "Company created. Invitation email sent to HR Admin.",
+      "error_slug": "This company name is already in use."
+    },
+    "detail": {
+      "title": "Company Detail",
+      "info_card": "Company Information",
+      "settings_card": "Company Settings",
+      "employee_accounts": "Employee Accounts",
+      "employee_accounts_hint": "If on, employees can log in; if off, they access surveys via links",
+      "anonymity_threshold": "Anonymity Threshold",
+      "anonymity_threshold_hint": "Score is not shown below this number of responses",
+      "benchmark_visible": "Industry Comparison",
+      "tabs": {
+        "departments": "Departments",
+        "hr_admins": "HR Admins",
+        "surveys": "Surveys",
+        "ai_insights": "AI Insights"
+      },
+      "save_settings": "Save Settings",
+      "change_plan": "Change Plan",
+      "invite_hr": "Invite HR Admin"
+    }
+  },
+  "surveys": {
+    "title": "Surveys",
+    "subtitle": "Manage global and company-specific surveys",
+    "new": "New Survey",
+    "filter_type": "Type",
+    "filter_status": "Status",
+    "columns": {
+      "title": "Title",
+      "type": "Type",
+      "frequency": "Frequency",
+      "questions": "Question",
+      "companies": "Company",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "actions": {
+      "view": "Detail",
+      "results": "Results",
+      "delete": "Delete",
+      "assign": "Assign to Company"
+    },
+    "create": {
+      "title": "Create New Survey",
+      "title_tr": "Turkish Title",
+      "title_en": "English Title",
+      "description_tr": "Turkish Description",
+      "description_en": "English Description",
+      "type": "Survey Type",
+      "company": "Company (for Company Specific)",
+      "frequency": "Frequency",
+      "is_anonymous": "Is Anonymous?",
+      "throttle_days": "Throttle Days",
+      "starts_at": "Start Date",
+      "ends_at": "End Date",
+      "questions_section": "Questions",
+      "questions_count": "{{count}} questions",
+      "add_question": "Add Question",
+      "load_global": "Load Global Questions",
+      "load_global_confirm": "Current questions will be deleted. Do you want to continue?",
+      "save": "Save Survey",
+      "success": "Survey created."
+    },
+    "question": {
+      "dimension": "Dimension",
+      "type": "Question Type",
+      "text_tr": "Turkish Question Text",
+      "text_en": "English Question Text",
+      "is_reversed": "Reverse Score?",
+      "is_reversed_hint": "High value = low wellbeing (e.g.: stress question)",
+      "weight": "Weight",
+      "is_required": "Required",
+      "number_min": "Min Value",
+      "number_max": "Max Value",
+      "number_step": "Step",
+      "matrix_label_tr": "Matrix Label (TR)",
+      "matrix_label_en": "Matrix Label (EN)",
+      "options": "Options",
+      "add_option": "Add Option",
+      "option_label_tr": "Option (TR)",
+      "option_label_en": "Option (EN)",
+      "option_value": "Value (0-100)",
+      "rows": "Rows",
+      "add_row": "Add Row",
+      "row_label_tr": "Row (TR)",
+      "row_label_en": "Row (EN)",
+      "preview": "Preview",
+      "delete_confirm": "Do you want to delete this question?"
+    },
+    "ai_generate": "Generate with AI",
+    "ai_generating": "AI is generating questions...",
+    "ai_generated": "{{count}} questions generated",
+    "link_duration": "Link Duration",
+    "link_7": "7 days",
+    "link_14": "14 days",
+    "link_30": "30 days",
+    "link_custom": "Custom date",
+    "anonymous_warning_title": "Attention",
+    "anonymous_warning_body": "Non-anonymous surveys require employee account mode. For companies receiving this survey, employee_accounts will be automatically enabled.",
+    "draft_banner": "You have an unsaved draft",
+    "draft_continue": "Continue",
+    "draft_new": "Start New",
+    "draft_saved": "Auto-saved",
+    "hr_cannot_create": "Only Super Admins can create surveys."
+  },
+  "content": {
+    "title": "Content Management",
+    "subtitle": "Training and resources to suggest for low scoring dimensions",
+    "new": "New Content",
+    "search_placeholder": "Search by content title...",
+    "filter_type": "All Types",
+    "filter_dimension": "All Dimensions",
+    "go_to_source": "Go to Source",
+    "threshold_label": "Threshold: < {{value}}",
+    "create": {
+      "title": "Add New Content",
+      "title_tr": "Turkish Title",
+      "title_en": "English Title",
+      "description_tr": "Turkish Description",
+      "description_en": "English Description",
+      "type": "Content Type",
+      "dimension": "Related Dimension",
+      "url_tr": "Turkish Link",
+      "url_en": "English Link",
+      "score_threshold": "Score Threshold",
+      "score_threshold_hint": "Recommended below this score",
+      "is_active": "Active",
+      "success": "Content created.",
+      "edit_title": "Edit Content",
+      "update_success": "Content updated.",
+      "delete_success": "Content deleted.",
+      "delete_confirm": "Do you want to delete this content?"
+    }
+  },
+  "settings": {
+    "title": "Platform Settings",
+    "subtitle": "Manage all system settings from this page",
+    "tabs": {
+      "general": "General",
+      "ai": "AI Settings",
+      "mail": "Mail",
+      "storage": "Storage",
+      "packages": "Packages"
+    },
+    "packages": {
+      "title": "Package Management",
+      "subtitle": "Define consultant packages",
+      "save_success": "Packages updated.",
+      "add": "Add Package",
+      "add_prompt": "Enter new package key (e.g. premium):",
+      "delete_confirm": "Do you want to delete this package?",
+      "label_tr": "Turkish Label",
+      "label_en": "English Label",
+      "labels": {
+        "max_companies": "Max Companies",
+        "max_employees": "Max Employees",
+        "ai_enabled": "AI Features",
+        "white_label": "White Label Support",
+        "description": "Description"
+      },
+      "errors": {
+        "already_exists": "This package key already exists."
+      }
+    },
+    "general": {
+      "platform_name": "Platform Name",
+      "platform_url": "Platform URL",
+      "anonymity_threshold": "Anonymity Threshold",
+      "anonymity_threshold_hint": "Score is not calculated below this many responses (min 3)",
+      "score_alert_threshold": "Risk Alert Threshold",
+      "score_alert_threshold_hint": "Alert is generated below this score"
+    },
+    "ai": {
+      "enabled": "AI Active",
+      "enabled_hint": "Enables/disables all AI features",
+      "default_provider": "Default Provider",
+      "default_model": "Default Model",
+      "max_tokens": "Max Tokens",
+      "temperature": "Temperature",
+      "temperature_hint": "0 = consistent, 1 = creative",
+      "task_models": "Task Based Model Settings",
+      "task_names": {
+        "open_text_summary": "Text Summary",
+        "risk_alert": "Risk Alert",
+        "action_suggestion": "Action Suggestion",
+        "trend_analysis": "Trend Analysis",
+        "hr_chat": "HR Chat",
+        "admin_anomaly": "Admin Anomaly",
+        "admin_chat": "Admin Chat"
+      },
+      "api_keys": "AI API Keys",
+      "api_key_hint": "Stored securely with encryption",
+      "update_keys": "Update Keys",
+      "keys_updated": "API keys updated."
+    },
+    "mail": {
+      "provider": "Mail Provider",
+      "from_address": "From Email",
+      "from_name": "From Name",
+      "api_key": "Mail API Key",
+      "smtp_host": "SMTP Host",
+      "smtp_port": "SMTP Port",
+      "smtp_user": "SMTP User",
+      "smtp_pass": "SMTP Pass",
+      "test": "Send Test Email",
+      "test_success": "Test email sent successfully!",
+      "test_error": "Failed to send email: {{error}}",
+      "test_to": "Test email will be sent to:"
+    },
+    "storage": {
+      "provider": "Storage Provider",
+      "bucket": "Bucket Name",
+      "region": "Region",
+      "endpoint": "Custom Endpoint",
+      "endpoint_hint": "For Cloudflare R2 or MinIO",
+      "access_key": "Access Key",
+      "secret_key": "Secret Key",
+      "test": "Connection Test",
+      "test_success": "Connection successful! Latency: {{latency}}ms",
+      "test_error": "Connection failed: {{error}}"
+    },
+    "save_success": "Settings saved.",
+    "save_error": "Failed to save settings."
+  },
+  "ai_center": {
+    "title": "AI Center",
+    "subtitle": "Platform-wide AI analysis and chat",
+    "chat": {
+      "title": "Admin Chat",
+      "placeholder": "Ask a question about platform data...",
+      "send": "Send",
+      "clear": "Clear",
+      "example_questions": [
+        "In which sector is wellbeing lowest this month?",
+        "Which companies have the lowest participation rate?",
+        "How is the platform-wide trend going?"
+      ],
+      "thinking": "Thinking...",
+      "error": "AI could not respond. Please try again."
+    },
+    "anomaly": {
+      "title": "Platform Anomaly Analysis",
+      "description": "Detect abnormal patterns across all companies",
+      "start": "Start Anomaly Analysis",
+      "started": "Analysis started. You will be notified by email when ready.",
+      "last_reports": "Recent Anomaly Reports",
+      "no_reports": "No anomaly reports yet."
+    },
+    "insights": {
+      "title": "AI Insights",
+      "filter_type": "Analysis Type",
+      "no_insights": "No AI insights yet.",
+      "generated_at": "Generated At",
+      "model": "Model"
+    }
+  },
+  "audit": {
+    "title": "Audit Log",
+    "subtitle": "Log of all system operations",
+    "search_placeholder": "Search action type...",
+    "filter_company": "Company",
+    "filter_date_from": "Start Date",
+    "filter_date_to": "End Date",
+    "columns": {
+      "date": "Date",
+      "user": "User",
+      "company": "Company",
+      "action": "Action",
+      "target": "Target",
+      "ip": "IP Address"
+    },
+    "no_logs": "No records found."
+  },
+  "campaigns": {
+    "title": "Campaign Reports",
+    "subtitle": "Distribution campaigns of all companies",
+    "stats": {
+      "total_sent": "Total Sent",
+      "avg_open_rate": "Avg. Open Rate",
+      "avg_click_rate": "Avg. Click Rate",
+      "avg_completion_rate": "Avg. Completion Rate"
+    },
+    "columns": {
+      "company": "Company",
+      "survey": "Survey",
+      "period": "Period",
+      "sent_at": "Sent At",
+      "recipients": "Recipients",
+      "open_rate": "Open Rate",
+      "completion_rate": "Completion Rate",
+      "status": "Status"
+    },
+    "header_title": "Platform Campaign Analytics",
+    "header_subtitle": "Monitor survey distribution performance and participation rates across all companies.",
+    "global_report": "Global Report",
+    "trend_title": "Monthly Distribution Trend",
+    "comparison_title": "Company Comparison",
+    "table_title": "All Campaigns",
+    "all_companies": "All Companies",
+    "completed": "Comp.",
+    "sent_mail": "Mail",
+    "campaign_count": "Campaign"
+  },
+  "demo_requests": {
+    "title": "Demo Requests",
+    "subtitle": "Manage incoming demo requests",
+    "status": {
+      "pending": "Pending",
+      "contacted": "Contacted",
+      "demo_done": "Demo Done",
+      "converted": "Converted",
+      "rejected": "Rejected"
+    },
+    "notes": "Admin Notes",
+    "save_notes": "Save Note",
+    "change_status": "Change Status"
+  },
+  "ai_generate": "Generate with AI",
+  "ai_generating": "AI Generating..."
+}

@@ -1,0 +1,192 @@
+
+> @wellanalytics/web@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.3
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/29) ...
+   Generating static pages (7/29) 
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard/ai". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard/ai". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard/reports". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard/reports". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard/surveys". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard/surveys". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard/actions". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard/actions". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard/campaigns". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard/campaigns". Read more: https://nextjs.org/docs/messages/prerender-error
+
+   Generating static pages (14/29) 
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+   Generating static pages (21/29) 
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard/employees". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard/employees". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard/departments". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard/departments". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard/segments". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard/segments". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at o (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:10636)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/8508.js:1:21633)
+    at c (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/583.js:1:4158)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64853)
+
+Error occurred prerendering page "/dashboard". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: No QueryClient set, use QueryClientProvider to set one
+    at n (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/2479.js:1:7117)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/2479.js:1:15289
+    at F (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/2479.js:1:16208)
+    at C (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(admin)/admin/campaigns/page.js:1:4016)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nI (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47010)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47717)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546) {
+  digest: '3578355060'
+}
+
+Error occurred prerendering page "/admin/campaigns". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: No QueryClient set, use QueryClientProvider to set one
+    at n (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/2479.js:1:7117)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/2479.js:1:15289
+    at F (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/chunks/2479.js:1:16208)
+    at C (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(admin)/admin/campaigns/page.js:1:4016)
+    at nj (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nN (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nI (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47010)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47717)
+    at nM (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+ ✓ Generating static pages (29/29)
+
+> Export encountered errors on following paths:
+	/(admin)/admin/campaigns/page: /admin/campaigns
+	/(hr)/dashboard/actions/page: /dashboard/actions
+	/(hr)/dashboard/ai/page: /dashboard/ai
+	/(hr)/dashboard/campaigns/page: /dashboard/campaigns
+	/(hr)/dashboard/departments/page: /dashboard/departments
+	/(hr)/dashboard/employees/page: /dashboard/employees
+	/(hr)/dashboard/page: /dashboard
+	/(hr)/dashboard/reports/page: /dashboard/reports
+	/(hr)/dashboard/segments/page: /dashboard/segments
+	/(hr)/dashboard/surveys/page: /dashboard/surveys

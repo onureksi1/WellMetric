@@ -1,0 +1,90 @@
+{
+  "welcome": {
+    "title": "Wellbeing Anketi",
+    "greeting": "Merhaba {{name}}! 👋",
+    "intro": "{{company_name}} adına bu dönem wellbeing anketini doldurmanızı rica ediyoruz.",
+    "duration": "~{{minutes}} dakika",
+    "anonymous": "Anonim",
+    "sections": "{{count}} Bölüm",
+    "start": "Ankete Başla →",
+    "continue_draft": "Yarım kaldığınız anket var",
+    "continue": "Devam Et",
+    "restart": "Baştan Başla"
+  },
+  "progress": {
+    "section": "{{current}}/{{total}}",
+    "completed_sections": "{{count}} bölüm tamamlandı",
+    "questions_answered": "{{answered}}/{{total}} soru yanıtlandı"
+  },
+  "navigation": {
+    "previous": "← Önceki Bölüm",
+    "next": "Sonraki Bölüm →",
+    "submit": "Anketi Gönder"
+  },
+  "question": {
+    "required": "Bu soruyu yanıtlayın",
+    "optional": "İsteğe bağlı",
+    "characters_remaining": "{{count}}/{{max}} karakter",
+    "open_text_placeholder": "Düşüncelerinizi paylaşın... (isteğe bağlı)",
+    "number_hint": "Min: {{min}} — Max: {{max}}",
+    "rank_hint": "Öncelik sırasına göre sıralayın (en önemli üstte)",
+    "select_all_that_apply": "Uygun olanları seçin",
+    "nps_low": "Hiç önermem",
+    "nps_high": "Kesinlikle öneririm"
+  },
+  "likert_labels": {
+    "1": "Kesinlikle katılmıyorum",
+    "2": "Katılmıyorum",
+    "3": "Kararsızım",
+    "4": "Katılıyorum",
+    "5": "Kesinlikle katılıyorum"
+  },
+  "yes_no": {
+    "yes": "Evet",
+    "no": "Hayır"
+  },
+  "confirmation": {
+    "title": "Anketi göndermek üzeresiniz",
+    "answered": "{{count}} soru yanıtlandı",
+    "skipped": "{{count}} soru atlandı (isteğe bağlı)",
+    "review": "← Gözden Geçir",
+    "submit": "Gönder ✓"
+  },
+  "submitting": "Yanıtlarınız kaydediliyor...",
+  "success": {
+    "title": "Teşekkürler {{name}}! 🎉",
+    "message": "Wellbeing anketini başarıyla tamamladınız.",
+    "impact": "Katkınız şirketinizin wellbeing yolculuğuna değer katacak. 🌱",
+    "anonymous_note": "Yanıtlarınız anonim olarak işlenecektir.",
+    "close": "Sayfayı Kapat"
+  },
+  "errors": {
+    "token_invalid": "Geçersiz anket linki. Lütfen mailinizi kontrol edin.",
+    "token_used": "Bu anketi daha önce doldurdunuz. Katılımınız için teşekkür ederiz! ✅",
+    "token_expired": "Bu anket linkinin süresi dolmuş. Lütfen İK departmanınızla iletişime geçin. ⏰",
+    "submit_failed": "Anket gönderilemedi. Lütfen tekrar deneyin.",
+    "contact_hr": "Sorularınız için İK departmanınızla iletişime geçebilirsiniz."
+  },
+  "dimensions": {
+    "physical": {
+      "title": "Fiziksel Wellbeing",
+      "description": "Bu bölümde enerji, uyku ve genel sağlık durumunuz hakkında sorular var."
+    },
+    "mental": {
+      "title": "Zihinsel & Duygusal Wellbeing",
+      "description": "Stres, odak ve duygusal denge hakkında sorular."
+    },
+    "social": {
+      "title": "Sosyal & İlişkisel Wellbeing",
+      "description": "Ekip uyumu, aidiyet ve destek hakkında sorular."
+    },
+    "financial": {
+      "title": "Finansal Wellbeing",
+      "description": "Mali güvence ve memnuniyet hakkında sorular."
+    },
+    "work": {
+      "title": "İş & Anlam",
+      "description": "İş anlamı, kariyer gelişimi ve denge hakkında sorular."
+    }
+  }
+}

@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #2E865A;
+  --primary-glow: rgba(46, 134, 90, 0.15);
+  --navy: #0F172A;
+  --slate-50: #F8FAFC;
+  --slate-100: #F1F5F9;
+  --slate-200: #E2E8F0;
+  --slate-400: #94A3B8;
+  --slate-600: #475569;
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
+}
+
+@layer base {
+  body {
+    @apply antialiased text-slate-600 bg-slate-50 selection:bg-primary/20 selection:text-primary;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    @apply text-navy font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/70 border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+  }
+
+  .premium-shadow {
+    @apply shadow-[0_20px_50px_rgba(8,_112,_184,_0.05)];
+  }
+
+  .premium-gradient {
+    background: linear-gradient(135deg, #34966B 0%, #1E6B45 100%);
+  }
+
+  .animated-gradient {
+    background: linear-gradient(-45deg, #2E865A, #4CAF7D, #1A1A2E, #0F172A);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
+  }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-navy to-primary;
+}

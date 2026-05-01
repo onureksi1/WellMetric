@@ -1,0 +1,53 @@
+{
+  "me": {
+    "title": "Wellbeing Durumum",
+    "greeting": "Merhaba {{name}} 👋",
+    "subtitle": "{{position}} · {{company}}",
+    "score_card": {
+      "title": "Bu Ayki Wellbeing Skorun",
+      "vs_last_month": "Geçen aya göre"
+    },
+    "strongest": "En güçlü alanın",
+    "needs_attention": "Dikkat etmeni öneririz"
+  },
+  "pending_surveys": {
+    "title": "Bekleyen Anketler",
+    "due_date": "Son tarih: {{date}}",
+    "duration": "~{{minutes}} dakika",
+    "start": "Anketi Doldur →",
+    "no_pending": "Şu an bekleyen anketin yok. ✓",
+    "throttled": "Bu ayki anketini tamamladın.",
+    "next_survey": "Sıradaki anket: {{date}}"
+  },
+  "content": {
+    "title": "Senin İçin Öneriler",
+    "subtitle": "Wellbeing alanlarına göre kişiselleştirilmiş içerikler",
+    "go_to": "Kaynağa Git →",
+    "no_content": "Şu an öneri yok."
+  },
+  "history": {
+    "title": "Anket Geçmişim",
+    "columns": {
+      "survey": "Anket",
+      "date": "Tarih",
+      "score": "Skorun",
+      "detail": "Detay"
+    },
+    "detail_modal": {
+      "title": "Anket Detayı",
+      "your_score": "Senin Skorun",
+      "trend": "Trend"
+    },
+    "no_history": "Henüz tamamlanmış anket yok."
+  },
+  "profile": {
+    "title": "Profil Ayarları",
+    "full_name": "Ad Soyad",
+    "language": "Arayüz Dili",
+    "notifications": "Bildirim Tercihleri",
+    "notification_survey": "Anket davetleri",
+    "notification_reminder": "Hatırlatmalar",
+    "save": "Kaydet",
+    "success": "Profil güncellendi."
+  }
+}
