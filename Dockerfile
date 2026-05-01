@@ -14,7 +14,6 @@ RUN npm install
 COPY . .
 
 # Build et
-RUN npm run build -w packages/shared
 RUN npm run build -w @wellanalytics/api
 
 # --- RUN STAGE ---
