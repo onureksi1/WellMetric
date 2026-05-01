@@ -116,14 +116,14 @@ export default function ConsultantSettingsPage() {
                 <div className="flex items-center gap-6">
                   <div className="relative group">
                     <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-white shadow-md font-bold text-2xl uppercase">
-                      {user?.first_name?.[0]}{user?.last_name?.[0]}
+                      {(user?.name || 'U')[0]}
                     </div>
                     <button className="absolute bottom-0 right-0 p-1.5 bg-blue-600 text-white rounded-full border-2 border-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
                       <Camera size={12} />
                     </button>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900">{user?.first_name} {user?.last_name}</h3>
+                    <h3 className="text-xl font-bold text-slate-900">{user?.name || 'User'}</h3>
                     <p className="text-sm text-slate-500">{user?.role === 'consultant' ? 'Wellbeing Consultant' : user?.role}</p>
                   </div>
                 </div>
@@ -140,7 +140,7 @@ export default function ConsultantSettingsPage() {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.full_name')}</label>
                   <input 
                     type="text" 
-                    defaultValue={`${user?.first_name} ${user?.last_name}`}
+                    defaultValue={user?.name || ''}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
