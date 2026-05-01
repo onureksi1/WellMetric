@@ -22,6 +22,8 @@ import { toast } from 'react-hot-toast';
 
 export default function ConsultantContentPage() {
   const { t } = useTranslation('consultant');
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     title_tr: '',
