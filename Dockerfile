@@ -8,7 +8,7 @@ COPY packages/shared/package*.json ./packages/shared/
 COPY apps/api/package*.json ./apps/api/
 
 # Yükle (devDependencies dahil)
-RUN npm install
+RUN npm install --include=dev
 
 # Tüm kodu kopyala
 COPY . .
