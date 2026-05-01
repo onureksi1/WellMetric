@@ -24,7 +24,11 @@ export const DebugOverlay = () => {
     // Check API health
     const checkApi = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/v1/health').catch(() => null);
+        const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+        const healthUrl = apiUrl.endsWith('/api/v1') 
+          ? `${apiUrl}/health` 
+          : `${apiUrl}/api/v1/health`;
+        const res = await fetch(healthUrl).catch(() => null);
         setApiStatus(res?.ok ? 'online' : 'offline');
       } catch {
         setApiStatus('offline');
