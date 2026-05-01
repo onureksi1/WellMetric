@@ -374,6 +374,7 @@ function ModelSelector({ provider, value, onChange }: { provider: string, value:
 }
 
 function ApiKeyCard({ provider, initialMaskedKey }: { provider: any, initialMaskedKey?: string }) {
+  const { t } = useTranslation('admin');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showKey, setShowKey] = useState(false);
