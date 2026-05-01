@@ -21,6 +21,20 @@ export const DebugOverlay = () => {
       originalError.apply(console, args);
     };
 
+    // Listen for global API errors
+    const handleApiError = (event: any) => {
+      const { url, method, status, data, message } = event.detail;
+      setLogs(prev => [...prev.slice(-19), { 
+        type: 'error', 
+        message: `[API ERROR] ${method} ${url} -> Status: ${status} | Error: ${JSON.stringify(data?.message || data || message)}`, 
+        time: new Date().toLocaleTimeString() 
+      }]);
+      // Auto open on API error
+      setIsOpen(true);
+    };
+
+    window.addEventListener('api-error', handleApiError);
+
     // Check API health
     const checkApi = async () => {
       try {
@@ -39,6 +53,7 @@ export const DebugOverlay = () => {
 
     return () => {
       console.error = originalError;
+      window.removeEventListener('api-error', handleApiError);
       clearInterval(interval);
     };
   }, []);
@@ -61,9 +76,17 @@ export const DebugOverlay = () => {
             <Terminal size={16} className="text-primary" />
             <span className="text-xs font-black text-white tracking-widest uppercase">Debug Console</span>
          </div>
-         <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white">
-            <X size={16} />
-         </button>
+          <div className="flex items-center gap-2">
+             <button 
+               onClick={() => setLogs([])}
+               className="text-[10px] font-bold text-slate-400 hover:text-white px-2 py-1 rounded-md hover:bg-white/10 transition-colors"
+             >
+               CLEAR
+             </button>
+             <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white">
+                <X size={16} />
+             </button>
+          </div>
       </div>
 
       <div className="p-4 space-y-4">
