@@ -55,8 +55,6 @@ client.interceptors.response.use(
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
-    }
-
     // Dispatch custom event for DebugOverlay
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('api-error', {
