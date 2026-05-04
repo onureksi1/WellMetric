@@ -6,6 +6,7 @@ import { BillingService } from '../services/billing.service';
 import { CreditService } from '../services/credit.service';
 import { PackageService } from '../services/package.service';
 import { CreditTypeService } from '../services/credit-type.service';
+import { CreatePaymentDto } from '../dto/create-payment.dto';
 
 @Controller('consultant/billing')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -53,6 +54,12 @@ export class BillingController {
   @Roles('consultant')
   subscribe(@Req() req: any, @Body() body: any) {
     return this.billingService.subscribe(req.user.id, body.package_key, body.interval, body.provider);
+  }
+
+  @Post('payment')
+  @Roles('consultant')
+  createPayment(@Req() req: any, @Body() dto: CreatePaymentDto) {
+    return this.billingService.createPayment(dto, req.user.id);
   }
 
   @Post('cancel')

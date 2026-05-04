@@ -104,7 +104,7 @@ export class CompanyService {
         i.label_en as industry_label_en,
         (SELECT COUNT(*)::int FROM users u WHERE u.company_id = c.id AND u.is_active = true) as users_count,
         (SELECT COUNT(*)::int FROM users u WHERE u.company_id = c.id AND u.is_active = true AND u.role = 'hr_admin') as hr_admin_count,
-        (SELECT COUNT(*)::int FROM users u WHERE u.company_id = c.id AND u.is_active = true AND u.role = 'employee') as employee_count,
+        (SELECT COUNT(*)::int FROM employees e WHERE e.company_id = c.id AND e.is_active = true) as employee_count,
         (SELECT MAX(ends_at) FROM surveys s WHERE s.company_id = c.id) as last_survey_date,
         (SELECT score::float FROM wellbeing_scores w WHERE w.company_id = c.id AND w.dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1) as general_wellbeing_score,
         (SELECT email FROM users u2 WHERE u2.company_id = c.id AND u2.role = 'hr_admin' LIMIT 1) as hr_admin_email
@@ -133,13 +133,21 @@ export class CompanyService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, requestingUser?: any) {
+    let whereClause = 'WHERE c.id = $1';
+    const params: any[] = [id];
+
+    if (requestingUser?.role === 'consultant') {
+      whereClause += ' AND c.consultant_id = $2';
+      params.push(requestingUser.id);
+    }
+
     const companyRaw = await this.dataSource.query(`
       SELECT c.*, i.label_tr as industry_label_tr, i.label_en as industry_label_en
       FROM companies c
       LEFT JOIN industries i ON c.industry = i.slug
-      WHERE c.id = $1
-    `, [id]);
+      ${whereClause}
+    `, params);
 
     if (companyRaw.length === 0) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Firma bulunamadı.' });
     const company = companyRaw[0];
@@ -147,11 +155,16 @@ export class CompanyService {
     const departments = await this.dataSource.query(`SELECT id, name, is_active FROM departments WHERE company_id = $1`, [id]);
     const hrAdmins = await this.dataSource.query(`SELECT id, full_name, email, is_active FROM users WHERE company_id = $1 AND role = 'hr_admin'`, [id]);
     const assignments = await this.dataSource.query(`
-      SELECT sa.id, sa.assigned_at, sa.due_at, sa.status, sa.period, s.title_tr 
+      SELECT sa.id, sa.assigned_at, sa.due_at, sa.status, sa.period, s.title_tr, 'assignment' as source
       FROM survey_assignments sa 
       JOIN surveys s ON sa.survey_id = s.id 
       WHERE sa.company_id = $1
-      ORDER BY sa.assigned_at DESC LIMIT 5
+      UNION ALL
+      SELECT s.id, s.created_at, NULL, 'active', NULL, s.title_tr, 'direct' as source
+      FROM surveys s
+      WHERE s.company_id = $1 AND s.is_active = true
+        AND s.id NOT IN (SELECT survey_id FROM survey_assignments WHERE company_id = $1)
+      ORDER BY assigned_at DESC LIMIT 10
     `, [id]);
     
     const scores = await this.dataSource.query(`
@@ -291,7 +304,10 @@ export class CompanyService {
     });
   }
 
-  async update(id: string, dto: UpdateCompanyDto, adminUserId?: string) {
+  async update(id: string, dto: UpdateCompanyDto, requestingUser: any) {
+    // Ownership check
+    await this.findOne(id, requestingUser);
+    
     const { name, plan, contact_email, industry, size_band } = dto;
     
     if (industry) {
@@ -315,12 +331,15 @@ export class CompanyService {
       WHERE id = $6
     `, [name || null, plan || null, contact_email || null, industry || null, size_band || null, id]);
 
-    await this.auditService.logAction(adminUserId || null, id, 'company.update', 'company', id, dto);
+    await this.auditService.logAction(requestingUser.id || null, id, 'company.update', 'company', id, dto);
 
     return { success: true };
   }
 
-  async updateStatus(id: string, is_active: boolean, adminUserId?: string) {
+  async updateStatus(id: string, is_active: boolean, requestingUser: any) {
+    // Ownership check
+    await this.findOne(id, requestingUser);
+
     return this.dataSource.transaction(async (manager) => {
       await manager.query(`UPDATE companies SET is_active = $1 WHERE id = $2`, [is_active, id]);
 
@@ -332,15 +351,19 @@ export class CompanyService {
         await manager.query(`UPDATE survey_tokens SET is_used = true, used_at = NOW() WHERE company_id = $1 AND is_used = false`, [id]);
       }
 
-      await this.auditService.logAction(adminUserId || null, id, 'company.status_change', 'company', id, { is_active });
+      await this.auditService.logAction(requestingUser.id || null, id, 'company.status_change', 'company', id, { is_active });
 
       return { success: true };
     });
   }
 
-  async updateSettings(id: string, dto: UpdateSettingsDto, adminUserId?: string) {
+  async updateSettings(id: string, dto: UpdateSettingsDto, requestingUser: any) {
     const company = await this.companyRepository.findOne({ where: { id } });
     if (!company) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Firma bulunamadı.' });
+
+    if (requestingUser.role === 'consultant' && company.consultant_id !== requestingUser.id) {
+      throw new NotFoundException({ code: 'NOT_FOUND', message: 'Firma bulunamadı.' });
+    }
 
       const currentSettings = (company.settings as any) || {};
       const newSettings = { ...currentSettings, ...dto };
@@ -361,13 +384,16 @@ export class CompanyService {
         }
       }
 
-      await this.auditService.logAction(adminUserId || null, id, 'company.settings.update', 'company', id, dto);
+      await this.auditService.logAction(requestingUser.id || null, id, 'company.settings.update', 'company', id, dto);
 
       return { success: true };
     });
   }
 
-  async delete(id: string, adminUserId?: string) {
+  async delete(id: string, requestingUser: any) {
+    // Ownership check
+    await this.findOne(id, requestingUser);
+
     return this.dataSource.transaction(async (manager) => {
       // 1. Check for active users
       const usersCount = await manager.query(`SELECT COUNT(*)::int as count FROM users WHERE company_id = $1 AND is_active = true`, [id]);
@@ -394,21 +420,26 @@ export class CompanyService {
       // 3. Final: Delete the company itself
       await manager.query(`DELETE FROM companies WHERE id = $1`, [id]);
       
-      await this.auditService.logAction(adminUserId || null, id, 'company.hard_delete', 'company', id);
+      await this.auditService.logAction(requestingUser.id || null, id, 'company.hard_delete', 'company', id);
 
       return { success: true };
     });
   }
 
-  async getStats(id: string) {
-    const usersCount = await this.dataSource.query(`SELECT COUNT(*) as count FROM users WHERE company_id = $1 AND is_active = true`, [id]);
+  async getStats(id: string, requestingUser?: any) {
+    // Ownership check
+    if (requestingUser) {
+      await this.findOne(id, requestingUser);
+    }
+    const usersCount    = await this.dataSource.query(`SELECT COUNT(*) as count FROM users     WHERE company_id = $1 AND is_active = true`, [id]);
+    const employeeCount = await this.dataSource.query(`SELECT COUNT(*) as count FROM employees WHERE company_id = $1 AND is_active = true`, [id]);
     const activeSurveys = await this.dataSource.query(`SELECT COUNT(*) as count FROM survey_assignments WHERE company_id = $1 AND status = 'active'`, [id]);
     
     const lastResponseRateRes = await this.dataSource.query(`
       SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 as rate 
       FROM survey_assignments sa
       JOIN survey_tokens st ON st.assignment_id = sa.id
-      LEFT JOIN survey_responses sr ON sr.survey_token_id = st.id
+      LEFT JOIN survey_responses sr ON sr.assignment_id = sa.id
       WHERE sa.company_id = $1
       GROUP BY sa.id ORDER BY sa.assigned_at DESC LIMIT 1
     `, [id]);
@@ -426,7 +457,8 @@ export class CompanyService {
     `, [id]);
 
     return {
-      users_count: parseInt(usersCount[0]?.count || '0', 10),
+      users_count:        parseInt(usersCount[0]?.count    || '0', 10),
+      employee_count:     parseInt(employeeCount[0]?.count || '0', 10),
       active_surveys: parseInt(activeSurveys[0]?.count || '0', 10),
       last_response_rate: parseFloat(lastResponseRateRes[0]?.rate || '0'),
       last_score: parseFloat(lastScore[0]?.score || '0'),
@@ -448,7 +480,8 @@ export class CompanyService {
 
   // ── Company User Management ──────────────────────────────────────────
 
-  async getCompanyUsers(id: string, filters: any) {
+  async getCompanyUsers(id: string, filters: any, user: any) {
+    await this.findOne(id, user);
     const { search, role, is_active, department_id, page = 1, per_page = 50 } = filters;
     let whereClause = 'WHERE u.company_id = $1';
     const params: any[] = [id];
@@ -501,7 +534,8 @@ export class CompanyService {
     };
   }
 
-  async addCompanyUser(id: string, dto: any, adminId: string) {
+  async addCompanyUser(id: string, dto: any, user: any) {
+    await this.findOne(id, user);
     return this.dataSource.transaction(async (manager) => {
       // Check if user already exists
       const existing = await manager.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, [dto.email]);
@@ -540,13 +574,14 @@ export class CompanyService {
         await this.notificationService.sendEmployeeInvite(dto.email, dto.full_name, companyName, inviteLink, dto.language || 'tr');
       }
 
-      await this.auditService.logAction(adminId, id, 'user.create', 'user', userId, { email: dto.email, role: dto.role });
+      await this.auditService.logAction(user?.id || null, id, 'user.create', 'user', userId, { email: dto.email, role: dto.role });
 
       return { success: true, user_id: userId };
     });
   }
 
-  async updateCompanyUser(id: string, userId: string, dto: any, adminId: string) {
+  async updateCompanyUser(id: string, userId: string, dto: any, user: any) {
+    await this.findOne(id, user);
     const { full_name, department_id, role, is_active, language } = dto;
     
     await this.dataSource.query(`
@@ -560,29 +595,32 @@ export class CompanyService {
       WHERE id = $6 AND company_id = $7
     `, [full_name, department_id || null, role, is_active, language, userId, id]);
 
-    await this.auditService.logAction(adminId, id, 'user.update', 'user', userId, dto);
+    await this.auditService.logAction(user?.id || null, id, 'user.update', 'user', userId, dto);
     return { success: true };
   }
 
-  async toggleCompanyUserStatus(id: string, userId: string, isActive: boolean, adminId: string) {
+  async toggleCompanyUserStatus(id: string, userId: string, isActive: boolean, user: any) {
+    await this.findOne(id, user);
     await this.dataSource.query(`UPDATE users SET is_active = $1 WHERE id = $2 AND company_id = $3`, [isActive, userId, id]);
-    await this.auditService.logAction(adminId, id, 'user.status_toggle', 'user', userId, { is_active: isActive });
+    await this.auditService.logAction(user?.id || null, id, 'user.status_toggle', 'user', userId, { is_active: isActive });
     return { success: true };
   }
 
-  async deleteCompanyUser(id: string, userId: string, adminId: string) {
+  async deleteCompanyUser(id: string, userId: string, user: any) {
+    await this.findOne(id, user);
     return this.dataSource.transaction(async (manager) => {
       // 1. Delete associated invitations first
       await manager.query(`DELETE FROM invitations WHERE user_id = $1`, [userId]);
       // 2. Hard delete the user
       await manager.query(`DELETE FROM users WHERE id = $1 AND company_id = $2`, [userId, id]);
       
-      await this.auditService.logAction(adminId, id, 'user.hard_delete', 'user', userId);
+      await this.auditService.logAction(user?.id || null, id, 'user.hard_delete', 'user', userId);
       return { success: true };
     });
   }
 
-  async bulkDeleteCompanyUsers(id: string, userIds: string[], adminId: string) {
+  async bulkDeleteCompanyUsers(id: string, userIds: string[], user: any) {
+    await this.findOne(id, user);
     if (!userIds.length) return { success: true };
     
     await this.dataSource.query(`
@@ -590,12 +628,13 @@ export class CompanyService {
       WHERE id = ANY($1) AND company_id = $2
     `, [userIds, id]);
 
-    await this.auditService.logAction(adminId, id, 'user.bulk_delete', 'user', null, { user_ids: userIds });
+    await this.auditService.logAction(user?.id || null, id, 'user.bulk_delete', 'user', null, { user_ids: userIds });
     return { success: true };
   }
 
-  async resendCompanyUserInvite(id: string, userId: string, adminId: string) {
-    const user = await this.dataSource.query(`SELECT id, email, full_name, role, language, password_hash FROM users WHERE id = $1 AND company_id = $2`, [userId, id]);
+  async resendCompanyUserInvite(id: string, userId: string, user: any) {
+    await this.findOne(id, user);
+    const userData = await this.dataSource.query(`SELECT id, email, full_name, role, language, password_hash FROM users WHERE id = $1 AND company_id = $2`, [userId, id]);
     if (user.length === 0) throw new NotFoundException('Kullanıcı bulunamadı.');
     
     if (user[0].password_hash) {
@@ -627,18 +666,19 @@ export class CompanyService {
         await this.notificationService.sendEmployeeInvite(user[0].email, user[0].full_name, companyName, inviteLink, user[0].language || 'tr');
       }
 
-      await this.auditService.logAction(adminId, id, 'user.invite.resend', 'user', userId);
+      await this.auditService.logAction(user?.id || null, id, 'user.invite.resend', 'user', userId);
       return { success: true };
     });
   }
 
-  async importCompanyUsers(id: string, users: any[], adminId: string) {
+  async importCompanyUsers(id: string, users: any[], user: any) {
+    await this.findOne(id, user);
     let successCount = 0;
     const errors: any[] = [];
 
     for (const [index, userData] of users.entries()) {
       try {
-        await this.addCompanyUser(id, userData, adminId);
+        await this.addCompanyUser(id, userData, user.id);
         successCount++;
       } catch (err: any) {
         errors.push({
@@ -649,31 +689,34 @@ export class CompanyService {
       }
     }
 
-    await this.auditService.logAction(adminId, id, 'user.import', 'company', id, { success_count: successCount, error_count: errors.length });
+    await this.auditService.logAction(user.id, id, 'user.import', 'company', id, { success_count: successCount, error_count: errors.length });
     return { success: true, success_count: successCount, errors };
   }
 
   // ── Company Department Management ────────────────────────────────────
 
-  async getCompanyDepartments(id: string) {
+  async getCompanyDepartments(id: string, user: any) {
+    await this.findOne(id, user);
     return this.departmentService.findAll(id);
   }
 
-  async addCompanyDepartment(id: string, dto: any, adminId: string) {
-    return this.departmentService.create(id, dto, adminId);
+  async addCompanyDepartment(id: string, dto: any, user: any) {
+    await this.findOne(id, user);
+    return this.departmentService.create(id, dto, user.id);
   }
 
-  async updateCompanyDepartment(id: string, deptId: string, dto: any, adminId: string) {
-    return this.departmentService.update(deptId, id, dto, adminId);
+  async updateCompanyDepartment(id: string, deptId: string, dto: any, user: any) {
+    await this.findOne(id, user);
+    return this.departmentService.update(deptId, id, dto, user.id);
   }
 
-  async deleteCompanyDepartment(id: string, deptId: string, adminId: string) {
-    return this.departmentService.delete(deptId, id, adminId);
+  async deleteCompanyDepartment(id: string, deptId: string, user: any) {
+    await this.findOne(id, user);
+    return this.departmentService.delete(deptId, id, user.id);
   }
 
-  // ── Surveys & AI Insights ────────────────────────────────────────────
-
-  async getCompanySurveys(id: string) {
+  async getCompanySurveys(id: string, user: any) {
+    await this.findOne(id, user);
     return this.surveyService.getCompanySurveys(id);
   }
 }

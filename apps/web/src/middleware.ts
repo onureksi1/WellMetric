@@ -26,7 +26,41 @@ function decodeJwtPayload(token: string) {
   }
 }
 
-export function middleware(request: NextRequest) {
+const PLATFORM_DOMAINS = [
+  'app.wellbeingmetric.com',
+  'localhost',
+  '127.0.0.1',
+];
+
+export async function middleware(request: NextRequest) {
+  const hostname = request.headers.get('host')?.split(':')[0] ?? '';
+
+  // White-label Domain Routing
+  if (!PLATFORM_DOMAINS.some(d => hostname.includes(d))) {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    try {
+      const res = await fetch(
+        `${apiUrl}/api/v1/public/white-label/${hostname}`,
+        { next: { revalidate: 3600 } }
+      );
+
+      if (res.ok) {
+        const config = await res.json();
+        if (config) {
+          const response = NextResponse.next();
+          response.headers.set('x-wl-brand-name',  config.brand_name ?? '');
+          response.headers.set('x-wl-brand-color', config.brand_color ?? '');
+          response.headers.set('x-wl-logo-url',    config.brand_logo_url ?? '');
+          response.headers.set('x-wl-favicon-url', config.brand_favicon_url ?? '');
+          response.headers.set('x-wl-active', 'true');
+          return response;
+        }
+      }
+    } catch (e) {
+      console.error('White-label fetch failed', e);
+    }
+  }
+
   const token = request.cookies.get('accessToken')?.value;
   const { pathname } = request.nextUrl;
 

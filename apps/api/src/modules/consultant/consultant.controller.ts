@@ -23,37 +23,36 @@ export class ConsultantController {
 
   @Get('dashboard/overview')
   getDashboard(@CurrentUser() user: any) {
-    return this.consultantService.getDashboard(user.id);
+    return this.consultantService.getDashboard(user.consultant_id);
   }
 
   @Get('companies')
   getCompanies(@CurrentUser() user: any, @Query() filters: any) {
-    return this.consultantService.getCompanies(user.id, filters);
+    return this.consultantService.getCompanies(user.consultant_id, filters);
   }
 
   @Post('companies')
   createCompany(@CurrentUser() user: any, @Body() dto: any) {
-    return this.consultantService.createCompany(user.id, dto);
+    return this.consultantService.createCompany(user.consultant_id, dto);
   }
 
   @Get('companies/:id')
   getCompany(@CurrentUser() user: any, @Param('id') id: string) {
-    // Basic verification and redirection to company detail
-    return this.consultantService.verifyOwnership(user.id, id);
+    return this.consultantService.verifyOwnership(user.consultant_id, id);
   }
 
   @Get('companies/:id/stats')
   getCompanyStats(@CurrentUser() user: any, @Param('id') id: string) {
-    return this.consultantService.getCompanyStats(user.id, id);
+    return this.consultantService.getCompanyStats(user.consultant_id, id);
   }
 
   @Post('surveys/assign')
   assignSurvey(@CurrentUser() user: any, @Body() dto: any) {
-    return this.consultantService.assignSurvey(user.id, dto);
+    return this.consultantService.assignSurvey(user.consultant_id, dto);
   }
 
   @Post('ai/comparative-insight')
   getComparativeInsight(@CurrentUser() user: any, @Body() dto: any) {
-    return this.consultantService.getComparativeInsight(user.id, dto);
+    return this.consultantService.getComparativeInsight(user.consultant_id, dto);
   }
 }

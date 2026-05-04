@@ -38,8 +38,8 @@ export class CompanyController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.companyService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.companyService.findOne(id, user);
   }
 
   @Put(':id')
@@ -48,7 +48,7 @@ export class CompanyController {
     @Body() dto: UpdateCompanyDto,
     @CurrentUser() user: any,
   ) {
-    return this.companyService.update(id, dto, user.id);
+    return this.companyService.update(id, dto, user);
   }
 
   @Patch(':id/status')
@@ -57,7 +57,7 @@ export class CompanyController {
     @Body('is_active') is_active: boolean,
     @CurrentUser() user: any,
   ) {
-    return this.companyService.updateStatus(id, is_active, user.id);
+    return this.companyService.updateStatus(id, is_active, user);
   }
 
   @Patch(':id/settings')
@@ -66,17 +66,17 @@ export class CompanyController {
     @Body() dto: UpdateSettingsDto,
     @CurrentUser() user: any,
   ) {
-    return this.companyService.updateSettings(id, dto, user.id);
+    return this.companyService.updateSettings(id, dto, user);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.companyService.delete(id, user.id);
+    return this.companyService.delete(id, user);
   }
 
   @Get(':id/stats')
-  getStats(@Param('id') id: string) {
-    return this.companyService.getStats(id);
+  getStats(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.companyService.getStats(id, user);
   }
 
   @Post(':id/upload-logo')
@@ -91,17 +91,17 @@ export class CompanyController {
   // ── Company User Management ──────────────────────────────────────────
 
   @Get(':id/users')
-  getUsers(@Param('id') id: string, @Query() filters: any) {
-    return this.companyService.getCompanyUsers(id, filters);
+  getUsers(@Param('id') id: string, @Query() filters: any, @CurrentUser() user: any) {
+    return this.companyService.getCompanyUsers(id, filters, user);
   }
 
   @Post(':id/users')
   addUser(
     @Param('id') id: string,
     @Body() dto: any,
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.addCompanyUser(id, dto, admin.id);
+    return this.companyService.addCompanyUser(id, dto, user);
   }
 
   @Patch(':id/users/:userId')
@@ -109,9 +109,9 @@ export class CompanyController {
     @Param('id') id: string,
     @Param('userId') userId: string,
     @Body() dto: any,
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.updateCompanyUser(id, userId, dto, admin.id);
+    return this.companyService.updateCompanyUser(id, userId, dto, user);
   }
 
   @Patch(':id/users/:userId/status')
@@ -119,61 +119,61 @@ export class CompanyController {
     @Param('id', ParseUUIDPipe) id: string,
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body('is_active') is_active: boolean,
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.toggleCompanyUserStatus(id, userId, is_active, admin.id);
+    return this.companyService.toggleCompanyUserStatus(id, userId, is_active, user);
   }
 
   @Delete(':id/users/:userId')
   deleteUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('userId', ParseUUIDPipe) userId: string,
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.deleteCompanyUser(id, userId, admin.id);
+    return this.companyService.deleteCompanyUser(id, userId, user);
   }
 
   @Post(':id/users/bulk-delete')
   bulkDeleteUsers(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('user_ids') userIds: string[],
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.bulkDeleteCompanyUsers(id, userIds, admin.id);
+    return this.companyService.bulkDeleteCompanyUsers(id, userIds, user);
   }
 
   @Post(':id/users/:userId/resend-invite')
   resendInvite(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('userId', ParseUUIDPipe) userId: string,
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.resendCompanyUserInvite(id, userId, admin.id);
+    return this.companyService.resendCompanyUserInvite(id, userId, user);
   }
 
   @Post(':id/users/import')
   importUsers(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('users') users: any[],
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.importCompanyUsers(id, users, admin.id);
+    return this.companyService.importCompanyUsers(id, users, user);
   }
 
   // ── Company Department Management ────────────────────────────────────
 
   @Get(':id/departments')
-  getDepartments(@Param('id', ParseUUIDPipe) id: string) {
-    return this.companyService.getCompanyDepartments(id);
+  getDepartments(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: any) {
+    return this.companyService.getCompanyDepartments(id, user);
   }
 
   @Post(':id/departments')
   addDepartment(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: any,
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.addCompanyDepartment(id, dto, admin.id);
+    return this.companyService.addCompanyDepartment(id, dto, user);
   }
 
   @Put(':id/departments/:deptId')
@@ -181,24 +181,24 @@ export class CompanyController {
     @Param('id', ParseUUIDPipe) id: string,
     @Param('deptId', ParseUUIDPipe) deptId: string,
     @Body() dto: any,
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.updateCompanyDepartment(id, deptId, dto, admin.id);
+    return this.companyService.updateCompanyDepartment(id, deptId, dto, user);
   }
 
   @Delete(':id/departments/:deptId')
   deleteDepartment(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('deptId', ParseUUIDPipe) deptId: string,
-    @CurrentUser() admin: any,
+    @CurrentUser() user: any,
   ) {
-    return this.companyService.deleteCompanyDepartment(id, deptId, admin.id);
+    return this.companyService.deleteCompanyDepartment(id, deptId, user);
   }
 
   // ── Other Tabs Data ──────────────────────────────────────────────────
 
   @Get(':id/surveys')
-  getSurveys(@Param('id', ParseUUIDPipe) id: string) {
-    return this.companyService.getCompanySurveys(id);
+  getSurveys(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: any) {
+    return this.companyService.getCompanySurveys(id, user);
   }
 }

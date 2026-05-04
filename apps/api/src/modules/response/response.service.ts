@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 
@@ -20,6 +21,7 @@ export class ResponseService {
     @InjectRepository(SurveyResponse)
     private readonly responseRepository: Repository<SurveyResponse>,
     private readonly dataSource: DataSource,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private validateAnswer(question: SurveyQuestion, item: AnswerItemDto) {
@@ -165,7 +167,13 @@ export class ResponseService {
         await manager.increment(DistributionCampaign, { id: distLog.campaignId }, 'completed_count', 1);
       }
 
-      // 6. Fire BullMQ event in real-world, returning success here
+      // 6. Fire event
+      this.eventEmitter.emit('survey.submitted', {
+        token: tokenStr,
+        surveyType: token.survey.type,
+        tokenId: token.id
+      });
+
       return { success: true, message: 'Yanıtlarınız başarıyla kaydedildi.' };
     });
   }

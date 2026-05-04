@@ -1,4 +1,4 @@
-import { Injectable, Logger, UseGuards } from '@nestjs/common';
+import { Injectable, UseGuards } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DataSource, In } from 'typeorm';
 import { InjectQueue } from '@nestjs/bull';
@@ -11,11 +11,12 @@ import { NotificationService } from '../notification/notification.service';
 import { AuditService } from '../audit/audit.service';
 import { CampaignService } from '../campaign/campaign.service';
 import { CreditService } from '../billing/services/credit.service';
+import { AppLogger } from '../../common/logger/app-logger.service';
+import { EmployeeSurveyService } from '../user/employee-survey.service';
+import { EmployeesService } from '../user/employees.service';
 
 @Injectable()
 export class CronService {
-  private readonly logger = new Logger(CronService.name);
-
   constructor(
     private readonly dataSource: DataSource,
     private readonly scoreService: ScoreService,
@@ -29,12 +30,16 @@ export class CronService {
     @InjectQueue('mail-queue') private readonly mailQueue: Queue,
     @InjectQueue('score-queue') private readonly scoreQueue: Queue,
     @InjectQueue('report-queue') private readonly reportQueue: Queue,
+    private readonly employeeSurveyService: EmployeeSurveyService,
+    private readonly employeesService: EmployeesService,
+    private readonly logger: AppLogger,
   ) {}
 
   @Cron('*/5 * * * *', { timeZone: 'Europe/Istanbul' })
   async checkScheduledCampaigns() {
     if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.checkScheduledCampaigns } as any))) return;
-    this.logger.log('Checking scheduled distribution campaigns...');
+    const start = Date.now();
+    this.logger.info('CRON checkScheduledCampaigns başladı', { service: 'CronService' });
 
     try {
       const scheduled = await this.dataSource.query(
@@ -43,15 +48,16 @@ export class CronService {
       );
 
       for (const campaignData of scheduled) {
-         // In a real scenario, we'd fetch the campaign entity and call campaignService.dispatch
-         this.logger.log(`Dispatching campaign: ${campaignData.id}`);
+         this.logger.info(`Dispatching campaign: ${campaignData.id}`, { service: 'CronService' });
          await this.dataSource.query(
            `UPDATE distribution_campaigns SET status = 'sending', updated_at = NOW() WHERE id = $1`,
            [campaignData.id]
          );
       }
-    } catch (e) {
-      this.logger.error('Error in checkScheduledCampaigns', e);
+      this.logger.info('CRON checkScheduledCampaigns tamamlandı', { service: 'CronService' },
+        { duration: Date.now() - start, count: scheduled.length });
+    } catch (err) {
+      this.logger.fatal('CRON checkScheduledCampaigns CRASHED', { service: 'CronService' }, err);
     } finally {
       await this.cronLockGuard.releaseLock('checkScheduledCampaigns');
     }
@@ -60,12 +66,18 @@ export class CronService {
   @Cron('0 3 * * *', { timeZone: 'Europe/Istanbul' })
   async syncMailDeliveryStatus() {
     if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.syncMailDeliveryStatus } as any))) return;
-    this.logger.log('Syncing mail delivery status...');
+    const start = Date.now();
+    this.logger.info('CRON syncMailDeliveryStatus başladı', { service: 'CronService' });
     
-    // Placeholder for actual sync logic with mail provider API
-    this.logger.log('Mail delivery status synced.');
-    
-    await this.cronLockGuard.releaseLock('syncMailDeliveryStatus');
+    try {
+      // Placeholder for actual sync logic
+      this.logger.info('CRON syncMailDeliveryStatus tamamlandı', { service: 'CronService' },
+        { duration: Date.now() - start });
+    } catch (err) {
+      this.logger.error('CRON syncMailDeliveryStatus hatası', { service: 'CronService' }, err);
+    } finally {
+      await this.cronLockGuard.releaseLock('syncMailDeliveryStatus');
+    }
   }
 
   @Cron('0 9 1 * *', { timeZone: 'Europe/Istanbul' })
@@ -124,25 +136,13 @@ export class CronService {
             invitationCount++;
           }
         } else {
-          const prevEmails = await this.dataSource.query(
-            `SELECT DISTINCT email, full_name, language, metadata FROM survey_tokens 
-             WHERE company_id = $1`, [company.id]
+          // Hesapsız mod — employees tablosundan token gönder
+          const result = await this.employeeSurveyService.sendSurveyToAll(
+            company.id,
+            globalSurvey[0].id,
+            period,
           );
-
-          for (const prev of prevEmails) {
-            const token = crypto.randomBytes(64).toString('hex');
-            await this.dataSource.query(
-              `INSERT INTO survey_tokens (company_id, survey_id, assignment_id, token, email, full_name, language, metadata, expires_at)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-              [company.id, globalSurvey[0].id, assignment[0].id, token, prev.email, prev.full_name, prev.language, prev.metadata, dueAt]
-            );
-
-            console.log(`[CRON] Sending survey_token_invite to: ${prev.email}`);
-            await this.notificationService.sendSurveyTokenInvite(
-              prev.email, prev.full_name, company.name, globalSurvey[0].title, token, dueAt, prev.language || 'tr'
-            );
-            invitationCount++;
-          }
+          invitationCount += result.sent;
         }
       }
 
@@ -217,10 +217,14 @@ export class CronService {
   @Cron('0 2 * * *', { timeZone: 'Europe/Istanbul' })
   async recalculateScores() {
     if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.recalculateScores } as any))) return;
+    const start = Date.now();
+    this.logger.info('CRON recalculateScores başladı', { service: 'CronService' });
     try {
       await this.scoreService.recalculateScores();
-    } catch (e) {
-      this.logger.error('Error in recalculateScores cron', e);
+      this.logger.info('CRON recalculateScores tamamlandı', { service: 'CronService' },
+        { duration: Date.now() - start });
+    } catch (err) {
+      this.logger.fatal('CRON recalculateScores CRASHED', { service: 'CronService' }, err);
     } finally {
       await this.cronLockGuard.releaseLock('recalculateScores');
     }
@@ -229,6 +233,8 @@ export class CronService {
   @Cron('0 10 16 * *', { timeZone: 'Europe/Istanbul' })
   async closeMonthlySurvey() {
     if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.closeMonthlySurvey } as any))) return;
+    const start = Date.now();
+    this.logger.info('CRON closeMonthlySurvey başladı', { service: 'CronService' });
     try {
       const expiredAssignments = await this.dataSource.query(
         `UPDATE survey_assignments SET status = 'expired', updated_at = NOW()
@@ -263,8 +269,10 @@ export class CronService {
           );
         }
       }
-    } catch (e) {
-      this.logger.error('Error in closeMonthlySurvey', e);
+      this.logger.info('CRON closeMonthlySurvey tamamlandı', { service: 'CronService' },
+        { duration: Date.now() - start, count: expiredAssignments.length });
+    } catch (err) {
+      this.logger.fatal('CRON closeMonthlySurvey CRASHED', { service: 'CronService' }, err);
     } finally {
       await this.cronLockGuard.releaseLock('closeMonthlySurvey');
     }
@@ -331,7 +339,8 @@ export class CronService {
   @Cron('0 0 1 * *', { timeZone: 'Europe/Istanbul' })
   async monthlyBillingReset() {
     if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.monthlyBillingReset } as any))) return;
-    this.logger.log('Starting monthly billing reset...');
+    const start = Date.now();
+    this.logger.info('CRON monthlyBillingReset başladı', { service: 'CronService' });
 
     try {
       // 1. Reset all 'used_this_month' counters
@@ -345,7 +354,6 @@ export class CronService {
       );
 
       for (const sub of activeSubs) {
-        // In a real scenario, we'd check if a new payment is needed or just refill credits
         for (const [typeKey, amount] of Object.entries(sub.credits)) {
            await this.creditService.addCredits(
              sub.consultant_id,
@@ -360,8 +368,10 @@ export class CronService {
       await this.auditService.logAction('system', null, 'cron.billing_reset', 'subscriptions', null, {
         subscription_count: activeSubs.length
       });
-    } catch (e) {
-      this.logger.error('Error in monthlyBillingReset', e);
+      this.logger.info('CRON monthlyBillingReset tamamlandı', { service: 'CronService' },
+        { duration: Date.now() - start, sub_count: activeSubs.length });
+    } catch (err) {
+      this.logger.fatal('CRON monthlyBillingReset CRASHED', { service: 'CronService' }, err);
     } finally {
       await this.cronLockGuard.releaseLock('monthlyBillingReset');
     }
@@ -388,6 +398,125 @@ export class CronService {
       this.logger.error('Error in checkLowCredits', e);
     } finally {
       await this.cronLockGuard.releaseLock('checkLowCredits');
+    }
+  }
+
+  @Cron('0 8 * * *', { timeZone: 'Europe/Istanbul' })
+  async checkSubscriptionExpiry() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.checkSubscriptionExpiry } as any))) return;
+    this.logger.log('Checking subscription expiries...');
+    const now = new Date();
+
+    try {
+      // 1. Find expired active subscriptions
+      const expired = await this.dataSource.query(
+        `SELECT s.id, s.consultant_id, s.package_key, u.email, u.full_name, u.language
+         FROM subscriptions s
+         JOIN users u ON s.consultant_id = u.id
+         WHERE s.status = 'active' AND s.current_period_end < NOW()`
+      );
+
+      for (const sub of expired) {
+        // 2. Update status to expired
+        await this.dataSource.query(`UPDATE subscriptions SET status = 'expired', updated_at = NOW() WHERE id = $1`, [sub.id]);
+
+        // 3. Deactivate consultant plan
+        await this.dataSource.query(`UPDATE consultant_plans SET is_active = false WHERE consultant_id = $1`, [sub.consultant_id]);
+
+        // 4. Send notification
+        await this.notificationService.sendSubscriptionExpired(sub.email, sub.full_name, sub.package_key, sub.language || 'tr');
+
+        // 5. Audit log
+        await this.auditService.logAction(sub.consultant_id, null, 'subscription.expired', 'subscriptions', sub.id, { expired_at: now });
+      }
+
+      // 6. Notify soon-to-expire (7 days)
+      const soonToExpire = await this.dataSource.query(
+        `SELECT s.id, s.consultant_id, s.package_key, s.current_period_end, u.email, u.full_name, c.name as company_name
+         FROM subscriptions s
+         JOIN users u ON s.consultant_id = u.id
+         LEFT JOIN companies c ON c.consultant_id = u.id
+         WHERE s.status = 'active' AND s.current_period_end > NOW() AND s.current_period_end <= NOW() + INTERVAL '7 days'`
+      );
+
+      for (const sub of soonToExpire) {
+        const daysLeft = Math.ceil((new Date(sub.current_period_end).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        await this.notificationService.sendPlanExpiry(sub.email, sub.company_name || 'Wellbeing Metric', daysLeft, sub.package_key);
+      }
+
+    } catch (e) {
+      this.logger.error('Error in checkSubscriptionExpiry', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('checkSubscriptionExpiry');
+    }
+  }
+
+  // ── Her ayın 1'i saat 09:00 — pasif çalışan bildirimi ────────────
+  @Cron('0 9 1 * *', { timeZone: 'Europe/Istanbul' })
+  async notifyInactiveEmployees() {
+    const start = Date.now();
+    this.logger.info('CRON notifyInactiveEmployees başladı', { service: 'CronService' });
+
+    try {
+      // 180 günden fazla pasif olan çalışanları şirket bazında grupla
+      const rows = await this.dataSource.query(`
+        SELECT
+          e.company_id,
+          c.name           AS company_name,
+          u.email          AS hr_email,
+          COUNT(*)::int    AS stale_count
+        FROM employees e
+        JOIN companies c ON c.id = e.company_id
+        JOIN users u ON u.company_id = e.company_id
+          AND u.role IN ('hr_admin', 'super_admin')
+          AND u.is_active = true
+        WHERE e.is_active = false
+          AND e.deactivated_at IS NOT NULL
+          AND e.deactivated_at < NOW() - INTERVAL '180 days'
+        GROUP BY e.company_id, c.name, u.email
+        ORDER BY stale_count DESC
+      `);
+
+      if (rows.length === 0) {
+        this.logger.info('Bildirim gönderilecek pasif çalışan yok', { service: 'CronService' });
+        return;
+      }
+
+      // Her HR adminine bildirim maili gönder
+      for (const row of rows) {
+        try {
+          await this.notificationService.sendMailDirectly({
+            to:      row.hr_email,
+            subject: `${row.stale_count} çalışan 6+ aydır pasif — ${row.company_name}`,
+            html: [
+              `<p>Merhaba,</p>`,
+              `<p><strong>${row.stale_count}</strong> çalışan 180 günden fazladır pasif durumda.</p>`,
+              `<p>Temizlemek ister misiniz? Lütfen çalışan listesini inceleyerek kalıcı silme işlemini kendiniz gerçekleştirin.</p>`,
+              `<p><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/employees?filter=inactive">→ Çalışan Listesine Git</a></p>`,
+              `<p><em>Bu işlem otomatik olarak gerçekleştirilmez. Silme kararı her zaman size aittir.</em></p>`,
+            ].join('\n'),
+          });
+
+          this.logger.info('Pasif çalışan bildirimi gönderildi', { service: 'CronService' }, {
+            hr_email:    row.hr_email,
+            company:     row.company_name,
+            stale_count: row.stale_count,
+          });
+        } catch (mailErr) {
+          this.logger.error('Bildirim maili gönderilemedi', { service: 'CronService' }, {
+            hr_email: row.hr_email,
+            error:    mailErr.message,
+          });
+        }
+      }
+
+      this.logger.info('CRON notifyInactiveEmployees tamamlandı', { service: 'CronService' }, {
+        duration:        Date.now() - start,
+        notified_groups: rows.length,
+      });
+
+    } catch (e) {
+      this.logger.error('CRON notifyInactiveEmployees HATA', { service: 'CronService' }, { message: e?.message ?? String(e) });
     }
   }
 }

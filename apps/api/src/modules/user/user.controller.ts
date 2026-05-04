@@ -31,7 +31,9 @@ export class UserController {
     @CurrentUser() user: any,
     @Query() filters: UserFilterDto,
   ) {
-    return this.userService.findAll(user.company_id, filters);
+    const result = await this.userService.findAll(user.company_id, filters);
+    console.log('[DEBUG] UserController.findAll result:', JSON.stringify(result, null, 2));
+    return result;
   }
 
   @Post('invite')

@@ -15,6 +15,7 @@ import { AuditLog } from '../audit/entities/audit-log.entity';
 import { ContentItem } from '../content/entities/content-item.entity';
 import { ScoreModule } from '../score/score.module';
 import { ResponseModule } from '../response/response.module';
+import { BenchmarkModule } from '../benchmark/benchmark.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ResponseModule } from '../response/response.module';
     ]),
     forwardRef(() => ScoreModule),
     ResponseModule,
+    BenchmarkModule,
   ],
   controllers: [DashboardController],
   providers: [

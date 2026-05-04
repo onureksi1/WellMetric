@@ -22,7 +22,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  @Post('api/v1/hr/reports/export')
+  @Post('hr/reports/export')
   @Roles('super_admin', 'hr_admin')
   @UseGuards(TenantGuard)
   @HttpCode(HttpStatus.ACCEPTED)
@@ -31,7 +31,7 @@ export class ReportController {
     return this.reportService.requestExport(req.user.company_id, req.user.id, dto);
   }
 
-  @Post('api/v1/admin/reports/export')
+  @Post('admin/reports/export')
   @Roles('super_admin')
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: 'Request a report export for any company (Super Admin)' })

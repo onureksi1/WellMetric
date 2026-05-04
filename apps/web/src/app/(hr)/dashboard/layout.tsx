@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import client from '@/lib/api/client';
 import HrSidebar from '@/components/layout/HrSidebar';
 import { PeriodSelector } from '@/components/shared/PeriodSelector';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
@@ -24,6 +26,14 @@ export default function HrLayout({
 function HrLayoutContent({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation(['dashboard', 'common']);
   const { toggleSidebar } = useSidebar();
+  const { data: overview } = useQuery({
+    queryKey: ['hr-overview-minimal'],
+    queryFn: async () => {
+      const res = await client.get('/hr/dashboard/overview');
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 30, // 30 mins
+  });
 
   return (
     <div className="min-h-screen bg-gray-50/30 flex">
@@ -39,8 +49,12 @@ function HrLayoutContent({ children }: { children: React.ReactNode }) {
                <Menu size={20} />
              </button>
              <div className="flex items-center gap-3">
-               <div className="h-8 w-8 bg-gray-100 rounded-lg hidden sm:block" />
-               <span className="font-bold text-navy text-sm truncate max-w-[100px] sm:max-w-none">Global Tech</span>
+               <div className="h-8 w-8 bg-primary/10 rounded-lg hidden sm:flex items-center justify-center text-primary font-bold text-xs">
+                 {overview?.company_name?.slice(0, 2).toUpperCase() || 'WA'}
+               </div>
+               <span className="font-bold text-navy text-sm truncate max-w-[150px] sm:max-w-none">
+                 {overview?.company_name || 'Yükleniyor...'}
+               </span>
              </div>
              <div className="h-6 w-px bg-gray-100 hidden sm:block" />
              <div className="hidden md:block">

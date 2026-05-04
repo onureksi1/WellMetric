@@ -48,6 +48,19 @@ function SettingsContent() {
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
   const [loading, setLoading] = useState(true);
   const [planData, setPlanData] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  
+  // Profile state
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [language, setLanguage] = useState('tr');
+  
+  // Password state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const consultantUser = user as ConsultantUserView;
 
@@ -59,8 +72,18 @@ function SettingsContent() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await client.get('/consultant/dashboard/overview');
-        setPlanData(response.data.metrics?.plan_usage || { used: 0, max: 5 });
+        const [dashRes, meRes] = await Promise.all([
+          client.get('/consultant/dashboard/overview'),
+          client.get('/auth/me')
+        ]);
+        
+        setPlanData(dashRes.data.metrics?.plan_usage || { used: 0, max: 5 });
+        
+        const userData = meRes.data.data || meRes.data;
+        setFullName(userData.full_name || '');
+        setEmail(userData.email || '');
+        setPhone(userData.phone || '');
+        setLanguage(userData.language || 'tr');
       } catch (error) {
         console.error('Error fetching settings:', error);
       } finally {
@@ -71,12 +94,51 @@ function SettingsContent() {
     fetchSettings();
   }, []);
 
-  const handleSaveProfile = () => {
-    toast.success(t('settings.success', 'Profil bilgileri güncellendi.'));
+  const handleSaveProfile = async () => {
+    setProfileLoading(true);
+    try {
+      await client.put('/auth/me', { 
+        full_name: fullName, 
+        phone: phone,
+        language: language 
+      });
+      toast.success(t('settings.success', 'Profil bilgileri güncellendi.'));
+    } catch (err: any) {
+      toast.error(err.response?.data?.error?.message || 'Profil güncellenemedi');
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
-  const handleUpdatePassword = () => {
-    toast.success('Şifreniz başarıyla güncellendi.');
+  const handleUpdatePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error('Yeni şifreler eşleşmiyor');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error('Şifre en az 8 karakter olmalı');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      await client.post('/auth/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      toast.success('Şifreniz başarıyla güncellendi.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        toast.error('Mevcut şifre yanlış');
+      } else {
+        toast.error(err.response?.data?.error?.message || 'Şifre değiştirilemedi');
+      }
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   if (loading) {
@@ -150,8 +212,10 @@ function SettingsContent() {
                 </div>
                 <button 
                   onClick={handleSaveProfile}
-                  className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all"
+                  disabled={profileLoading}
+                  className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all disabled:opacity-50 flex items-center gap-2"
                 >
+                  {profileLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   {t('settings.save')}
                 </button>
               </div>
@@ -161,7 +225,8 @@ function SettingsContent() {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.full_name')}</label>
                   <input 
                     type="text" 
-                    defaultValue={getDisplayName(consultantUser)}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
@@ -169,7 +234,7 @@ function SettingsContent() {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.email')}</label>
                   <input 
                     type="email" 
-                    defaultValue={user?.email}
+                    value={email}
                     disabled
                     className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 text-sm cursor-not-allowed"
                   />
@@ -179,16 +244,21 @@ function SettingsContent() {
                   <input 
                     type="tel" 
                     placeholder="+90 5XX XXX XX XX"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('common.title_company', 'Unvan / Şirket')}</label>
-                  <input 
-                    type="text" 
-                    defaultValue="Senior Consultant"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                  />
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('common.language', 'Dil')}</label>
+                  <select 
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none"
+                  >
+                    <option value="tr">Türkçe</option>
+                    <option value="en">English</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -208,6 +278,8 @@ function SettingsContent() {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mevcut Şifre</label>
                   <input 
                     type="password" 
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
@@ -215,6 +287,8 @@ function SettingsContent() {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Yeni Şifre</label>
                   <input 
                     type="password" 
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
@@ -222,13 +296,17 @@ function SettingsContent() {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Yeni Şifre (Tekrar)</label>
                   <input 
                     type="password" 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
                 <button 
                   onClick={handleUpdatePassword}
-                  className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all mt-4"
+                  disabled={passwordLoading}
+                  className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all mt-4 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
+                  {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Şifreyi Güncelle
                 </button>
               </div>

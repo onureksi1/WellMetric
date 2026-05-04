@@ -1,32 +1,136 @@
-import { Controller, Post, Body, Headers, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Headers, BadRequestException, Req, HttpCode, Body, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
+import { RawBodyRequest } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+const Stripe = require('stripe');
 import { BillingService } from '../services/billing.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Payment } from '../entities/payment.entity';
+import { PaytrProvider } from '../providers/paytr.provider';
+import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 
 @Controller('webhooks')
 export class WebhookController {
-  constructor(private readonly billingService: BillingService) {}
+  private stripe: any;
+
+  constructor(
+    @InjectRepository(Payment)
+    private readonly paymentRepo: Repository<Payment>,
+    private readonly billingService: BillingService,
+    private readonly configService: ConfigService,
+    private readonly paytrProvider: PaytrProvider,
+  ) {
+    this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
+    } as any);
+  }
 
   @Post('stripe')
-  async handleStripeWebhook(@Body() payload: any, @Headers('stripe-signature') signature: string) {
-    // In a real scenario: verify signature then process
-    console.log('Stripe Webhook received:', payload.type);
-    
-    if (payload.type === 'payment_intent.succeeded') {
-      const { consultant_id, package_key, interval } = payload.data.object.metadata;
+  @HttpCode(200)
+  async handleStripeWebhook(
+    @Req() req: RawBodyRequest<Request>,
+    @Headers('stripe-signature') signature: string,
+  ) {
+    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+
+    if (!signature || !webhookSecret) {
+      throw new BadRequestException('Webhook configuration missing');
+    }
+
+    let event: any;
+
+    try {
+      event = this.stripe.webhooks.constructEvent(
+        req.rawBody!,
+        signature,
+        webhookSecret,
+      );
+    } catch (err) {
+      throw new BadRequestException(`Webhook imza hatası: ${err.message}`);
+    }
+
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object as any;
+      const { consultant_id, package_key } = paymentIntent.metadata;
+
       await this.billingService.handlePaymentSuccess(
         consultant_id,
         package_key,
         'stripe',
-        payload.data.object.id,
-        payload.data.object.amount / 100
+        paymentIntent.id,
+        paymentIntent.amount / 100,
       );
     }
-    
+
     return { received: true };
   }
 
+  // ── iyzico Webhook ────────────────────────────────────────────────
   @Post('iyzico')
-  async handleIyzicoWebhook(@Body() payload: any) {
-    // Similar logic for Iyzico
-    return { status: 'success' };
+  @HttpCode(200)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ global: { ttl: 60000, limit: 100 } })
+  async iyzicoWebhook(@Body() body: any) {
+    const payment = await this.paymentRepo.findOne({
+      where: { provider_payment_id: body.paymentId, provider: 'iyzico' }
+    });
+
+    if (!payment) {
+      console.error('iyzico: Ödeme bulunamadı:', body.paymentId);
+      return 'OK';
+    }
+
+    if (body.status === 'SUCCESS') {
+      await this.paymentRepo.update(payment.id, { status: 'completed' });
+      await this.billingService.activatePackageById(
+        payment.consultant_id,
+        payment.package_key,
+      );
+    } else {
+      await this.paymentRepo.update(payment.id, { status: 'failed' });
+    }
+
+    return 'OK';
+  }
+
+  // ── PayTR Webhook ─────────────────────────────────────────────────
+  @Post('paytr')
+  @HttpCode(200)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ global: { ttl: 60000, limit: 100 } })
+  async paytrWebhook(@Body() body: any) {
+    const isValid = this.paytrProvider.verifyWebhook({
+      merchantOid: body.merchant_oid,
+      status:      body.status,
+      totalAmount: body.total_amount,
+      hash:        body.hash,
+    });
+
+    if (!isValid) {
+      console.error('PayTR: Geçersiz webhook imzası');
+      return 'OK';
+    }
+
+    const payment = await this.paymentRepo.findOne({
+      where: { provider_payment_id: body.merchant_oid, provider: 'paytr' }
+    });
+
+    if (!payment) {
+      console.error('PayTR: Ödeme bulunamadı:', body.merchant_oid);
+      return 'OK';
+    }
+
+    if (body.status === 'success') {
+      await this.paymentRepo.update(payment.id, { status: 'completed' });
+      await this.billingService.activatePackageById(
+        payment.consultant_id,
+        payment.package_key,
+      );
+    } else {
+      await this.paymentRepo.update(payment.id, { status: 'failed' });
+    }
+
+    return 'OK';
   }
 }

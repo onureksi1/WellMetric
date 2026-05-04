@@ -1,4 +1,5 @@
-import { IsUUID, IsOptional, IsDateString, IsString, IsBoolean, IsEnum, IsNumber } from 'class-validator';
+import { IsUUID, IsOptional, IsDateString, IsString, IsBoolean, IsArray, IsEnum, IsNumber } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateCampaignDto {
   @IsUUID()
@@ -22,24 +23,39 @@ export class CreateCampaignDto {
 
   @IsOptional()
   @IsUUID()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   assignment_id?: string;
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   period?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  target_employee_ids?: string[];
+
+  @IsOptional()
+  @IsUUID()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
+  department_id?: string;
 }
 
 export class CampaignFilterDto {
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   status?: string;
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   period?: string;
 
   @IsOptional()
   @IsUUID()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   survey_id?: string;
 
   @IsOptional()

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../modules/user/entities/user.entity';
 import { PlatformSettings } from '../modules/settings/entities/platform-settings.entity';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {

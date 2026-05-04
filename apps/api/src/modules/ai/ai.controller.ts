@@ -31,7 +31,7 @@ export class AIController {
 
   // ── Super Admin Routes ──────────────────────────────────────────────
   
-  @Post('api/v1/admin/ai/chat')
+  @Post('admin/ai/chat')
   @Roles('super_admin')
   @ApiOperation({ summary: 'Chat with AI as Super Admin (Platform wide context)' })
   adminChat(@Body() dto: ChatDto, @Req() req: any) {
@@ -39,7 +39,7 @@ export class AIController {
     return this.aiService.adminChat(dto.message, dto.conversation_history || [], language);
   }
 
-  @Post('api/v1/admin/ai/anomaly')
+  @Post('admin/ai/anomaly')
   @Roles('super_admin')
   @ApiOperation({ summary: 'Trigger anomaly analysis for all companies' })
   async triggerAnomaly(@Query('period') period: string, @Req() req: any) {
@@ -48,7 +48,7 @@ export class AIController {
     return { status: 'accepted', message: 'Anomali analizi başlatıldı.' };
   }
 
-  @Get('api/v1/admin/ai/insights')
+  @Get('admin/ai/insights')
   @Roles('super_admin')
   @ApiOperation({ summary: 'Get all AI insights (Super Admin)' })
   getAdminInsights(@Query() filters: any) {
@@ -58,7 +58,7 @@ export class AIController {
 
   // ── HR Admin Routes ─────────────────────────────────────────────────
 
-  @Post('api/v1/hr/ai/chat')
+  @Post('hr/ai/chat')
   @Roles('super_admin', 'hr_admin')
   @UseGuards(TenantGuard)
   @ApiOperation({ summary: 'Chat with AI as HR Admin (Company specific context)' })
@@ -67,7 +67,7 @@ export class AIController {
     return this.aiService.hrChat(req.user.company_id, dto.message, dto.conversation_history || [], language);
   }
 
-  @Get('api/v1/hr/ai/insights')
+  @Get('hr/ai/insights')
   @Roles('super_admin', 'hr_admin')
   @UseGuards(TenantGuard)
   @ApiOperation({ summary: 'Get company AI insights' })
@@ -75,7 +75,7 @@ export class AIController {
     return this.aiService.getInsights(req.user.company_id, filters);
   }
 
-  @Post('api/v1/hr/ai/action-suggest')
+  @Post('hr/ai/action-suggest')
   @Roles('super_admin', 'hr_admin')
   @UseGuards(TenantGuard)
   @ApiOperation({ summary: 'Get AI powered action suggestions (Synchronous)' })
@@ -91,7 +91,7 @@ export class AIController {
     );
   }
 
-  @Post('api/v1/hr/ai/intelligence-report')
+  @Post('hr/ai/intelligence-report')
   @Roles('super_admin', 'hr_admin')
   @UseGuards(TenantGuard)
   @ApiOperation({ summary: 'Request an intelligence report for a specific period' })
@@ -111,7 +111,7 @@ export class AIController {
     return { status: 'accepted', message: 'İstihbarat raporu hazırlanıyor. Yaklaşık 1-2 dakika sürebilir.' };
   }
 
-  @Get('api/v1/hr/ai/intelligence-report/:period')
+  @Get('hr/ai/intelligence-report/:period')
   @Roles('super_admin', 'hr_admin')
   @UseGuards(TenantGuard)
   @ApiOperation({ summary: 'Get existing intelligence report' })

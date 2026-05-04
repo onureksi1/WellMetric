@@ -13,6 +13,9 @@ import { buildContextNarrative } from './helpers/context-narrative.builder';
 import { ReportService } from '../report/report.service';
 import { CreditService } from '../billing/services/credit.service';
 import { SettingsService } from '../settings/settings.service';
+import { Anonymizer } from '../../common/utils/anonymizer.util';
+import { AppLogger } from '../../common/logger/app-logger.service';
+import { ServiceDebugger } from '../../common/logger/debug.helper';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -21,7 +24,7 @@ export interface ChatMessage {
 
 @Injectable()
 export class AIService {
-  private readonly logger = new Logger(AIService.name);
+  private readonly debug: ServiceDebugger;
 
   constructor(
     @InjectRepository(AiInsight)
@@ -37,7 +40,10 @@ export class AIService {
     private readonly settingsService: SettingsService,
     private readonly creditService: CreditService,
     private readonly dataSource: DataSource,
-  ) {}
+    private readonly logger: AppLogger,
+  ) {
+    this.debug = new ServiceDebugger(logger, 'AIService');
+  }
 
   private async handleAiUsage(companyId: string | null, taskType: string) {
     if (!companyId) return; // System level tasks might not deduct or handled differently
@@ -90,8 +96,10 @@ export class AIService {
       return;
     }
 
-    // 3. Prepare prompts
-    const answerList = answers.map((a: any) => `- ${a.answer_text}`).join('\n');
+    // 3. Prepare prompts (Anonymize)
+    const rawAnswers = answers.map((a: any) => a.answer_text).filter(Boolean);
+    const safeAnswers = Anonymizer.anonymizeArray(rawAnswers);
+    const answerList = safeAnswers.map(a => `- ${a}`).join('\n');
     
     await this.handleAiUsage(companyId, AITaskEnum.OPEN_TEXT_SUMMARY);
 
@@ -212,6 +220,39 @@ export class AIService {
       ai_suggestion: result.response,
       content_matches: contentItems.slice(0, 3),
     };
+  }
+
+  async generateComparativeInsight(options: { company_ids: string[]; period: string; consultant_id: string; language?: 'tr' | 'en' }) {
+    const { company_ids, period, language = 'tr', consultant_id } = options;
+    const ctx = { userId: consultant_id };
+
+    this.debug.start('generateComparativeInsight', ctx, {
+      company_count: company_ids.length,
+      period,
+    });
+
+    try {
+      // 1. Gather data from all companies
+      const data = await this.dataSource.query(`
+        SELECT c.name, ws.dimension, ws.score, ws.period
+        FROM wellbeing_scores ws
+        JOIN companies c ON c.id = ws.company_id
+        WHERE ws.company_id = ANY($1) AND ws.period = $2
+      `, [company_ids, period]);
+
+      const prompt = language === 'tr' 
+        ? `Bu firmaları karşılaştır: ${JSON.stringify(data)}. Hangisi en iyi? Ortak sorunlar? Öncelikli müdahale nerede?`
+        : `Compare these firms: ${JSON.stringify(data)}. Which one is best? Common issues? Where is the priority intervention?`;
+      
+      this.debug.external('AI Provider', 'adminChat', ctx);
+      const result = await this.adminChat(prompt, []);
+      
+      this.debug.done('generateComparativeInsight', ctx);
+      return result;
+    } catch (err) {
+      this.debug.fail('generateComparativeInsight', ctx, err);
+      throw err;
+    }
   }
 
   async generateIntelligenceReport(companyId: string, period: string, language: 'tr' | 'en' = 'tr') {
@@ -386,9 +427,10 @@ export class AIService {
       take: 3
     });
 
+    const safeMessage = Anonymizer.anonymize(message);
     const systemPrompt = `Sen bir wellbeing analistisisin. Yalnızca sana verilen anonim şirket verilerini kullan. Kişisel bilgi asla paylaşma. ${language === 'tr' ? 'Türkçe yanıt ver.' : 'Respond in English.'}`;
     const context = `Bağlam Verisi: Son Skorlar: ${JSON.stringify(latestScores)}. Son Analizler: ${recentInsights.map(i => i.content).join('\n')}`;
-    const fullPrompt = `${context}\n\nGeçmiş:\n${conversationHistory.slice(-10).map(h => `${h.role}: ${h.content}`).join('\n')}\nUser: ${message}`;
+    const fullPrompt = `${context}\n\nGeçmiş:\n${conversationHistory.slice(-10).map(h => `${h.role}: ${h.content}`).join('\n')}\nUser: ${safeMessage}`;
 
     await this.handleAiUsage(companyId, AITaskEnum.HR_CHAT);
 

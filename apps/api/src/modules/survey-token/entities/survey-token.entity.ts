@@ -25,6 +25,12 @@ export class SurveyToken {
   @Column({ type: 'uuid', nullable: true })
   department_id: string | null;
 
+  @Column({ type: 'uuid', nullable: true })
+  employee_id: string | null;
+
+  @Column({ type: 'varchar', length: 6, nullable: true })
+  pin_code: string | null;
+
   @Column({ type: 'varchar', nullable: true })
   email: string | null;
 

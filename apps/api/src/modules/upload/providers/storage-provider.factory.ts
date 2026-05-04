@@ -18,8 +18,16 @@ export class StorageProviderFactory {
 
   async getProvider(): Promise<{ provider: StorageProvider; config: any }> {
     const storageInfo = await this.settingsService.getDecryptedStorageConfig();
-    const providerName = storageInfo?.provider || 'cloudflare_r2';
+    let providerName = storageInfo?.provider;
 
+    // Fallback to local if in development or if provider is cloud but config is empty
+    const isDev = process.env.NODE_ENV === 'development';
+    const hasConfig = storageInfo?.config && Object.keys(storageInfo.config).length > 0;
+
+    if (!providerName || (providerName !== 'local' && !hasConfig && isDev)) {
+      providerName = 'local';
+    }
+ 
     let provider: StorageProvider;
     switch (providerName) {
       case 'cloudflare_r2':
@@ -35,7 +43,7 @@ export class StorageProviderFactory {
         provider = this.localProvider;
         break;
       default:
-        provider = this.r2Provider;
+        provider = this.localProvider;
     }
 
     return { provider, config: storageInfo?.config || {} };

@@ -15,7 +15,8 @@ import {
   Clock,
   ArrowRight,
   Loader2,
-  Info
+  Info,
+  Building2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -43,7 +44,8 @@ export function CampaignWizardModal({ isOpen, onClose, onSuccess, initialData }:
     survey_id: initialData?.survey_id || '',
     assignment_id: initialData?.assignment_id || '',
     period: initialData?.period || '',
-    recipient_mode: 'existing', // existing | csv
+    recipient_mode: 'existing', // existing | department | csv
+    department_id: '',
     scheduled_mode: 'now', // now | scheduled
     scheduled_at: '',
   });
@@ -57,22 +59,51 @@ export function CampaignWizardModal({ isOpen, onClose, onSuccess, initialData }:
     enabled: isOpen
   });
 
+  // Gerçek çalışan sayısını çek
+  const { data: employeeCountData } = useQuery({
+    queryKey: ['hr-employee-count'],
+    queryFn: async () => {
+      const { data } = await client.get('/hr/employees?per_page=1');
+      return data?.meta?.total ?? data?.total ?? null;
+    },
+    enabled: isOpen
+  });
+  const employeeCount = employeeCountData != null ? `${employeeCountData} Çalışan` : 'Yükleniyor...';
+
+  // Departmanları çek
+  const { data: departments = [] } = useQuery({
+    queryKey: ['hr-departments-wizard'],
+    queryFn: async () => {
+      const { data } = await client.get('/hr/departments');
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: isOpen
+  });
+
+  const selectedDept = departments.find((d: any) => d.id === formData.department_id);
+  const recipientLabel = formData.recipient_mode === 'department'
+    ? (selectedDept ? `${selectedDept.name} departmanı` : 'Departman seçilmedi')
+    : employeeCount;
+
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       await client.post('/hr/campaigns', {
         survey_id: data.survey_id,
-        assignment_id: data.assignment_id,
-        period: data.period,
+        assignment_id: data.assignment_id || undefined,
+        period: data.period || undefined,
         scheduled_at: data.scheduled_mode === 'scheduled' ? data.scheduled_at : null,
-        employee_accounts: false, // Default to token mode as per typical use
+        employee_accounts: false,
+        ...(data.recipient_mode === 'department' && data.department_id
+          ? { department_id: data.department_id }
+          : {}),
       });
     },
     onSuccess: () => {
       toast.success('Kampanya başarıyla oluşturuldu.');
       onSuccess();
     },
-    onError: () => {
-      toast.error('Kampanya oluşturulurken bir hata oluştu.');
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Kampanya oluşturulurken bir hata oluştu.');
     }
   });
 
@@ -136,7 +167,7 @@ export function CampaignWizardModal({ isOpen, onClose, onSuccess, initialData }:
                             onChange={() => setFormData({ ...formData, survey_id: survey.id })}
                           />
                           <div>
-                            <p className="font-bold text-navy">{survey.title}</p>
+                            <p className="font-bold text-navy">{survey.title || survey.title_tr || 'İsimsiz Anket'}</p>
                             <p className="text-xs text-gray-400">Dönem: {survey.period} • Son Tarih: {survey.due_at ? format(new Date(survey.due_at), 'dd MMM yyyy', { locale: tr }) : '-'}</p>
                           </div>
                         </div>
@@ -154,31 +185,46 @@ export function CampaignWizardModal({ isOpen, onClose, onSuccess, initialData }:
              <div className="space-y-6">
                 <h3 className="text-lg font-black text-navy">Alıcı Listesi Belirleyin</h3>
                 
-                <div className="grid gap-4">
+                <div className="grid gap-3">
+                   {/* Tüm Şirket */}
                    <button 
-                     onClick={() => setFormData({ ...formData, recipient_mode: 'existing' })}
+                     onClick={() => setFormData({ ...formData, recipient_mode: 'existing', department_id: '' })}
                      className={`flex items-start gap-4 p-5 rounded-2xl border-2 text-left transition-all ${formData.recipient_mode === 'existing' ? 'bg-primary/5 border-primary shadow-sm' : 'bg-white border-gray-100 hover:bg-gray-50'}`}
                    >
-                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.recipient_mode === 'existing' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${formData.recipient_mode === 'existing' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
                         <Users size={20} />
                      </div>
                      <div className="flex-1">
-                        <p className="font-bold text-navy">Mevcut Çalışan Listesini Kullan</p>
-                        <p className="text-sm text-gray-500 mt-1">Son dönem anketine katılan veya sisteme kayıtlı aktif çalışanlara gönderilir.</p>
-                        <Badge className="mt-3">~120 Çalışan</Badge>
+                        <p className="font-bold text-navy">Tüm Şirket</p>
+                        <p className="text-sm text-gray-500 mt-1">Sisteme kayıtlı tüm aktif çalışanlara gönderilir.</p>
+                        <Badge className="mt-3">{employeeCount}</Badge>
                      </div>
                    </button>
 
+                   {/* Departmana Göre */}
                    <button 
-                     disabled
-                     className="flex items-start gap-4 p-5 rounded-2xl border-2 text-left transition-all bg-gray-50 opacity-60 cursor-not-allowed"
+                     onClick={() => setFormData({ ...formData, recipient_mode: 'department' })}
+                     className={`flex items-start gap-4 p-5 rounded-2xl border-2 text-left transition-all ${formData.recipient_mode === 'department' ? 'bg-indigo-50 border-indigo-400 shadow-sm' : 'bg-white border-gray-100 hover:bg-gray-50'}`}
                    >
-                     <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 text-gray-400">
-                        <Upload size={20} />
+                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${formData.recipient_mode === 'department' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                        <Building2 size={20} />
                      </div>
                      <div className="flex-1">
-                        <p className="font-bold text-gray-400">Yeni CSV Listesi Yükle (Yakında)</p>
-                        <p className="text-sm text-gray-400 mt-1">Mevcut liste yerine özel bir hedef kitle belirlemek için CSV dosyası yükleyin.</p>
+                        <p className="font-bold text-navy">Departmana Göre</p>
+                        <p className="text-sm text-gray-500 mt-1">Seçilen departmandaki aktif çalışanlara gönderilir.</p>
+                        {formData.recipient_mode === 'department' && (
+                          <select
+                            className="mt-3 w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-sm font-bold text-navy outline-none focus:ring-2 focus:ring-indigo-300"
+                            value={formData.department_id}
+                            onClick={e => e.stopPropagation()}
+                            onChange={e => setFormData({ ...formData, department_id: e.target.value })}
+                          >
+                            <option value="">-- Departman seçin --</option>
+                            {departments.map((d: any) => (
+                              <option key={d.id} value={d.id}>{d.name}</option>
+                            ))}
+                          </select>
+                        )}
                      </div>
                    </button>
                 </div>
@@ -186,7 +232,7 @@ export function CampaignWizardModal({ isOpen, onClose, onSuccess, initialData }:
                 <div className="p-4 bg-blue-50 rounded-2xl flex gap-3 border border-blue-100">
                    <Info className="text-blue-500 flex-shrink-0" size={20} />
                    <p className="text-sm text-blue-700 font-medium leading-relaxed">
-                      Anket linkleri kişiye özel üretilecek ve her çalışanın kendi e-posta adresine "survey_token_invite" şablonu ile gönderilecektir.
+                      Anket linkleri kişiye özel üretilecek ve her çalışanın kendi e-posta adresine gönderilecektir. Yanıtlar anonim olarak işlenir.
                    </p>
                 </div>
              </div>
@@ -234,11 +280,11 @@ export function CampaignWizardModal({ isOpen, onClose, onSuccess, initialData }:
                    <div className="space-y-3">
                       <div className="flex justify-between">
                          <span className="text-sm opacity-60">Anket:</span>
-                         <span className="text-sm font-black">{selectedSurvey?.title_tr}</span>
+                         <span className="text-sm font-black">{selectedSurvey?.title}</span>
                       </div>
                       <div className="flex justify-between">
-                         <span className="text-sm opacity-60">Alıcı Sayısı:</span>
-                         <span className="text-sm font-black">~120 Çalışan</span>
+                         <span className="text-sm opacity-60">Alıcı:</span>
+                         <span className="text-sm font-black">{recipientLabel}</span>
                       </div>
                       <div className="flex justify-between">
                          <span className="text-sm opacity-60">Zamanlama:</span>

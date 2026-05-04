@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { PaymentProvider } from './payment-provider.interface';
+import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { PaymentProvider } from './payment-provider.interface';
 
 @Injectable()
 export class StripeProvider implements PaymentProvider {
   private stripe: any;
 
-  constructor(apiKey: string) {
+  constructor(private configService: ConfigService) {
+    const apiKey = this.configService.get<string>('STRIPE_SECRET_KEY') || 'sk_test_unused';
     this.stripe = new Stripe(apiKey, {
-      apiVersion: '2025-01-27-acacia' as any,
+      apiVersion: '2023-10-16' as any,
     });
   }
 

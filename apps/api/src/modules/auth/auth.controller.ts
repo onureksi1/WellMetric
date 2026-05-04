@@ -12,7 +12,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -29,12 +29,18 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @Throttle({ auth: { ttl: 900000, limit: 5 } })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() dto: LoginDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { access_token, refresh_token, user } = await this.authService.login(dto);
+    const ip = req.headers['x-forwarded-for']?.toString().split(',')[0]
+      ?? req.socket.remoteAddress
+      ?? '0.0.0.0';
+
+    const { access_token, refresh_token, user } = await this.authService.login(dto, ip);
 
     // Set refresh token in HttpOnly cookie
     res.cookie('Refresh', refresh_token, {

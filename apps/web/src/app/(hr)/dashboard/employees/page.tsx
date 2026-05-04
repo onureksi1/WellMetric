@@ -21,7 +21,9 @@ import {
   CheckCircle2,
   AlertCircle,
   XCircle,
-  Loader2
+  Loader2,
+  Trash2,
+  Send
 } from 'lucide-react';
 import client from '@/lib/api/client';
 import { Card } from '@/components/ui/Card';
@@ -52,15 +54,15 @@ interface Department {
 // Validation Schemas
 const inviteSchema = z.object({
   email: z.string().email('Geçerli bir e-posta girin'),
-  full_name: z.string().min(2, 'Ad soyad en az 2 karakter olmalıdır'),
-  department_id: z.string().min(1, 'Departman seçiniz'),
-  position: z.string().optional(),
-  location: z.string().optional(),
-  seniority: z.string().optional(),
-  age_group: z.string().optional(),
-  gender: z.string().optional(),
-  start_date: z.string().optional(),
-  language: z.enum(['tr', 'en']),
+  full_name: z.string().min(1, 'Ad soyad zorunludur'),
+  department_id: z.string().optional().or(z.literal('')),
+  position: z.string().optional().or(z.literal('')),
+  location: z.string().optional().or(z.literal('')),
+  seniority: z.string().optional().or(z.literal('')),
+  age_group: z.string().optional().or(z.literal('')),
+  gender: z.string().optional().or(z.literal('')),
+  start_date: z.string().optional().or(z.literal('')),
+  language: z.enum(['tr', 'en']).optional().default('tr'),
 });
 
 const editSchema = inviteSchema.extend({});
@@ -80,25 +82,44 @@ export default function EmployeesPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isResendModalOpen, setIsResendModalOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isTargetedSurveyModalOpen, setIsTargetedSurveyModalOpen] = useState(false);
+  const [targetedSurveyId, setTargetedSurveyId] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [deleteTarget, setDeleteTarget]           = useState<Employee | null>(null);
 
   // CSV Upload state
   const [csvStep, setCsvStep] = useState(1);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [csvResults, setCsvResults] = useState<any>(null);
+  const [isAllSurveyModalOpen, setIsAllSurveyModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Queries
-  const { data: employeesData, isLoading: employeesLoading } = useQuery({
+  const { data: employeesData, isLoading: employeesLoading, error: employeesError } = useQuery({
     queryKey: ['employees', searchTerm, deptFilter, statusFilter],
     queryFn: async () => {
-      const res = await client.get('/hr/employees', {
-        params: {
-          search: searchTerm,
-          department_id: deptFilter,
-          status: statusFilter,
-        }
-      });
+      console.log('[EmployeesPage] API isteği atılıyor', { searchTerm, deptFilter, statusFilter });
+      const params: any = {};
+      if (searchTerm) params.search = searchTerm;
+      if (deptFilter && deptFilter !== '') params.department_id = deptFilter;
+      
+      const res = await client.get('/hr/employees-no-account', { params });
+      console.log('[EmployeesPage] API cevabı', res.data);
+      return res.data;
+    },
+  });
+
+  console.log('[EmployeesPage] Render durumu', {
+    employeesLoading,
+    employeesError,
+    employeesData,
+    itemCount: employeesData?.items?.length,
+  });
+
+  const { data: surveys = [] } = useQuery<any[]>({
+    queryKey: ['active-surveys'],
+    queryFn: async () => {
+      const res = await client.get('/hr/surveys');
       return res.data;
     },
   });
@@ -113,7 +134,7 @@ export default function EmployeesPage() {
 
   // Mutations
   const inviteMutation = useMutation({
-    mutationFn: (data: InviteFormValues) => client.post('/hr/employees/invite', data),
+    mutationFn: (data: InviteFormValues) => client.post('/hr/employees-no-account', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast.success(t('employees.invite_modal.success', 'Davet gönderildi'));
@@ -129,19 +150,62 @@ export default function EmployeesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: InviteFormValues) => client.put(`/hr/employees/${selectedEmployee?.id}`, data),
+    mutationFn: (data: InviteFormValues) => client.put(`/hr/employees-no-account/${selectedEmployee?.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast.success(t('common:saved', 'Çalışan güncellendi'));
       setIsEditModalOpen(false);
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || 'Güncelleme sırasında bir hata oluştu';
+      toast.error(msg);
+      console.error('Update Error:', err.response?.data);
     }
   });
 
   const resendInviteMutation = useMutation({
-    mutationFn: () => client.post(`/hr/employees/${selectedEmployee?.id}/resend-invite`),
+    mutationFn: (surveyData: { survey_id: string; period: string }) => 
+      client.post(`/hr/employees-no-account/${selectedEmployee?.id}/send-survey`, surveyData),
     onSuccess: () => {
       toast.success(t('employees.actions.resend_success', 'Yeni davet gönderildi'));
       setIsResendModalOpen(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Durum güncellenemedi');
+    }
+  });
+
+  const targetedSurveyMutation = useMutation({
+    mutationFn: ({ survey_id, employee_id }: { survey_id: string; employee_id: string }) =>
+      client.post('/hr/campaigns', {
+        survey_id,
+        target_employee_ids: [employee_id],
+      }),
+    onSuccess: () => {
+      toast.success(`✓ ${selectedEmployee?.full_name} kişisine anket gönderildi`);
+      setIsTargetedSurveyModalOpen(false);
+      setTargetedSurveyId('');
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Anket gönderilemedi');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => client.delete(`/hr/employees-no-account/${id}`),
+    onSuccess: (res) => {
+      const data = res.data;
+      const anonCount = data?.anonymized?.responses ?? 0;
+      toast.success(
+        `${deleteTarget?.full_name ?? 'Çalışan'} kalıcı olarak silindi.` +
+        (anonCount > 0 ? ` ${anonCount} anket yanıtı anonim bırakıldı.` : '')
+      );
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Silinemedi');
     }
   });
 
@@ -156,15 +220,23 @@ export default function EmployeesPage() {
   });
 
   const confirmUploadMutation = useMutation({
-    mutationFn: (s3_key: string) => client.post('/uploads/confirm', { s3_key, context: 'csv' }),
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return client.post('/hr/employees-no-account/import', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    },
     onSuccess: (res) => {
       setCsvResults(res.data);
       setCsvStep(3);
       queryClient.invalidateQueries({ queryKey: ['employees'] });
     },
-    onError: () => {
-      toast.error('Dosya işlenirken hata oluştu');
-      setCsvStep(2);
+    onError: (err: any) => {
+      console.error('CSV Import Error:', err.response?.data || err.message);
+      const msg = err.response?.data?.message || 'Dosya işlenirken hata oluştu';
+      toast.error(`İşleme Hatası: ${msg}`);
+      setCsvStep(1);
     }
   });
 
@@ -182,7 +254,7 @@ export default function EmployeesPage() {
   const handleEditClick = (emp: Employee) => {
     setSelectedEmployee(emp);
     // Fetch full data for editing
-    client.get(`/hr/employees/${emp.id}`).then(res => {
+    client.get(`/hr/employees-no-account/${emp.id}`).then(res => {
       editForm.reset(res.data);
       setIsEditModalOpen(true);
     });
@@ -207,31 +279,16 @@ export default function EmployeesPage() {
     setUploadProgress(10);
 
     try {
-      // 1. Get Presigned URL
-      const { data } = await client.post('/uploads/presigned-url', {
-        file_type: 'csv',
-        mime_type: file.type,
-        file_size: file.size,
-        context: 'csv'
+      setUploadProgress(100);
+      confirmUploadMutation.mutate(file);
+    } catch (err: any) {
+      console.error('CSV Upload Error Detail:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
       });
-
-      setUploadProgress(30);
-
-      // 2. Upload to S3
-      await axios.put(data.url, file, {
-        headers: { 'Content-Type': file.type },
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
-          setUploadProgress(30 + (percent * 0.4)); // 30-70 range
-        }
-      });
-
-      setUploadProgress(80);
-
-      // 3. Confirm
-      confirmUploadMutation.mutate(data.s3_key);
-    } catch (err) {
-      toast.error('Dosya yüklenemedi');
+      const errorMessage = err.response?.data?.message || err.message || 'Dosya yüklenemedi';
+      toast.error(`Yükleme Hatası: ${errorMessage}`);
       setCsvStep(1);
     }
   };
@@ -252,6 +309,7 @@ export default function EmployeesPage() {
             className="flex-1 sm:flex-none flex gap-2 border border-gray-100 bg-white"
             onClick={() => {
               setCsvStep(1);
+              setCsvResults(null);
               setIsCsvModalOpen(true);
             }}
           >
@@ -268,6 +326,14 @@ export default function EmployeesPage() {
           >
             <UserPlus size={18} />
             {t('employees.invite_single')}
+          </Button>
+          <Button 
+            variant="outline"
+            className="flex-1 sm:flex-none flex gap-2 border-primary text-primary hover:bg-primary/5"
+            onClick={() => setIsAllSurveyModalOpen(true)}
+          >
+            <Mail size={18} />
+            Tümüne Anket Gönder
           </Button>
         </div>
       </div>
@@ -330,7 +396,7 @@ export default function EmployeesPage() {
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-400 text-xs shadow-sm">
-                        {emp.full_name.split(' ').map(n => n[0]).join('')}
+                        {(emp.full_name || emp.email || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
                       </div>
                       <div>
                         <p className="font-bold text-navy group-hover:text-primary transition-colors">{emp.full_name}</p>
@@ -360,6 +426,19 @@ export default function EmployeesPage() {
                       >
                         <Edit2 size={16} />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Anket Gönder"
+                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        onClick={() => {
+                          setSelectedEmployee(emp);
+                          setTargetedSurveyId(surveys[0]?.id ?? '');
+                          setIsTargetedSurveyModalOpen(true);
+                        }}
+                      >
+                        <Send size={16} />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -382,6 +461,14 @@ export default function EmployeesPage() {
                       >
                         {emp.is_active ? <UserMinus size={16} /> : <UserCheck size={16} />}
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        onClick={() => setDeleteTarget(emp)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -400,7 +487,7 @@ export default function EmployeesPage() {
                    <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-400 text-xs">
-                          {emp.full_name.split(' ').map(n => n[0]).join('')}
+                          {(emp.full_name || emp.email || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
                         </div>
                         <div>
                           <p className="font-bold text-navy">{emp.full_name}</p>
@@ -432,6 +519,9 @@ export default function EmployeesPage() {
                         </Button>
                         <Button size="sm" variant="ghost" className={emp.is_active ? "p-2 h-8 w-8 rounded-lg text-danger bg-danger/5" : "p-2 h-8 w-8 rounded-lg text-green-600 bg-green-50"} onClick={() => { setSelectedEmployee(emp); setIsStatusModalOpen(true); }}>
                           {emp.is_active ? <UserMinus size={14} /> : <UserCheck size={14} />}
+                        </Button>
+                        <Button size="sm" variant="ghost" className="p-2 h-8 w-8 rounded-lg text-red-500 bg-red-50" onClick={() => setDeleteTarget(emp)}>
+                          <Trash2 size={14} />
                         </Button>
                       </div>
                    </div>
@@ -473,7 +563,7 @@ export default function EmployeesPage() {
       </Modal>
 
       {/* CSV Modal */}
-      <Modal isOpen={isCsvModalOpen} onClose={() => setIsCsvModalOpen(false)} title={t('employees.invite_csv')}>
+      <Modal isOpen={isCsvModalOpen} onClose={() => { setIsCsvModalOpen(false); setCsvStep(1); setCsvResults(null); }} title={t('employees.invite_csv')}>
         <div className="space-y-8">
           {/* Steps indicator */}
           <div className="flex justify-between relative">
@@ -498,8 +588,12 @@ export default function EmployeesPage() {
                 <Download size={16} />
                 {t('employees.csv_modal.download_template')}
               </Button>
-              <Button className="w-full" onClick={() => fileInputRef.current?.click()}>
-                {t('common:next')}
+              <Button className="w-full" onClick={() => {
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                fileInputRef.current?.click();
+              }}>
+                <Upload size={16} className="mr-2" />
+                CSV Dosyası Seç
               </Button>
             </div>
           )}
@@ -523,7 +617,7 @@ export default function EmployeesPage() {
             <div className="space-y-6">
               <div className="text-center">
                 <CheckCircle2 className="text-green-500 mx-auto mb-2" size={48} />
-                <h4 className="font-bold text-navy">{t('employees.csv_modal.success_count', { count: csvResults.valid_count })}</h4>
+                <h4 className="font-bold text-navy">{t('employees.csv_modal.success_count', { count: csvResults.success_count })}</h4>
                 {csvResults.error_count > 0 && (
                    <p className="text-sm text-danger font-bold mt-1">{t('employees.csv_modal.error_count', { count: csvResults.error_count })}</p>
                 )}
@@ -552,7 +646,7 @@ export default function EmployeesPage() {
                 </div>
               )}
               
-              <Button className="w-full" onClick={() => setIsCsvModalOpen(false)}>{t('common:close')}</Button>
+              <Button className="w-full" onClick={() => { setIsCsvModalOpen(false); setCsvStep(1); setCsvResults(null); }}>{t('common:close')}</Button>
             </div>
           )}
           
@@ -568,20 +662,22 @@ export default function EmployeesPage() {
 
       {/* Edit Modal (Summary same as Invite) */}
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title={t('employees.actions.edit')}>
-        {/* Simplified for demo, same as invite form */}
-        <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="grid grid-cols-2 gap-4">
-           {/* Form fields same as invite */}
-           <div className="col-span-2">
+        <form 
+          onSubmit={editForm.handleSubmit((v) => updateMutation.mutate(v))} 
+          className="grid grid-cols-2 gap-4"
+        >
+          <div className="col-span-2">
             <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.full_name')}*</label>
             <input {...editForm.register('full_name')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10" />
           </div>
           <div className="col-span-2">
             <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.email')}*</label>
-            <input {...editForm.register('email')} disabled className="w-full bg-gray-100 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none cursor-not-allowed" />
+            <input {...editForm.register('email')} readOnly className="w-full bg-gray-50/50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none cursor-not-allowed" />
           </div>
           <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.department')}*</label>
             <select {...editForm.register('department_id')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10">
+              <option value="">{t('common:select')}</option>
               {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
@@ -589,29 +685,124 @@ export default function EmployeesPage() {
             <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.position')}</label>
             <input {...editForm.register('position')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10" />
           </div>
-          <div className="col-span-2 flex gap-3 pt-4">
-            <Button variant="ghost" className="flex-1" onClick={() => setIsEditModalOpen(false)}>{t('common:cancel')}</Button>
-            <Button loading={updateMutation.isPending} className="flex-1" type="submit">{t('common:save')}</Button>
+          <div className="col-span-2 flex gap-3 mt-4">
+            <Button variant="ghost" className="flex-1" type="button" onClick={() => setIsEditModalOpen(false)}>{t('common:cancel')}</Button>
+            <Button 
+              loading={updateMutation.isPending} 
+              className="flex-1" 
+              type="submit"
+            >
+              {t('common:save')}
+            </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Confirm Modals (Resend/Status) */}
+      {/* Confirm Modals (Resend/Status/All) */}
+      <Modal 
+        isOpen={isAllSurveyModalOpen} 
+        onClose={() => setIsAllSurveyModalOpen(false)} 
+        title="Tüm Çalışanlara Anket Gönder"
+      >
+        <div className="space-y-6">
+          <div className="h-16 w-16 bg-primary/5 text-primary rounded-full flex items-center justify-center mx-auto">
+            <Mail size={32} />
+          </div>
+          <p className="text-sm text-center text-gray-500">
+            Sistemdeki tüm hesapsız çalışanlara anket daveti gönderilecek.
+          </p>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Gönderilecek Anket</label>
+              <select 
+                id="all-survey-id"
+                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none"
+              >
+                {surveys.map(s => <option key={s.id} value={s.id}>{s.title || s.title_tr || 'İsimsiz Anket'}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Dönem</label>
+              <input 
+                id="all-period"
+                type="month" 
+                defaultValue={new Date().toISOString().slice(0, 7)}
+                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="ghost" className="flex-1" onClick={() => setIsAllSurveyModalOpen(false)}>{t('common:cancel')}</Button>
+            <Button 
+              className="flex-1" 
+              onClick={() => {
+                const survey_id = (document.getElementById('all-survey-id') as HTMLSelectElement).value;
+                const period = (document.getElementById('all-period') as HTMLInputElement).value;
+                toast.success('Toplu gönderim başlatıldı...');
+                client.post('/hr/employees-no-account/send-survey/all', { survey_id, period })
+                  .then(() => {
+                    toast.success('Tüm çalışanlara anket gönderildi');
+                    setIsAllSurveyModalOpen(false);
+                    queryClient.invalidateQueries({ queryKey: ['employees'] });
+                  })
+                  .catch((err) => toast.error(err.response?.data?.message || 'Gönderim sırasında hata oluştu'));
+              }}
+            >
+              {t('common:confirm')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal 
         isOpen={isResendModalOpen} 
         onClose={() => setIsResendModalOpen(false)} 
         title={t('employees.actions.resend')}
       >
-        <div className="text-center space-y-6">
+        <div className="space-y-6">
           <div className="h-16 w-16 bg-primary/5 text-primary rounded-full flex items-center justify-center mx-auto">
             <RefreshCcw size={32} />
           </div>
-          <p className="text-sm text-gray-500">
-            <strong>{selectedEmployee?.full_name}</strong> isimli çalışana yeni bir davet linki gönderilecek. Onaylıyor musunuz?
+          <p className="text-sm text-center text-gray-500">
+            <strong>{selectedEmployee?.full_name}</strong> isimli çalışana yeni bir davet linki gönderilecek.
           </p>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Gönderilecek Anket</label>
+              <select 
+                id="resend-survey-id"
+                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none"
+              >
+                {surveys.map(s => <option key={s.id} value={s.id}>{s.title || s.title_tr || 'İsimsiz Anket'}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Dönem</label>
+              <input 
+                id="resend-period"
+                type="month" 
+                defaultValue={new Date().toISOString().slice(0, 7)}
+                className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none"
+              />
+            </div>
+          </div>
+
           <div className="flex gap-3">
             <Button variant="ghost" className="flex-1" onClick={() => setIsResendModalOpen(false)}>{t('common:cancel')}</Button>
-            <Button loading={resendInviteMutation.isPending} className="flex-1" onClick={() => resendInviteMutation.mutate()}>{t('common:confirm')}</Button>
+            <Button 
+              loading={resendInviteMutation.isPending} 
+              className="flex-1" 
+              onClick={() => {
+                const survey_id = (document.getElementById('resend-survey-id') as HTMLSelectElement).value;
+                const period = (document.getElementById('resend-period') as HTMLInputElement).value;
+                resendInviteMutation.mutate({ survey_id, period });
+              }}
+            >
+              {t('common:confirm')}
+            </Button>
           </div>
         </div>
       </Modal>
@@ -637,6 +828,94 @@ export default function EmployeesPage() {
               onClick={() => updateStatusMutation.mutate(!selectedEmployee?.is_active)}
             >
               {t('common:confirm')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Targeted Survey Modal */}
+      <Modal
+        isOpen={isTargetedSurveyModalOpen}
+        onClose={() => setIsTargetedSurveyModalOpen(false)}
+        title="Anket Gönder"
+      >
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 p-4 bg-indigo-50 rounded-xl">
+            <div className="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-black text-sm flex-shrink-0">
+              {selectedEmployee?.full_name?.charAt(0)}
+            </div>
+            <div>
+              <p className="font-bold text-navy">{selectedEmployee?.full_name}</p>
+              <p className="text-xs text-gray-400">{selectedEmployee?.email}</p>
+            </div>
+          </div>
+
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700">
+            <strong>Anonim veri:</strong> Çalışanın yanıtları bireysel olarak görüntülenemez,
+            yalnızca departman/şirket ortalamaları raporlara yansır.
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block">Gönderilecek Anket</label>
+              <select
+                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                value={targetedSurveyId}
+                onChange={e => setTargetedSurveyId(e.target.value)}
+              >
+                <option value="">-- Anket seçin --</option>
+                {surveys.map((s: any) => (
+                  <option key={s.id} value={s.id}>{s.title || s.title_tr || 'İsimsiz Anket'}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="ghost" className="flex-1" onClick={() => setIsTargetedSurveyModalOpen(false)}>İptal</Button>
+            <Button
+              className="flex-1 gap-2"
+              loading={targetedSurveyMutation.isPending}
+              disabled={!targetedSurveyId}
+              onClick={() => {
+                if (selectedEmployee && targetedSurveyId) {
+                  targetedSurveyMutation.mutate({
+                    survey_id: targetedSurveyId,
+                    employee_id: selectedEmployee.id,
+                  });
+                }
+              }}
+            >
+              <Send size={16} /> Gönder
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Hard Delete Onay Modalı */}
+      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Çalışanı Kalıcı Sil">
+        <div className="space-y-5">
+          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-50 mx-auto">
+            <Trash2 size={26} className="text-red-500" />
+          </div>
+          <div className="text-center space-y-2">
+            <p className="font-semibold text-navy">{deleteTarget?.full_name}</p>
+            <p className="text-sm text-gray-500">{deleteTarget?.email}</p>
+          </div>
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-800 leading-relaxed">
+            <strong>Bu işlem geri alınamaz.</strong> Çalışan kalıcı olarak silinecek.
+            Doldurduğu anket yanıtları anonim olarak saklanmaya devam edecek ve skor hesaplarını etkilemeyecek.
+          </div>
+          <div className="flex gap-3">
+            <Button variant="ghost" className="flex-1" onClick={() => setDeleteTarget(null)} disabled={deleteMutation.isPending}>
+              {t('common:cancel')}
+            </Button>
+            <Button
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white border-0"
+              loading={deleteMutation.isPending}
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+            >
+              Evet, kalıcı sil
             </Button>
           </div>
         </div>

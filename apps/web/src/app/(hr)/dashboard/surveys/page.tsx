@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -13,21 +13,27 @@ import {
   Plus, 
   Calendar,
   Send,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useApi } from '@/hooks/useApi';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 import { CampaignWizardModal } from '@/components/campaign/CampaignWizardModal';
+import client from '@/lib/api/client';
 
 export default function HrSurveysPage() {
   const { t } = useTranslation(['dashboard', 'common']);
   const queryClient = useQueryClient();
-  const { data: surveys, loading } = useApi<any[]>('/hr/surveys');
-  const [wizardData, setWizardData] = React.useState<any>(null);
-
+  const { data: surveys, isLoading: loading } = useQuery({
+    queryKey: ['hr-surveys'],
+    queryFn: async () => {
+      const { data } = await client.get('/hr/surveys');
+      return data;
+    }
+  });
+  const [wizardData, setWizardData] = useState<any>(null);
 
   return (
     <div className="space-y-8">
@@ -99,10 +105,12 @@ export default function HrSurveysPage() {
                 </div>
 
                 <div className="mt-8 flex flex-col sm:flex-row gap-2">
-                  <Button variant="secondary" size="sm" className="flex-1 gap-2 font-bold py-2.5">
-                    <BarChart2 size={16} />
-                    {t('surveys.view_results')}
-                  </Button>
+                  <Link href={`/dashboard/surveys/${survey.survey_id}/results`} className="flex-1">
+                    <Button variant="secondary" size="sm" className="w-full gap-2 font-bold py-2.5">
+                      <BarChart2 size={16} />
+                      {t('surveys.view_results')}
+                    </Button>
+                  </Link>
                   {survey.status === 'active' && survey.campaign_count === 0 && (
                     <Button 
                       variant="primary" 
@@ -119,10 +127,12 @@ export default function HrSurveysPage() {
                     </Button>
                   )}
                   {survey.campaign_count > 0 && (
-                    <Button variant="ghost" size="sm" className="flex-1 sm:flex-none sm:w-auto gap-2 border border-gray-100 text-[10px] font-bold py-2.5">
-                      <Eye size={14} />
-                      {t('surveys.campaign_details')}
-                    </Button>
+                    <Link href={`/dashboard/campaigns?survey_id=${survey.survey_id}`} className="flex-1 sm:flex-none sm:w-auto">
+                      <Button variant="ghost" size="sm" className="w-full gap-2 border border-gray-100 text-[10px] font-bold py-2.5">
+                        <Eye size={14} />
+                        {t('surveys.campaign_details')}
+                      </Button>
+                    </Link>
                   )}
                 </div>
               </Card>

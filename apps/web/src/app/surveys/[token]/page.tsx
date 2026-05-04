@@ -141,7 +141,7 @@ export default function PublicSurveyPage() {
     try {
       setPhase('submitting');
       const dto = buildSubmitDto(answers, surveyData!.survey.questions);
-      await client.post(`/public/survey-tokens/${token}/submit`, dto);
+      await client.post(`/public-survey/${token}/submit`, dto);
       
       setPhase('success');
       localStorage.removeItem(`survey_draft_${token}`);

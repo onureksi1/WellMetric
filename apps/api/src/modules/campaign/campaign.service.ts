@@ -10,6 +10,7 @@ import { NotificationService } from '../notification/notification.service';
 import { SettingsService } from '../settings/settings.service';
 import { SurveyToken } from '../survey-token/entities/survey-token.entity';
 import { User } from '../user/entities/user.entity';
+import { Employee } from '../user/entities/employee.entity';
 
 @Injectable()
 export class CampaignService {
@@ -24,6 +25,8 @@ export class CampaignService {
     private readonly tokenRepo: Repository<SurveyToken>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Employee)
+    private readonly employeeRepo: Repository<Employee>,
     private readonly auditService: AuditService,
     private readonly notificationService: NotificationService,
     private readonly settingsService: SettingsService,
@@ -51,8 +54,9 @@ export class CampaignService {
       .getManyAndCount();
 
     const enrichedItems = items.map(c => {
-      const open_rate = c.sent_count > 0 ? (c.opened_count / c.sent_count) * 100 : 0;
-      const click_rate = c.opened_count > 0 ? (c.clicked_count / c.opened_count) * 100 : 0;
+      const effective_opens = Math.max(c.opened_count, c.clicked_count, c.completed_count);
+      const open_rate = c.sent_count > 0 ? (effective_opens / c.sent_count) * 100 : 0;
+      const click_rate = effective_opens > 0 ? (c.clicked_count / effective_opens) * 100 : 0;
       const completion_rate = c.sent_count > 0 ? (c.completed_count / c.sent_count) * 100 : 0;
 
       return {
@@ -72,7 +76,18 @@ export class CampaignService {
       relations: ['survey'],
     });
     if (!campaign) throw new NotFoundException('Campaign not found');
-    return campaign;
+
+    const effective_opens = Math.max(campaign.opened_count, campaign.clicked_count, campaign.completed_count);
+    const open_rate = campaign.sent_count > 0 ? (effective_opens / campaign.sent_count) * 100 : 0;
+    const click_rate = effective_opens > 0 ? (campaign.clicked_count / effective_opens) * 100 : 0;
+    const completion_rate = campaign.sent_count > 0 ? (campaign.completed_count / campaign.sent_count) * 100 : 0;
+
+    return {
+      ...campaign,
+      open_rate: parseFloat(open_rate.toFixed(1)),
+      click_rate: parseFloat(click_rate.toFixed(1)),
+      completion_rate: parseFloat(completion_rate.toFixed(1)),
+    };
   }
 
   async findLogs(campaignId: string, companyId: string, filters: LogFilterDto) {
@@ -143,16 +158,24 @@ export class CampaignService {
 
     let recipients: Array<{ email: string; fullName: string; token: string; userId?: string; tokenId?: string }> = [];
 
-    // 1. Determine Recipients & Generate Tokens if needed
-    const employees = await this.userRepo.find({
-      where: { company_id: campaign.companyId, role: 'employee', is_active: true },
+    // 1. Determine Recipients — targeted, department, or all active employees
+    const allEmployees = await this.employeeRepo.find({
+      where: { companyId: campaign.companyId, isActive: true },
     });
+
+    // Filter priority: target_employee_ids > department_id > all
+    let employees = allEmployees;
+    if (dto?.target_employee_ids?.length) {
+      employees = allEmployees.filter(e => dto.target_employee_ids!.includes(e.id));
+    } else if (dto?.department_id) {
+      employees = allEmployees.filter(e => e.departmentId === dto.department_id);
+    }
 
     if (dto?.employee_accounts) {
       // Account Mode: Use User IDs
       recipients = employees.map(u => ({
         email: u.email,
-        fullName: u.full_name || 'Değerli Çalışanımız',
+        fullName: u.fullName || 'Değerli Çalışanımız',
         userId: u.id,
         token: '', // No token needed for account mode
       }));
@@ -177,7 +200,8 @@ export class CampaignService {
             company_id: campaign.companyId,
             assignment_id: campaign.assignmentId,
             email: emp.email,
-            full_name: emp.full_name,
+            full_name: emp.fullName,
+            employee_id: emp.id, // Ensure token is linked to employee row so resend UI updates status
             due_at: campaign.scheduled_at, // Use scheduled or now
           });
           await this.tokenRepo.save(token);
@@ -185,7 +209,7 @@ export class CampaignService {
 
         recipients.push({
           email: emp.email,
-          fullName: emp.full_name || 'Değerli Çalışanımız',
+          fullName: emp.fullName || 'Değerli Çalışanımız',
           token: token.token,
           tokenId: token.id
         });
@@ -320,7 +344,7 @@ export class CampaignService {
       }
 
       const settings = await this.settingsService.getSettings();
-      const platformUrl = settings?.platform_url || 'https://app.wellanalytics.io';
+      const platformUrl = process.env.NEXT_PUBLIC_APP_URL || settings?.platform_url || 'https://app.wellanalytics.io';
 
       if (log.surveyTokenId) {
         // Find token string

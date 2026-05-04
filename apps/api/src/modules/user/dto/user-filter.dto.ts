@@ -1,10 +1,11 @@
 import { IsOptional, IsUUID, IsBoolean, IsEnum, IsString, IsInt, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { UserSeniority } from './invite-user.dto';
 
 export class UserFilterDto {
   @IsUUID()
   @IsOptional()
+  @Transform(({ value }) => value === '' ? undefined : value)
   department_id?: string;
 
   @IsBoolean()
@@ -30,6 +31,7 @@ export class UserFilterDto {
 
   @IsString()
   @IsOptional()
+  @Transform(({ value }) => value === '' ? undefined : value)
   status?: string;
 
   @IsInt()

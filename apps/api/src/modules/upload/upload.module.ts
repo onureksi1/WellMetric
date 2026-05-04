@@ -21,6 +21,6 @@ import { AuditModule } from '../audit/audit.module';
     MinioProvider,
     LocalStorageProvider,
   ],
-  exports: [UploadService],
+  exports: [UploadService, StorageProviderFactory],
 })
 export class UploadModule {}

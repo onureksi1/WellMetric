@@ -31,6 +31,18 @@ export class SurveyResponse {
   @Column({ type: 'int', nullable: true })
   tenure_months: number | null;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  location: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  seniority: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  age_group: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  gender: string | null;
+
   @Column({ type: 'boolean', default: true })
   is_anonymous: boolean;
 

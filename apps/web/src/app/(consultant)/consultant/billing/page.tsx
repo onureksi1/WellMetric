@@ -35,6 +35,7 @@ import {
 } from 'recharts';
 import client from '@/lib/api/client';
 import { toast } from 'react-hot-toast';
+import { PaymentModal } from '@/components/billing/PaymentModal';
 
 const TABS = [
   { key: 'subscription', icon: Package },
@@ -383,34 +384,14 @@ function PurchaseTab() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-in fade-in">
-           <div className="bg-white rounded-[40px] p-8 max-w-md w-full shadow-2xl space-y-8 animate-in zoom-in-95">
-              <div className="text-center">
-                 <h2 className="text-2xl font-black text-slate-900">{t('billing.purchase.select_provider')}</h2>
-                 <p className="text-slate-400 font-medium mt-2">{selectedPkg?.label_tr} Satın Al</p>
-              </div>
-
-              <div className="space-y-3">
-                 {providers?.map((p: any) => (
-                   <button 
-                    key={p.key}
-                    onClick={() => handlePayment(p.key)}
-                    className="w-full flex items-center justify-between p-5 rounded-[24px] border-2 border-slate-100 hover:border-blue-600 hover:bg-blue-50 transition-all group"
-                   >
-                     <span className="font-bold text-slate-700 group-hover:text-blue-600">{p.label} ile Öde</span>
-                     <ChevronRight size={18} className="text-slate-300 group-hover:text-blue-600" />
-                   </button>
-                 ))}
-              </div>
-
-              <button 
-                onClick={() => setShowModal(false)}
-                className="w-full text-slate-400 text-sm font-bold hover:text-slate-900 transition-colors"
-              >
-                Vazgeç
-              </button>
-           </div>
-        </div>
+        <PaymentModal 
+          pkg={selectedPkg} 
+          onClose={() => {
+            setShowModal(false);
+            queryClient.invalidateQueries({ queryKey: ['billing-subscription'] });
+            queryClient.invalidateQueries({ queryKey: ['billing-credits'] });
+          }} 
+        />
       )}
     </div>
   );

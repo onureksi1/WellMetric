@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, Min, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
+import { IsIn, IsInt, Min, IsOptional, IsString, IsUUID, Matches, Max } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum FileType {
@@ -8,9 +8,9 @@ export enum FileType {
 }
 
 export class PresignedUrlDto {
-  @ApiProperty({ enum: FileType })
-  @IsEnum(FileType)
-  file_type: FileType;
+  @ApiProperty({ enum: ['logo', 'csv', 'pdf'] })
+  @IsIn(['logo', 'csv', 'pdf'])
+  file_type: string;
 
   @ApiProperty({ example: 'image/jpeg' })
   @IsString()
@@ -19,6 +19,7 @@ export class PresignedUrlDto {
   @ApiProperty({ example: 102400 })
   @IsInt()
   @Min(1)
+  @Max(20971520) // 20MB hard cap
   file_size: number;
 
   @ApiPropertyOptional()

@@ -19,7 +19,8 @@ import {
   Zap,
   GraduationCap,
   Layers,
-  DollarSign
+  DollarSign,
+  BarChart3
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useApi } from '@/lib/hooks/use-api';
@@ -34,7 +35,9 @@ const menuItems = [
   { name: 'admin.menu.companies', icon: Building2, href: '/admin/companies' },
   { name: 'admin.menu.users', icon: Users, href: '/admin/users' },
   { name: 'admin.menu.industries', icon: Factory, href: '/admin/industries' },
+  { name: 'admin.menu.benchmarks', icon: BarChart3, href: '/admin/benchmarks' },
   { name: 'admin.menu.surveys', icon: ClipboardList, href: '/admin/surveys' },
+  { name: 'admin.menu.survey_pool', icon: Library, href: '/admin/survey-pool' },
   { name: 'admin.menu.campaigns', icon: Layers, href: '/admin/campaigns' },
   { name: 'admin.menu.content', icon: Library, href: '/admin/content' },
   { name: 'admin.menu.mail_templates', icon: Mail, href: '/admin/mail-templates' },

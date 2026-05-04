@@ -37,8 +37,23 @@ export class ConsultantPlan {
   @Column({ type: 'boolean', default: false })
   white_label: boolean;
 
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  custom_domain: string | null;
+  @Column({ name: 'brand_name', length: 200, nullable: true })
+  brandName: string;
+
+  @Column({ name: 'brand_logo_url', nullable: true })
+  brandLogoUrl: string;
+
+  @Column({ name: 'brand_color', length: 7, nullable: true })
+  brandColor: string;
+
+  @Column({ name: 'brand_favicon_url', nullable: true })
+  brandFaviconUrl: string;
+
+  @Column({ name: 'custom_domain', length: 200, nullable: true })
+  customDomain: string | null;
+
+  @Column({ name: 'custom_domain_verified', default: false })
+  customDomainVerified: boolean;
 
   @Column({ type: 'timestamptz', nullable: true })
   valid_until: Date | null;

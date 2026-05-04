@@ -17,14 +17,14 @@ import {
   AlertTriangle, 
   Bot, 
   Users, 
-  TrendingUp, 
-  Target,
+  TrendingUp,
+  TrendingDown,
+  Minus,
   ArrowRight,
-  Info,
   ChevronRight
 } from 'lucide-react';
 import client from '@/lib/api/client';
-import { getIndustryLabel } from '@wellanalytics/shared';
+import { BenchmarkComparison } from '@/components/hr/BenchmarkComparison';
 import '@/lib/i18n';
 
 export default function HrOverviewPage() {
@@ -43,6 +43,20 @@ function HrOverviewContent() {
   
   const [selectedDimension, setSelectedDimension] = useState<string>('overall');
   const [isInsightModalOpen, setIsInsightModalOpen] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
+
+  const handleRecalculateScores = async () => {
+    setIsRecalculating(true);
+    try {
+      await client.post('/admin/cron/recalculate-scores');
+      alert('Güncelleme arka planda başlatıldı. Değişikliklerin yansıması yaklaşık 1 dakika sürebilir, ardından sayfayı yenileyebilirsiniz.');
+    } catch (error) {
+      console.error('Failed to recalculate scores', error);
+      alert('Skor güncellenirken bir hata oluştu.');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
 
   // Queries
   const { data: overview, isLoading: overviewLoading } = useQuery({
@@ -69,13 +83,7 @@ function HrOverviewContent() {
     },
   });
 
-  const { data: benchmark } = useQuery({
-    queryKey: ['hr-benchmark', period],
-    queryFn: async () => {
-      const res = await client.get('/hr/dashboard/benchmark', { params: { period } });
-      return res.data;
-    },
-  });
+  // Önceki ay değişimi overview'dan geliyor
 
   const handleRiskClick = (dimension: string) => {
     router.push(`/dashboard/departments?filter=${dimension.toLowerCase()}`);
@@ -89,6 +97,16 @@ function HrOverviewContent() {
         <div>
           <h1 className="text-2xl font-bold text-navy">{t('overview.title')}</h1>
           <p className="text-sm text-gray-500">{t('overview.subtitle', { company_name: overview?.company_name || 'Şirketiniz' })}</p>
+        </div>
+        <div>
+          <Button 
+            onClick={handleRecalculateScores} 
+            disabled={isRecalculating} 
+            variant="outline"
+            className="flex items-center gap-2 border-primary/20 text-primary hover:bg-primary/5"
+          >
+            {isRecalculating ? 'Güncelleniyor...' : 'Skorları Güncelle'}
+          </Button>
         </div>
       </div>
 
@@ -124,29 +142,71 @@ function HrOverviewContent() {
            </div>
         </Card>
 
-        <Card className="flex flex-col justify-between border-primary/20 bg-primary/5">
-           <div className="flex justify-between items-start">
-             <div>
-               <p className="text-xs font-bold text-primary uppercase tracking-wider">{t('overview.benchmark.title')}</p>
-               <h3 className="text-3xl font-bold text-navy mt-1">
-                 {(benchmark?.difference ?? 0) > 0 ? '+' : ''}{benchmark?.difference ?? 0} Puan
-               </h3>
-               <p className="text-xs text-gray-400 mt-1">
-                  {overview?.industry ? `${getIndustryLabel(overview.industry, i18n.language as any)} ${t('overview.benchmark.avg_suffix', 'ortalaması')}` : t('overview.benchmark.sector_avg', 'Sektör ortalaması')}: {benchmark?.sector_average ?? '--'}
-                </p>
-             </div>
-             <div className="h-10 w-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-               <Target size={20} />
-             </div>
-           </div>
-           <div className="mt-4 text-xs font-medium text-primary flex items-center gap-1">
-             <TrendingUp size={14} />
-             {(benchmark?.difference ?? 0) < 0 
-               ? t('overview.score_card.below_sector') 
-               : t('overview.score_card.above_sector')}
-           </div>
-        </Card>
+        {/* 3. Kart: Geçen Aya Göre Değişim */}
+        {(() => {
+          const change = overview?.changes?.overall_change ?? 0;
+          const hasPrevData = overview?.changes && Object.values(overview.changes.dimension_changes || {}).some((v: any) => v !== 0);
+          const dims = [
+            { key: 'mental', label: 'Zihinsel' },
+            { key: 'social', label: 'Sosyal' },
+            { key: 'physical', label: 'Fiziksel' },
+            { key: 'financial', label: 'Finansal' },
+            { key: 'work', label: 'İş' },
+          ];
+          return (
+            <Card className="flex flex-col justify-between">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">GEÇEN AYA GÖRE</p>
+                  {!hasPrevData ? (
+                    <>
+                      <h3 className="text-2xl font-bold text-gray-300 mt-1">İlk Ay</h3>
+                      <p className="text-xs text-gray-400 mt-1">Henüz karşılaştırma verisi yok</p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className={`text-3xl font-bold mt-1 ${
+                        change > 0 ? 'text-green-600' : change < 0 ? 'text-red-500' : 'text-gray-400'
+                      }`}>
+                        {change > 0 ? '+' : ''}{Math.round(change * 10) / 10} Puan
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-1">Genel skor değişimi</p>
+                    </>
+                  )}
+                </div>
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                  !hasPrevData ? 'bg-gray-50 text-gray-300' :
+                  change > 0 ? 'bg-green-50 text-green-600' : 
+                  change < 0 ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'
+                }`}>
+                  {!hasPrevData ? <Minus size={20} /> : change > 0 ? <TrendingUp size={20} /> : change < 0 ? <TrendingDown size={20} /> : <Minus size={20} />}
+                </div>
+              </div>
+              {hasPrevData && (
+                <div className="mt-4 space-y-1.5">
+                  {dims.map(d => {
+                    const v = overview?.changes?.dimension_changes?.[d.key] ?? 0;
+                    if (v === 0) return null;
+                    return (
+                      <div key={d.key} className="flex items-center justify-between text-[11px]">
+                        <span className="text-gray-400 font-medium">{d.label}</span>
+                        <span className={`font-bold ${v > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                          {v > 0 ? '+' : ''}{Math.round(v * 10) / 10}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          );
+        })()}
       </div>
+
+      <BenchmarkComparison 
+        companyScores={overview?.score_card} 
+        period={period} 
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Dimension Analysis */}
@@ -154,8 +214,8 @@ function HrOverviewContent() {
            <div className="space-y-6">
               {dimensions.map((dim: any) => (
                 <ScoreBar 
-                  key={dim.name} 
-                  label={t(`common:dimensions.${dim.key}`)} 
+                  key={dim.dimension} 
+                  label={t(`common:dimensions.${dim.dimension}`)} 
                   score={dim.score} 
                 />
               ))}
@@ -169,11 +229,11 @@ function HrOverviewContent() {
               <div className="space-y-2">
                 {dimensions.filter((d: any) => d.score < 60).map((dim: any) => (
                   <button 
-                    key={dim.key}
-                    onClick={() => handleRiskClick(dim.key)}
+                    key={dim.dimension}
+                    onClick={() => handleRiskClick(dim.dimension)}
                     className="w-full p-3 bg-danger/5 border border-danger/10 rounded-lg text-xs font-medium text-danger flex items-center justify-between hover:bg-danger/10 transition-colors"
                   >
-                    <span>{t('overview.risk_alerts.critical', { dimension: t(`common:dimensions.${dim.key}`), score: dim.score })}</span>
+                    <span>{t('overview.risk_alerts.critical', { dimension: t(`common:dimensions.${dim.dimension}`), score: dim.score })}</span>
                     <ChevronRight size={14} />
                   </button>
                 ))}

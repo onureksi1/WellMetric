@@ -20,6 +20,7 @@ import { useAuthStore } from '@/lib/store/auth.store';
 import { clsx } from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { useLogout } from '@/lib/hooks/useLogout';
+import { useWhiteLabel } from '@/contexts/WhiteLabelContext';
 import '@/lib/i18n';
 
 const menuItems = [
@@ -43,6 +44,7 @@ export default function HrSidebar() {
   const { user } = useAuthStore();
   const logout = useLogout();
   const { sidebarOpen, setSidebarOpen } = useSidebar();
+  const wl = useWhiteLabel();
 
   return (
     <>
@@ -60,9 +62,17 @@ export default function HrSidebar() {
       )}>
         <div className="p-6 flex items-center justify-between border-b border-gray-50">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/20">W</div>
+            {wl.isActive && wl.brandLogoUrl ? (
+              <img src={wl.brandLogoUrl} alt={wl.brandName} className="h-10 object-contain" />
+            ) : (
+              <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/20">
+                {wl.isActive ? wl.brandName[0] : 'W'}
+              </div>
+            )}
             <div>
-              <h1 className="font-bold text-lg leading-tight text-navy">{t('well_analytics', 'Wellbeing Metric')}</h1>
+              <h1 className="font-bold text-lg leading-tight text-navy">
+                {wl.isActive ? wl.brandName : t('well_analytics', 'Wellbeing Metric')}
+              </h1>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('hr_dashboard', 'HR Dashboard')}</p>
             </div>
           </div>

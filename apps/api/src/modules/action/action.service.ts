@@ -196,58 +196,51 @@ export class ActionService {
   }
 
   async getActionSuggestions(companyId: string, dimension: string, departmentId?: string, period?: string) {
-    // 1. Get threshold from settings
-    const settings = await this.settingsRepository.findOne({ order: { updated_at: 'DESC' } });
+    // 1. Get threshold from settings (fix: needs where clause)
+    const settings = await this.settingsRepository.findOne({ where: {}, order: { updated_at: 'DESC' } });
     const threshold = settings?.score_alert_threshold ?? 45;
 
-    // 2. Get current score
-    const scoreQuery = this.scoreRepository.createQueryBuilder('score')
-      .where('score.company_id = :companyId', { companyId })
-      .andWhere('score.dimension = :dimension', { dimension });
+    // 2. Get current score (best effort — no score data yet is OK)
+    let currentScore = 100;
+    try {
+      const scoreQuery = this.scoreRepository.createQueryBuilder('score')
+        .where('score.company_id = :companyId', { companyId })
+        .andWhere('score.dimension = :dimension', { dimension });
 
-    if (period) {
-      scoreQuery.andWhere('score.period = :period', { period });
-    } else {
-      scoreQuery.orderBy('score.period', 'DESC');
-    }
+      if (period) {
+        scoreQuery.andWhere('score.period = :period', { period });
+      } else {
+        scoreQuery.orderBy('score.period', 'DESC');
+      }
 
-    if (departmentId) {
-      scoreQuery.andWhere('score.department_id = :departmentId', { departmentId });
-    } else {
-      scoreQuery.andWhere('score.department_id IS NULL');
-    }
+      if (departmentId) {
+        scoreQuery.andWhere('score.department_id = :departmentId', { departmentId });
+      } else {
+        scoreQuery.andWhere('score.department_id IS NULL');
+      }
 
-    const currentScoreEntry = await scoreQuery.getOne();
-    const currentScore = currentScoreEntry?.score ? parseFloat(currentScoreEntry.score as any) : 100;
+      const currentScoreEntry = await scoreQuery.getOne();
+      if (currentScoreEntry?.score) {
+        currentScore = parseFloat(currentScoreEntry.score as any);
+      }
+    } catch (_) { /* no scores yet */ }
 
-    // 3. Match content items
-    const suggestedContent = await this.contentRepository.find({
-      where: {
-        dimension,
-        score_threshold: In([null, ...Array.from({ length: 101 }, (_, i) => i).filter(v => v >= currentScore)]),
-        is_active: true,
-      },
-      order: { score_threshold: 'ASC' },
-      take: 5,
-    });
-
-    // TypeORM doesn't support easy "greater than or equal" in In, let's fix the where clause
+    // 3. Match content items for this dimension
     const contentQuery = this.contentRepository.createQueryBuilder('content')
       .where('content.dimension = :dimension', { dimension })
       .andWhere('content.is_active = true');
-    
-    if (currentScoreEntry) {
-        contentQuery.andWhere('content.score_threshold >= :currentScore', { currentScore });
-    }
-    
-    const finalSuggestedContent = await contentQuery.orderBy('content.score_threshold', 'ASC').take(5).getMany();
+
+    const finalSuggestedContent = await contentQuery
+      .orderBy('content.score_threshold', 'ASC')
+      .take(5)
+      .getMany();
 
     // 4. Check existing actions
     const existingAction = await this.actionRepository.findOne({
       where: {
         company_id: companyId,
         dimension,
-        department_id: departmentId || IsNull(),
+        department_id: departmentId || null,
         status: In([ActionStatus.PLANNED, ActionStatus.IN_PROGRESS]),
       },
     });

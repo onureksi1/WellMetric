@@ -5,6 +5,7 @@ import { BullModule } from '@nestjs/bull';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { CacheModule } from '@nestjs/cache-manager';
 
 
 
@@ -31,14 +32,20 @@ import { IndustryModule } from './modules/industry/industry.module';
 import { DemoModule } from './modules/demo/demo.module';
 import { ConsultantModule } from './modules/consultant/consultant.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { BenchmarkModule } from './modules/benchmark/benchmark.module';
+import { WhiteLabelModule } from './modules/white-label/white-label.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { SeedService } from './database/seed.service';
 
 import { User } from './modules/user/entities/user.entity';
 import { PlatformSettings } from './modules/settings/entities/platform-settings.entity';
 import { HealthController } from './common/controllers/health.controller';
+import { LoggerModule } from './common/logger/logger.module';
 
 @Module({
   imports: [
+    LoggerModule,
     // ── Configuration ────────────────────────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
@@ -47,6 +54,7 @@ import { HealthController } from './common/controllers/health.controller';
 
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
+    CacheModule.register({ isGlobal: true }),
 
 
     // ── PostgreSQL via TypeORM ────────────────────────────────────────
@@ -76,10 +84,23 @@ import { HealthController } from './common/controllers/health.controller';
     }),
 
     // ── Rate Limiting ────────────────────────────────────────────────
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        name: 'global',
+        ttl: 60000,
+        limit: 100,
+      },
+      {
+        name: 'auth',
+        ttl: 900000,
+        limit: 5,
+      },
+      {
+        name: 'tracking',
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
 
 
     // ── Feature Modules ──────────────────────────────────────────────
@@ -106,6 +127,10 @@ import { HealthController } from './common/controllers/health.controller';
     DemoModule,
     ConsultantModule,
     BillingModule,
+    AdminModule,
+    BenchmarkModule,
+    WhiteLabelModule,
+    OnboardingModule,
     TypeOrmModule.forFeature([User, PlatformSettings]),
 
   ],

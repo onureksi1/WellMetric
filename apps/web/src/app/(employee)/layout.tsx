@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useLogout } from '@/lib/hooks/useLogout';
-import { LogOut, Heart } from 'lucide-react';
-import { useAuthStore } from '@/lib/store/auth.store';
+import { useWhiteLabel } from '@/contexts/WhiteLabelContext';
 
 export default function EmployeeLayout({
   children,
@@ -12,14 +11,26 @@ export default function EmployeeLayout({
 }) {
   const logout = useLogout();
   const { user } = useAuthStore();
+  const wl = useWhiteLabel();
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Employee TopBar */}
       <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-50 flex items-center justify-between px-6 md:px-12">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">W</div>
-          <span className="font-bold text-navy hidden sm:inline">Wellbeing Metric</span>
+          {wl.isActive && wl.brandLogoUrl ? (
+            <img src={wl.brandLogoUrl} alt={wl.brandName} className="h-8 object-contain" />
+          ) : (
+            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">
+              {wl.isActive ? wl.brandName[0] : 'W'}
+            </div>
+          )}
+          {!wl.isActive && (
+            <span className="font-bold text-navy hidden sm:inline">Wellbeing Metric</span>
+          )}
+          {wl.isActive && !wl.brandLogoUrl && (
+            <span className="font-bold text-navy hidden sm:inline">{wl.brandName}</span>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -43,7 +54,7 @@ export default function EmployeeLayout({
       </main>
 
       <footer className="py-8 px-12 border-t border-slate-100 text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-         Wellbeing Metric &copy; 2026 · Built with <Heart size={10} className="inline text-rose-500 mx-1" /> for Wellbeing
+         {wl.isActive ? wl.brandName : 'Wellbeing Metric'} &copy; 2026 · Built for Wellbeing
       </footer>
     </div>
   );

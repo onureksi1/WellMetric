@@ -5,7 +5,8 @@
 @tailwind utilities;
 
 :root {
-  --primary: #2E865A;
+  --wl-brand-color: #2E865A;
+  --primary: var(--wl-brand-color);
   --primary-glow: rgba(46, 134, 90, 0.15);
   --navy: #0F172A;
   --slate-50: #F8FAFC;

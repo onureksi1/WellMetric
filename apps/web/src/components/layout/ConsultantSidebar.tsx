@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useSidebar } from '@/lib/contexts/SidebarContext';
 import { useLogout } from '@/lib/hooks/useLogout';
+import { useWhiteLabel } from '@/contexts/WhiteLabelContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import client from '@/lib/api/client';
@@ -46,6 +47,7 @@ export function ConsultantSidebar() {
   const { user } = useAuthStore();
   const logout = useLogout();
   const { sidebarOpen, setSidebarOpen } = useSidebar();
+  const wl = useWhiteLabel();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -82,9 +84,15 @@ export function ConsultantSidebar() {
       )}>
         {/* Header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800">
-          <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-            Wellbeing Metric
-          </span>
+          <div className="flex items-center gap-2">
+            {wl.isActive && wl.brandLogoUrl ? (
+              <img src={wl.brandLogoUrl} alt={wl.brandName} className="h-8 object-contain" />
+            ) : (
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                {wl.isActive ? wl.brandName : 'Wellbeing Metric'}
+              </span>
+            )}
+          </div>
           <button 
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"

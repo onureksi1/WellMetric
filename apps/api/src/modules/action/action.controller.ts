@@ -21,7 +21,7 @@ import { TenantGuard } from '../../common/guards/tenant.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Action')
-@Controller('api/v1/hr/actions')
+@Controller('hr/actions')
 @UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
 @ApiBearerAuth()
 export class ActionController {

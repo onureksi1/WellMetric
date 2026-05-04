@@ -9,6 +9,7 @@ import { User } from '../user/entities/user.entity';
 import { Invitation } from './entities/invitation.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { BruteForceService } from './brute-force.service';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
+  providers: [AuthService, BruteForceService, JwtStrategy, JwtRefreshStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

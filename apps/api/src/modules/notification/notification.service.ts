@@ -37,7 +37,7 @@ export class NotificationService {
 
   private async getPlatformUrl(): Promise<string> {
     const settings = await this.settingsService.getSettings();
-    return settings?.platform_url || 'https://app.wellanalytics.io';
+    return process.env.NEXT_PUBLIC_APP_URL || settings?.platform_url || 'https://app.wellbeingmetric.com';
   }
 
   private async addToQueue(template: string, to: string, subject: string, variables: Record<string, string>, language: string, companyId?: string, consultantId?: string) {
@@ -92,7 +92,7 @@ export class NotificationService {
     const subject = language === 'tr' ? '🌱 Wellbeing Anketiniz Hazır' : '🌱 Your Wellbeing Survey is Ready';
     
     const surveyLink = logId 
-      ? `${platformUrl}/api/v1/distribution/track/click/${logId}`
+      ? `${platformUrl}/api/v1/track/click/${logId}`
       : `${platformUrl}/surveys/${token}`;
 
     const variables: Record<string, string> = {
@@ -235,7 +235,7 @@ export class NotificationService {
       company_name: companyName,
       period,
       format,
-      support_email: settings?.mail_from_address || 'support@wellanalytics.io',
+      support_email: settings?.mail_from_address || 'destek@wellbeingmetric.com',
     }, language);
   }
 
@@ -259,6 +259,14 @@ export class NotificationService {
       industry: data.industry || '-',
       message: data.message || '-',
     }, 'tr');
+  }
+
+  async sendSubscriptionExpired(to: string, fullName: string, plan: string, language: string = 'tr') {
+    const subject = language === 'tr' ? '⚠️ Aboneliğiniz Sona Erdi' : '⚠️ Your Subscription Has Expired';
+    await this.addToQueue('subscription_expired', to, subject, {
+      full_name: fullName,
+      plan: plan,
+    }, language);
   }
 
   async sendConsultantWelcome(to: string, fullName: string, inviteToken: string, language: string = 'tr') {

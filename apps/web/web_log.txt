@@ -811,3 +811,928 @@ AggregateError [ECONNREFUSED]:
  GET /login 200 in 385ms
  ○ Compiling /admin ...
  ✓ Compiled /admin in 704ms (2236 modules)
+ ✓ Compiled in 4.1s (4360 modules)
+ ✓ Compiled in 761ms (2532 modules)
+ ✓ Compiled in 1017ms (2532 modules)
+ ✓ Compiled in 914ms (2532 modules)
+ ✓ Compiled in 1068ms (2532 modules)
+ ⨯ ./src/app/(consultant)/consultant/settings/page.tsx
+Error: 
+  [31mx[0m Expression expected
+     ,-[[36;1;4m/Users/onureksi/Desktop/wellanalytics/apps/web/src/app/(consultant)/consultant/settings/page.tsx[0m:369:1]
+ [2m369[0m |     </Suspense>
+ [2m370[0m |   );
+ [2m371[0m | }
+ [2m372[0m |                 <div className="space-y-2">
+     : [31;1m                                          ^[0m
+ [2m373[0m |                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.email')}</label>
+ [2m374[0m |                   <input 
+ [2m375[0m |                     type="email" 
+     `----
+
+  [31mx[0m An object member cannot be declared optional
+     ,-[[36;1;4m/Users/onureksi/Desktop/wellanalytics/apps/web/src/app/(consultant)/consultant/settings/page.tsx[0m:373:1]
+ [2m373[0m |                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.email')}</label>
+ [2m374[0m |                   <input 
+ [2m375[0m |                     type="email" 
+ [2m376[0m |                     defaultValue={user?.email}
+     : [31;1m                                      ^[0m
+ [2m377[0m |                     disabled
+ [2m378[0m |                     className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 text-sm cursor-not-allowed"
+ [2m379[0m |                   />
+     `----
+
+  [31mx[0m Unexpected token `.`. Expected ... , *,  (, [, :, , ?, =, an identifier, public, protected, private, readonly, <.
+     ,-[[36;1;4m/Users/onureksi/Desktop/wellanalytics/apps/web/src/app/(consultant)/consultant/settings/page.tsx[0m:373:1]
+ [2m373[0m |                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.email')}</label>
+ [2m374[0m |                   <input 
+ [2m375[0m |                     type="email" 
+ [2m376[0m |                     defaultValue={user?.email}
+     : [31;1m                                       ^[0m
+ [2m377[0m |                     disabled
+ [2m378[0m |                     className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 text-sm cursor-not-allowed"
+ [2m379[0m |                   />
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/app/(consultant)/consultant/settings/page.tsx
+ ✓ Compiled in 385ms (2532 modules)
+ ✓ Compiled in 809ms (2532 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1012ms (4349 modules)
+ ⨯ Error: Cannot find module './7957.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(auth)/login/page.js:1:15813
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(auth)/login/page.js:1:15864)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:98:84
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:98:26)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36)
+    at async DevServer.findPageComponents (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:920:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:816:17)
+    at async /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:174:21)
+    at async handleRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:353:24)
+    at async requestHandlerImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:377:13)
+    at async Server.requestListener (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ GET /_next/static/webpack/4714c97a98ab7bd8.webpack.hot-update.json 500 in 1411ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /login 200 in 45ms
+ ⨯ Error: Cannot find module './7957.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(auth)/login/page.js:1:15813
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(auth)/login/page.js:1:15864)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:98:84
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:98:26)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36)
+    at async DevServer.findPageComponents (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:920:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:816:17)
+    at async /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:174:21)
+    at async handleRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:353:24)
+    at async requestHandlerImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:377:13)
+    at async Server.requestListener (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ ⨯ Error: Cannot find module './7957.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(auth)/login/page.js:1:15813
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(auth)/login/page.js:1:15864)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:98:84
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:98:26)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36)
+    at async DevServer.findPageComponents (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:920:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:816:17)
+    at async /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:174:21)
+    at async handleRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:353:24)
+    at async requestHandlerImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:377:13)
+    at async Server.requestListener (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ ⨯ Error: Cannot find module './7957.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(auth)/login/page.js:1:15813
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/(auth)/login/page.js:1:15864)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:98:84
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:98:26)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36)
+    at async DevServer.findPageComponents (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:920:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/base-server.js:816:17)
+    at async /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:174:21)
+    at async handleRequest (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:353:24)
+    at async requestHandlerImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js:377:13)
+    at async Server.requestListener (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ GET /login 500 in 222ms
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js
+- /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at __webpack_require__.f.require (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:198:28)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js:162:22)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:340
+    at Object.<anonymous> (/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/pages/_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js:109:84)
+    at /Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/webpack-runtime.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/.next/server/app/_not-found/page.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/require.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/load-components.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/build/utils.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/onureksi/Desktop/wellanalytics/apps/web/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ GET /_next/static/chunks/fallback/webpack.js?ts=1777651279969 500 in 272ms
+ GET /_next/static/chunks/fallback/main.js?ts=1777651279969 500 in 266ms
+ GET /_next/static/chunks/fallback/pages/_app.js?ts=1777651279969 500 in 265ms
+ GET /_next/static/chunks/fallback/pages/_error.js?ts=1777651279969 500 in 262ms
+ GET /_next/static/chunks/fallback/react-refresh.js?ts=1777651279969 500 in 261ms

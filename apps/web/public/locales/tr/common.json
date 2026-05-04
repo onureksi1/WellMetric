@@ -4,7 +4,7 @@
     "notifications": "Bildirimler",
     "profile": "Profil"
   },
-  "app_name": "Wellbeing Platformu",
+  "app_name": "Wellbeing Metric",
   "loading": "Yükleniyor...",
   "saving": "Kaydediliyor...",
   "saved": "Kaydedildi",
@@ -97,6 +97,14 @@
     "labels": {
       "location": "Konum"
     }
+  },
+  "dimensions": {
+    "physical": "Fiziksel",
+    "mental": "Zihinsel",
+    "social": "Sosyal",
+    "financial": "Finansal",
+    "work": "İş & Anlam",
+    "overall": "Genel Skor"
   },
   "dimension_descriptions": {
     "physical": "Enerji, uyku ve genel sağlık durumunuz",

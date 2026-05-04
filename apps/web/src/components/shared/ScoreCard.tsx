@@ -1,4 +1,6 @@
+'use client';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ScoreCardProps {
   score: number | null;
@@ -8,18 +10,12 @@ interface ScoreCardProps {
 }
 
 export const ScoreCard = ({ score, label, change, size = 'md' }: ScoreCardProps) => {
+  const { t } = useTranslation('common');
   const getScoreColor = (s: number | null) => {
     if (s === null) return 'text-gray-400';
     if (s >= 70) return 'text-primary';
     if (s >= 50) return 'text-warning';
     return 'text-danger';
-  };
-
-  const getBgColor = (s: number | null) => {
-    if (s === null) return 'bg-gray-50';
-    if (s >= 70) return 'bg-primary/10';
-    if (s >= 50) return 'bg-warning/10';
-    return 'bg-danger/10';
   };
 
   const scoreValue = score === null ? '--' : Math.round(score);
@@ -39,10 +35,10 @@ export const ScoreCard = ({ score, label, change, size = 'md' }: ScoreCardProps)
         {change !== undefined && (
           <div className={`flex items-center text-sm font-medium ${change >= 0 ? 'text-primary' : 'text-danger'}`}>
             {change >= 0 ? '▲' : '▼'} {Math.abs(change)}%
-            <span className="ml-1 text-gray-400 font-normal">vs last period</span>
+            <span className="ml-1 text-gray-400 font-normal">{t('vs_previous')}</span>
           </div>
         )}
-        {score === null && <span className="text-xs text-gray-400">Yetersiz veri</span>}
+        {score === null && <span className="text-xs text-gray-400">{t('insufficient_data')}</span>}
       </div>
     </div>
   );

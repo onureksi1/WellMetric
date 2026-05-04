@@ -88,22 +88,39 @@ export default function CampaignDetailPage() {
   const statusColors = getStatusColors(t);
 
 
-  if (isLoadingCampaign) {
+  // Build real trend data from actual log timestamps
+  const trendData = React.useMemo(() => {
+    const logs: any[] = logsData?.items ?? [];
+    if (!logs.length) return [];
+
+    // Collect all relevant timestamps
+    const events: { hour: string; type: 'opened' | 'clicked' | 'completed' }[] = [];
+    logs.forEach(log => {
+      if (log.opened_at) events.push({ hour: new Date(log.opened_at).getHours() + ':00', type: 'opened' });
+      if (log.clicked_at) events.push({ hour: new Date(log.clicked_at).getHours() + ':00', type: 'clicked' });
+      if (log.completed_at) events.push({ hour: new Date(log.completed_at).getHours() + ':00', type: 'completed' });
+    });
+
+    if (!events.length) return [];
+
+    // Group cumulative counts by hour
+    const hours = Array.from(new Set(events.map(e => e.hour))).sort();
+    let cumOpened = 0, cumClicked = 0, cumCompleted = 0;
+    return hours.map(h => {
+      cumOpened   += events.filter(e => e.hour === h && e.type === 'opened').length;
+      cumClicked  += events.filter(e => e.hour === h && e.type === 'clicked').length;
+      cumCompleted += events.filter(e => e.hour === h && e.type === 'completed').length;
+      return { time: h, opened: cumOpened, clicked: cumClicked, completed: cumCompleted };
+    });
+  }, [logsData]);
+
+  if (isLoadingCampaign || !campaign) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin text-primary" size={40} />
       </div>
     );
   }
-
-  // Mock data for trends (In reality, process logs opened_at)
-  const trendData = [
-    { time: '09:00', opened: 10, clicked: 5, completed: 2 },
-    { time: '11:00', opened: 35, clicked: 18, completed: 8 },
-    { time: '13:00', opened: 62, clicked: 40, completed: 25 },
-    { time: '15:00', opened: 78, clicked: 55, completed: 42 },
-    { time: '17:00', opened: 82, clicked: 65, completed: 58 },
-  ];
 
   const pieData = [
     { name: t('campaigns.detail.filter_completed', 'Tamamladı'), value: campaign.completed_count },
@@ -169,29 +186,37 @@ export default function CampaignDetailPage() {
            </div>
 
            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData}>
-                  <defs>
-                    <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3498DB" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#3498DB" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorComp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2E865A" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#2E865A" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
-                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold', fill: '#999' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold', fill: '#999' }} />
-                  <RechartsTooltip 
-                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                  />
-                  <Area type="monotone" dataKey="opened" stroke="#3498DB" strokeWidth={3} fillOpacity={1} fill="url(#colorOpened)" />
-                  <Area type="monotone" dataKey="completed" stroke="#2E865A" strokeWidth={3} fillOpacity={1} fill="url(#colorComp)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {trendData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendData}>
+                    <defs>
+                      <linearGradient id="colorOpened" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3498DB" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#3498DB" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorComp" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2E865A" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#2E865A" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
+                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold', fill: '#999' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold', fill: '#999' }} />
+                    <RechartsTooltip 
+                      contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                    />
+                    <Area type="monotone" dataKey="opened" stroke="#3498DB" strokeWidth={3} fillOpacity={1} fill="url(#colorOpened)" />
+                    <Area type="monotone" dataKey="completed" stroke="#2E865A" strokeWidth={3} fillOpacity={1} fill="url(#colorComp)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-300 gap-3">
+                  <TrendingUp size={40} />
+                  <p className="text-sm font-bold text-gray-400">Henüz etkileşim verisi yok</p>
+                  <p className="text-xs text-gray-300">E-posta açıldıkça trend burada görünecek</p>
+                </div>
+              )}
            </div>
         </Card>
 

@@ -38,9 +38,15 @@ export class SurveyTokenService {
        throw new BadRequestException({ code: 'SURVEY_NOT_ACTIVE', message: 'Bu anket şu anda aktif değil.' });
     }
 
+    const companyResult = await this.tokenRepository.manager.query(
+      `SELECT name, logo_url FROM companies WHERE id = $1`, 
+      [tokenRecord.company_id]
+    );
+
     return {
       token: tokenRecord,
       survey: tokenRecord.survey,
+      company: companyResult[0] || { name: 'Wellbeing Platformu' },
     };
   }
 

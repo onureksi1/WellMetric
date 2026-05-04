@@ -21,7 +21,11 @@ export default function ConsultantReportsPage() {
   const router = useRouter();
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [reportType, setReportType] = useState('comparative');
-  const [period, setPeriod] = useState('2024-Q1');
+  const [period, setPeriod] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [format, setFormat] = useState('PDF');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -29,8 +33,8 @@ export default function ConsultantReportsPage() {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await client.get('/admin/companies');
-        setCompanies(Array.isArray(response.data) ? response.data : (response.data.companies || []));
+        const response = await client.get('/consultant/companies');
+        setCompanies(Array.isArray(response.data) ? response.data : (response.data.data || []));
       } catch (error) {
         console.error('Error fetching companies for reports:', error);
       } finally {
@@ -49,10 +53,27 @@ export default function ConsultantReportsPage() {
 
     setIsGenerating(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2500));
-      toast.success(t('common.report_success', 'Rapor başarıyla oluşturuldu ve indirmeye hazır.'));
-    } catch (err) {
-      toast.error(t('common.error', 'Bir hata oluştu.'));
+      const endpoint = reportType === 'single' 
+        ? `/consultant/reports/company/${selectedCompanies[0]}`
+        : `/consultant/reports/comparative`;
+
+      const payload = reportType === 'single'
+        ? { period, format: format.toLowerCase() }
+        : { period, company_ids: selectedCompanies, format: format.toLowerCase() };
+
+      const response = await client.post(endpoint, payload);
+      toast.success(t('common.report_success', 'Rapor kuyruğa alındı. Hazır olunca mail gelecek.'));
+    } catch (err: any) {
+      if (err.response?.status === 402) {
+        toast.error('Krediniz yetersiz, lütfen satın alın.', {
+          action: {
+            label: 'Kredi Al',
+            onClick: () => router.push('/consultant/billing?tab=purchase'),
+          },
+        });
+      } else {
+        toast.error(err.response?.data?.error?.message || t('common.error', 'Rapor oluşturulamadı.'));
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -151,25 +172,24 @@ export default function ConsultantReportsPage() {
                   <label className="text-sm font-bold text-slate-700">{t('reports.period')}</label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <select 
+                    <input 
+                      type="month"
                       className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm appearance-none"
                       value={period}
                       onChange={(e) => setPeriod(e.target.value)}
-                    >
-                      <option value="2024-Q1">2024 1. Çeyrek (Ocak-Mart)</option>
-                      <option value="2023-Q4">2023 4. Çeyrek (Ekim-Aralık)</option>
-                    </select>
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700">{t('reports.format')}</label>
                   <div className="flex gap-2">
-                    {['PDF', 'Excel'].map((format) => (
+                    {['PDF', 'Excel'].map((f) => (
                       <button 
-                        key={format}
-                        className={`flex-1 py-2.5 rounded-xl border font-bold text-xs transition-all ${format === 'PDF' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                        key={f}
+                        onClick={() => setFormat(f)}
+                        className={`flex-1 py-2.5 rounded-xl border font-bold text-xs transition-all ${format === f ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/10' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                       >
-                        {format}
+                        {f}
                       </button>
                     ))}
                   </div>

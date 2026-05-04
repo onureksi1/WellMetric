@@ -111,7 +111,7 @@ export class ScoreService {
     // 1.5 Calculate 'Overall' dimension (average of all scores across all dimensions)
     const overallScoreRes = await this.dataSource.createQueryBuilder()
       .select('AVG(a.score)', 'avg_score')
-      .addSelect('COUNT(a.id)', 'response_count')
+      .addSelect('COUNT(DISTINCT sr.id)', 'response_count')
       .from(ResponseAnswer, 'a')
       .innerJoin(SurveyResponse, 'sr', 'sr.id = a.response_id')
       .where('sr.survey_id = :surveyId', { surveyId })
@@ -136,7 +136,7 @@ export class ScoreService {
       .select('sr.department_id', 'department_id')
       .addSelect('a.dimension', 'dimension')
       .addSelect('AVG(a.score)', 'avg_score')
-      .addSelect('COUNT(a.id)', 'response_count')
+      .addSelect('COUNT(DISTINCT sr.id)', 'response_count')
       .from(ResponseAnswer, 'a')
       .innerJoin(SurveyResponse, 'sr', 'sr.id = a.response_id')
       .where('sr.survey_id = :surveyId', { surveyId })
@@ -186,7 +186,84 @@ export class ScoreService {
     }
 
     this.logger.log(`Upserted ${resultsToUpsert.length} score records.`);
+
+    // 3. Calculate Segment Scores (location, seniority, age_group, gender)
+    const company = await this.dataSource.query(`SELECT settings FROM companies WHERE id = $1`, [companyId]);
+    const threshold = company[0]?.settings?.anonymity_threshold || 5;
+    const SEGMENT_TYPES = ['location', 'seniority', 'age_group', 'gender'] as const;
+
+    for (const segmentType of SEGMENT_TYPES) {
+      // Find distinct values for this segment
+      const segmentValues = await this.dataSource.query(
+        `SELECT DISTINCT ${segmentType} as value FROM survey_responses 
+         WHERE company_id = $1 AND survey_id = $2 AND period = $3 AND ${segmentType} IS NOT NULL`,
+        [companyId, surveyId, period]
+      );
+
+      for (const { value } of segmentValues) {
+        // Fetch responses for this segment value
+        const responses = await this.dataSource.getRepository(SurveyResponse).find({
+          where: {
+            company_id: companyId,
+            survey_id: surveyId,
+            period,
+            [segmentType]: value,
+          },
+          relations: ['answers'],
+        });
+
+        // Anonymity threshold check
+        if (responses.length < threshold) {
+          continue; 
+        }
+
+        const segmentResults: Partial<WellbeingScore>[] = [];
+        const dimensions = ['physical', 'mental', 'social', 'financial', 'work'];
+        
+        for (const dimension of [...dimensions, 'overall']) {
+          const score = this.calculateDimensionScore(responses, dimension);
+          if (score === null) continue;
+
+          segmentResults.push({
+            company_id: companyId,
+            period,
+            dimension,
+            segment_type: segmentType,
+            segment_value: value,
+            score,
+            response_count: responses.length,
+          });
+        }
+
+        if (segmentResults.length > 0) {
+          await this.scoreRepository.createQueryBuilder()
+            .insert()
+            .into(WellbeingScore)
+            .values(segmentResults)
+            .orUpdate(
+              ['score', 'response_count', 'calculated_at'],
+              ['company_id', 'period', 'segment_type', 'segment_value', 'dimension']
+            )
+            .execute();
+        }
+      }
+    }
+
     return { success: true, processed_records: resultsToUpsert.length };
+  }
+
+  private calculateDimensionScore(
+    responses: SurveyResponse[],
+    dimension: string,
+  ): number | null {
+    const answers = responses.flatMap(r =>
+      r.answers.filter(a =>
+        dimension === 'overall' ? a.score !== null : a.dimension === dimension
+      )
+    );
+    if (answers.length === 0) return null;
+    const total = answers.reduce((sum, a) => sum + Number(a.score), 0);
+    return Math.round((total / answers.length) * 100) / 100;
   }
 
   async getQuestionDistribution(questionId: string, companyId: string, surveyId: string) {
@@ -495,7 +572,7 @@ export class ScoreService {
       GROUP BY dimension
     `, [industry, period]);
 
-    if (avgScores.length === 0 || parseInt(avgScores[0].company_count) < 3) {
+    if (avgScores.length === 0 || parseInt(avgScores[0].company_count) < 1) {
       return { available: false };
     }
 

@@ -216,4 +216,23 @@ export class UploadService {
       };
     }
   }
+
+  async saveLocalMock(key: string, body: Buffer) {
+    const { provider } = await this.providerFactory.getProvider();
+    if (typeof (provider as any).putObject === 'function') {
+      await (provider as any).putObject(key, body, 'application/octet-stream');
+    }
+  }
+
+  async getLocalMock(key: string) {
+    const { provider } = await this.providerFactory.getProvider();
+    if (typeof (provider as any).getObject === 'function') {
+      return await (provider as any).getObject(key);
+    }
+    throw new BadRequestException('Local storage not active');
+  }
+
+  async getProvider() {
+    return this.providerFactory.getProvider();
+  }
 }

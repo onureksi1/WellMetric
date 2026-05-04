@@ -2,25 +2,29 @@ import { Injectable, Logger } from '@nestjs/common';
 import { StorageProvider } from './storage-provider.interface';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LocalStorageProvider implements StorageProvider {
   private readonly logger = new Logger(LocalStorageProvider.name);
   private readonly baseDir = './uploads';
+  private readonly apiUrl: string;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     if (!fs.existsSync(this.baseDir)) {
       fs.mkdirSync(this.baseDir, { recursive: true });
     }
+    // Get the API URL from env, or default to localhost
+    this.apiUrl = this.configService.get('NEXT_PUBLIC_API_URL', 'http://localhost:3001');
   }
 
   async getPresignedPutUrl(key: string, mimeType: string, expiresIn: number): Promise<string> {
-    // Local storage doesn't support real presigned URLs, returning a local path mock
-    return `http://localhost:3001/api/v1/public/upload-mock/${key}`;
+    // Local storage mock PUT URL
+    return `${this.apiUrl}/api/v1/uploads/local-mock?key=${encodeURIComponent(key)}`;
   }
 
   async getPresignedGetUrl(key: string, expiresIn: number): Promise<string> {
-    return `http://localhost:3001/api/v1/public/files/${key}`;
+    return `${this.apiUrl}/api/v1/uploads/local-mock?key=${encodeURIComponent(key)}`;
   }
 
   async objectExists(key: string): Promise<boolean> {

@@ -9,7 +9,7 @@ export class MailTemplates1746050400000 implements MigrationInterface {
       if (ctaLabel && ctaLink) {
         html += '<div class="cta-container"><a href="' + ctaLink + '" class="cta-button">' + ctaLabel + '</a></div>';
       }
-      html += '</div><div class="footer"><p><b>Wellbeing Metric</b></p><p>Sorularınız için <a href="mailto:destek@wellanalytics.io">destek@wellanalytics.io</a> adresinden bize ulaşabilirsiniz.</p></div></div></body></html>';
+      html += '</div><div class="footer"><p><b>Wellbeing Metric</b></p><p>Sorularınız için <a href="mailto:destek@wellbeingmetric.com">destek@wellbeingmetric.com</a> adresinden bize ulaşabilirsiniz.</p></div></div></body></html>';
       return html;
     };
 

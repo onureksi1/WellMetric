@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { CreditBalance } from '../entities/credit-balance.entity';
@@ -67,12 +67,18 @@ export class CreditService {
 
       // If no balance record, assume 0 (unless we want to auto-create, but typically users need to buy/subscribe first)
       if (!balance) {
-        throw new BadRequestException({
-          message: 'Yetersiz kredi.',
-          code: ErrorCode.INSUFFICIENT_CREDITS,
-          required: amount,
-          available: 0
-        });
+        throw new HttpException({
+          error: {
+            code: ErrorCode.INSUFFICIENT_CREDITS,
+            message: 'Krediniz yetersiz. Lütfen ek kredi satın alın.',
+            details: {
+              credit_type: creditTypeKey,
+              required: amount,
+              available: 0,
+              purchase_url: '/consultant/billing?tab=purchase',
+            },
+          },
+        }, HttpStatus.PAYMENT_REQUIRED);
       }
 
       // Check for unlimited
@@ -94,12 +100,18 @@ export class CreditService {
       }
 
       if (balance.balance < amount) {
-        throw new BadRequestException({
-          message: 'Yetersiz kredi bakiyesi.',
-          code: ErrorCode.INSUFFICIENT_CREDITS,
-          required: amount,
-          available: balance.balance
-        });
+        throw new HttpException({
+          error: {
+            code: ErrorCode.INSUFFICIENT_CREDITS,
+            message: 'Krediniz yetersiz. Lütfen ek kredi satın alın.',
+            details: {
+              credit_type: creditTypeKey,
+              required: amount,
+              available: balance.balance,
+              purchase_url: '/consultant/billing?tab=purchase',
+            },
+          },
+        }, HttpStatus.PAYMENT_REQUIRED);
       }
 
       // Deduct

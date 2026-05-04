@@ -24,7 +24,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { NotificationService } from '../notification/notification.service';
 import { SettingsService } from '../settings/settings.service';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
 @Controller('admin/consultants')
@@ -262,11 +262,29 @@ export class AdminConsultantController {
     const user = await this.userRepository.findOne({ where: { id, role: 'consultant' } });
     if (!user) throw new ConflictException('Eğitmen bulunamadı.');
 
-    // 1. Detach from companies first (to avoid FK violation)
-    await this.dataSource.query('UPDATE companies SET consultant_id = NULL WHERE consultant_id = $1', [id]);
-    
-    // 2. Now delete the user
-    await this.userRepository.delete(id);
-    return { success: true };
+    return this.dataSource.transaction(async (manager) => {
+      // 1. Detach from companies
+      await manager.query('UPDATE companies SET consultant_id = NULL WHERE consultant_id = $1', [id]);
+      
+      // 2. Clear benchmarks updated_by
+      await manager.query('UPDATE benchmarks SET updated_by = NULL WHERE updated_by = $1', [id]);
+      
+      // 3. Delete billing related records
+      await manager.query('DELETE FROM payments WHERE consultant_id = $1', [id]);
+      await manager.query('DELETE FROM credit_transactions WHERE consultant_id = $1', [id]);
+      await manager.query('DELETE FROM credit_balances WHERE consultant_id = $1', [id]);
+      await manager.query('DELETE FROM subscriptions WHERE consultant_id = $1', [id]);
+      
+      // 4. Delete consultant plan
+      await manager.query('DELETE FROM consultant_plans WHERE consultant_id = $1', [id]);
+      
+      // 5. Delete invitations
+      await manager.query('DELETE FROM invitations WHERE user_id = $1', [id]);
+      
+      // 6. Delete the user
+      await manager.query('DELETE FROM users WHERE id = $1', [id]);
+      
+      return { success: true };
+    });
   }
 }

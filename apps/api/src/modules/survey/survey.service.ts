@@ -131,7 +131,14 @@ export class SurveyService {
       .addOrderBy('qr.order_index', 'ASC');
 
     if (isHrAdmin && companyId) {
-      query.innerJoin('s.assignments', 'sa', 'sa.company_id = :companyId', { companyId });
+      // Allow access if: assigned via survey_assignments OR directly linked via company_id
+      query.andWhere(
+        `(s.company_id = :companyId OR EXISTS (
+          SELECT 1 FROM survey_assignments sa
+          WHERE sa.survey_id = s.id AND sa.company_id = :companyId
+        ))`,
+        { companyId }
+      );
     }
 
     const survey = await query.getOne();
@@ -390,7 +397,8 @@ export class SurveyService {
       if (survey.is_anonymous === false) {
         await this.companyService.updateSettings(
           companyId,
-          { employee_accounts: true }
+          { employee_accounts: true },
+          { id: actorId } // Pass actor as requesting user
         );
       }
 
@@ -407,34 +415,63 @@ export class SurveyService {
   }
 
   async getCompanySurveys(companyId: string) {
+    // 1. survey_assignments aracılığıyla atananlar (admin assign)
     const assignments = await this.assignmentRepository.find({
       where: { company_id: companyId },
       relations: ['survey'],
       order: { assigned_at: 'DESC' }
     });
 
-    const data = await Promise.all(assignments.map(async (a) => {
-      // Get campaign count for this assignment
-      // Note: This assumes a campaign is linked to an assignment or at least same survey + company + period
+    const assignmentData = await Promise.all(assignments.map(async (a) => {
       const campaignCount = await this.dataSource.query(
         `SELECT COUNT(*) as count FROM distribution_campaigns 
          WHERE survey_id = $1 AND company_id = $2 AND period = $3`,
         [a.survey_id, a.company_id, a.period]
       );
-
       return {
         id: a.id,
         survey_id: a.survey_id,
-        title: a.survey.title_tr,
-        type: a.survey.type,
+        title: a.survey?.title_tr,
+        type: a.survey?.type,
         period: a.period,
         due_at: a.due_at,
         status: a.status,
-        campaign_count: parseInt(campaignCount[0].count) || 0
+        campaign_count: parseInt(campaignCount[0]?.count) || 0,
+        source: 'assignment'
       };
     }));
 
-    return data;
+    // 2. Doğrudan company_id ile bağlı anketler (consultant tarafından oluşturulan)
+    const directSurveys = await this.surveyRepository.find({
+      where: { company_id: companyId, is_active: true },
+      order: { created_at: 'DESC' }
+    });
+
+    // Assignment'ta olmayan direct survey'leri ekle (tekrar gösterme)
+    const assignedSurveyIds = new Set(assignments.map(a => a.survey_id));
+    const directData = await Promise.all(
+      directSurveys
+        .filter(s => !assignedSurveyIds.has(s.id))
+        .map(async s => {
+          const countRes = await this.dataSource.query(
+            `SELECT COUNT(*) as count FROM distribution_campaigns WHERE survey_id = $1 AND company_id = $2`,
+            [s.id, companyId]
+          );
+          return {
+            id: s.id,
+            survey_id: s.id,
+            title: s.title_tr,
+            type: s.type,
+            period: null,
+            due_at: null,
+            status: 'active',
+            campaign_count: parseInt(countRes[0]?.count) || 0,
+            source: 'direct'
+          };
+        })
+    );
+
+    return [...assignmentData, ...directData];
   }
 
   async findPendingForUser(userId: string, companyId: string) {
@@ -460,12 +497,59 @@ export class SurveyService {
   }
 
   async findResults(id: string, companyId: string, period?: string) {
-    // Placeholder analytics implementation as specified
+    // 1. Toplam gönderilen (distribution_campaigns)
+    const sentRes = await this.dataSource.query(`
+      SELECT COALESCE(SUM(total_recipients), 0) as total,
+             COALESCE(SUM(completed_count), 0) as completed
+      FROM distribution_campaigns
+      WHERE survey_id = $1 AND company_id = $2
+    `, [id, companyId]);
+
+    const total = parseInt(sentRes[0]?.total ?? '0');
+    const completed = parseInt(sentRes[0]?.completed ?? '0');
+    const participation_rate = total > 0 ? parseFloat(((completed / total) * 100).toFixed(1)) : 0;
+
+    // 2. Boyut skorları (survey_responses tablosundan)
+    const dimensionRes = await this.dataSource.query(`
+      SELECT sq.dimension, 
+             ROUND(AVG(sqa.answer_value)::numeric, 1) as avg_score,
+             COUNT(*) as answer_count
+      FROM survey_responses sr
+      JOIN response_answers sqa ON sqa.response_id = sr.id
+      JOIN survey_questions sq ON sq.id = sqa.question_id
+      WHERE sr.survey_id = $1 AND sr.company_id = $2
+        AND sqa.answer_value IS NOT NULL
+        ${period ? 'AND sr.period = $3' : ''}
+      GROUP BY sq.dimension
+    `, period ? [id, companyId, period] : [id, companyId]);
+
+    const dimension_scores: Record<string, number | null> = {};
+    for (const row of dimensionRes) {
+      if (row.dimension) {
+        dimension_scores[row.dimension] = parseFloat(row.avg_score) || null;
+      }
+    }
+
+    // 3. Cevap sayısı
+    const responseCountRes = await this.dataSource.query(`
+      SELECT COUNT(*) as count FROM survey_responses
+      WHERE survey_id = $1 AND company_id = $2
+    `, [id, companyId]);
+    const response_count = parseInt(responseCountRes[0]?.count ?? '0');
+
+    const has_data = response_count > 0;
+
     return {
-      participation_rate: 85.5,
-      dimension_scores: { physical: 82, mental: 76, social: 88, overall: 82.5 },
+      has_data,
+      participation_rate,
+      total_sent: total,
+      total_completed: completed,
+      response_count,
+      dimension_scores: has_data ? dimension_scores : null,
       question_distributions: [],
-      latest_insight: "Takım ruhu ve sosyal ilişkiler boyutunda pozitif artış var."
+      latest_insight: has_data
+        ? 'Veriler analiz ediliyor...'
+        : null,
     };
   }
 

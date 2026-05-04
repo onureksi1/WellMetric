@@ -24,6 +24,7 @@ import {
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import { useSearchParams } from 'next/navigation';
 
 import client from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -38,17 +39,23 @@ export default function HrCampaignsPage() {
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
+  const searchParams = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
     period: '',
-    survey_id: ''
+    survey_id: searchParams?.get('survey_id') ?? ''
   });
 
   const { data, isLoading } = useQuery({
     queryKey: ['campaigns', filters],
     queryFn: async () => {
-      const { data } = await client.get('/hr/campaigns', { params: filters });
+      // Only send non-empty filters to avoid UUID validation errors
+      const params: any = {};
+      if (filters.status) params.status = filters.status;
+      if (filters.period) params.period = filters.period;
+      if (filters.survey_id) params.survey_id = filters.survey_id;
+      const { data } = await client.get('/hr/campaigns', { params });
       return data;
     }
   });

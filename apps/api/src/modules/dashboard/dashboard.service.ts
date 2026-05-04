@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In } from 'typeorm';
 import { ScoreService } from '../score/score.service';
+import { BenchmarkService } from '../benchmark/benchmark.service';
 import { AiInsight } from '../ai/entities/ai-insight.entity';
 import { SurveyAssignment } from '../survey/entities/survey-assignment.entity';
 import { SurveyResponse } from '../response/entities/survey-response.entity';
@@ -27,6 +28,7 @@ export class DashboardService {
     private readonly responseRepository: Repository<SurveyResponse>,
     @InjectRepository(SurveyToken)
     private readonly tokenRepository: Repository<SurveyToken>,
+    private readonly benchmarkService: BenchmarkService,
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
   ) {
@@ -71,27 +73,23 @@ export class DashboardService {
     });
 
     // 3. BENCHMARK
-    const benchmark = await this.scoreService.getBenchmark(companyId, targetPeriod);
+    const benchmarkRes = await this.benchmarkService.getBenchmarkForCompany(companyId, targetPeriod);
     const benchmarkData = {
-      available: benchmark.available,
-      sector_average: benchmark.overall || null,
-      difference: benchmark.available && scoreCard.overall ? scoreCard.overall - benchmark.overall : null,
+      available: !!benchmarkRes?.benchmark?.overall?.turkey_platform?.score,
+      sector_average: benchmarkRes?.benchmark?.overall?.turkey_platform?.score || null,
+      difference: (benchmarkRes?.benchmark?.overall?.turkey_platform?.score && scoreCard.overall) 
+        ? scoreCard.overall - benchmarkRes.benchmark.overall.turkey_platform.score 
+        : null,
     };
 
-    // 4. KATILIM ORANI
-    const assignments = await this.assignmentRepository.find({
-      where: { company_id: companyId, period: targetPeriod },
+    // 4. KATILIM ORANI (Tüm davetler ve yanıtlar üzerinden)
+    const totalInvited = await this.tokenRepository.count({
+      where: { company_id: companyId }
     });
-    
-    let totalInvited = 0;
-    let totalResponded = 0;
 
-    for (const assign of assignments) {
-      const invited = await this.tokenRepository.count({ where: { assignment_id: assign.id } });
-      const responded = await this.responseRepository.count({ where: { assignment_id: assign.id } });
-      totalInvited += invited;
-      totalResponded += responded;
-    }
+    const totalResponded = await this.responseRepository.count({
+      where: { company_id: companyId, period: targetPeriod }
+    });
 
     const participationRate = totalInvited > 0 ? (totalResponded / totalInvited) * 100 : 0;
 
@@ -138,6 +136,7 @@ export class DashboardService {
       risk_alerts: riskAlerts,
       ai_insight: aiInsight ? { content: aiInsight.content, generated_at: aiInsight.generated_at } : null,
       trend,
+      company_name: (await this.dataSource.query(`SELECT name FROM companies WHERE id = $1`, [companyId]))[0]?.name || 'Şirketiniz',
     };
 
     await this.redisClient.set(cacheKey, JSON.stringify(dashboardData), 'EX', 1800);
@@ -225,12 +224,7 @@ export class DashboardService {
 
   async getBenchmark(companyId: string, period?: string) {
     const targetPeriod = period || this.getCurrentPeriod();
-    const result = await this.scoreService.getBenchmark(companyId, targetPeriod);
-    
-    if (!result.available) {
-      return { ...result, reason: 'Sektörünüzden yeterli firma verisi yok' };
-    }
-    return result;
+    return this.benchmarkService.getBenchmarkForCompany(companyId, targetPeriod);
   }
 
   async invalidateCache(companyId: string, period: string) {

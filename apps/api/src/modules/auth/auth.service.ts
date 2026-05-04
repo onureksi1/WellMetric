@@ -2,12 +2,14 @@ import {
   Injectable,
   UnauthorizedException,
   UnprocessableEntityException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan, IsNull } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import Redis from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
  
@@ -18,6 +20,8 @@ import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { NotificationService } from '../notification/notification.service';
+import { BruteForceService } from './brute-force.service';
+import { AppLogger } from '../../common/logger/app-logger.service';
 
 @Injectable()
 export class AuthService {
@@ -32,6 +36,8 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly auditService: AuditService,
     private readonly notificationService: NotificationService,
+    private readonly bruteForce: BruteForceService,
+    private readonly logger: AppLogger,
   ) {
     this.redisClient = new Redis({
       host: this.configService.get<string>('REDIS_HOST', 'localhost'),
@@ -40,44 +46,82 @@ export class AuthService {
     });
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, ip: string) {
     const { email, password } = dto;
-    const loginAttemptsKey = `login_attempts:${email}`;
-    const blockKey = `login_blocked:${email}`;
+    this.logger.debug('Login isteği', { service: 'AuthService' }, { email, ip });
 
-    // Check if blocked
-    const isBlocked = await this.redisClient.get(blockKey);
-    if (isBlocked) {
-      throw new UnauthorizedException({
-        code: 'FORBIDDEN',
-        message: 'Çok fazla hatalı giriş denemesi. Lütfen 15 dakika bekleyin.',
-      });
+    // 1. Engellenmiş mi kontrol et
+    const blockStatus = await this.bruteForce.isBlocked(ip, email);
+    if (blockStatus.blocked) {
+      const minutes = Math.ceil((blockStatus.ttl ?? 900) / 60);
+      throw new HttpException(
+        {
+          error: {
+            code:    'TOO_MANY_ATTEMPTS',
+            message: `Çok fazla başarısız deneme. ${minutes} dakika bekleyin.`,
+            ttl:     blockStatus.ttl,
+          },
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
+    // 2. Kullanıcıyı bul
     const user = await this.userRepository.findOne({
-      where: { email, is_active: true },
+      where: { email: email.toLowerCase().trim(), is_active: true },
       select: ['id', 'email', 'password_hash', 'role', 'company_id', 'language', 'full_name'],
     });
 
-    if (!user || !user.password_hash) {
-      await this.handleFailedLogin(loginAttemptsKey, blockKey);
-      throw new UnauthorizedException({
-        code: 'UNAUTHORIZED',
-        message: 'Geçersiz email veya şifre.',
-      });
+    if (!user) {
+      this.logger.warn('Login: Kullanıcı bulunamadı veya pasif', { service: 'AuthService' }, { email });
+      await this.bruteForce.recordFailedAttempt(ip, email);
+      throw new UnauthorizedException('E-posta veya şifre hatalı');
     }
 
+    if (!user.password_hash) {
+      this.logger.warn('Login: Kullanıcının şifresi yok', { service: 'AuthService' }, { email });
+      await this.bruteForce.recordFailedAttempt(ip, email);
+      throw new UnauthorizedException('E-posta veya şifre hatalı');
+    }
+
+    // 3. Şifreyi kontrol et
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    this.logger.debug('Şifre kontrolü sonucu', { service: 'AuthService' }, { isPasswordValid });
+
     if (!isPasswordValid) {
-      await this.handleFailedLogin(loginAttemptsKey, blockKey);
-      throw new UnauthorizedException({
-        code: 'UNAUTHORIZED',
-        message: 'Geçersiz email veya şifre.',
-      });
+      const attempt = await this.bruteForce.recordFailedAttempt(ip, email);
+
+      if (attempt.blocked) {
+        const minutes = Math.ceil((attempt.ttl ?? 900) / 60);
+        this.logger.warn('Kullanıcı engellendi', { service: 'AuthService' }, {
+          email, ip, attempts: attempt.attempts
+        });
+        throw new HttpException(
+          {
+            error: {
+              code:    'TOO_MANY_ATTEMPTS',
+              message: `Çok fazla başarısız deneme. ${minutes} dakika bekleyin.`,
+              ttl:     attempt.ttl,
+            },
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+
+      const remaining = 5 - attempt.attempts;
+      throw new UnauthorizedException(
+        remaining > 0
+          ? `E-posta veya şifre hatalı. ${remaining} hakkınız kaldı.`
+          : 'E-posta veya şifre hatalı.'
+      );
     }
 
-    // Reset login attempts on success
-    await this.redisClient.del(loginAttemptsKey);
+    // 4. Başarılı giriş — sayacı sıfırla
+    await this.bruteForce.recordSuccess(ip, email);
+
+    this.logger.info('Başarılı giriş', { service: 'AuthService' }, {
+      userId: user.id, email, role: user.role
+    });
 
     // Update last_login_at
     await this.userRepository.update(user.id, { last_login_at: new Date() });
@@ -85,15 +129,6 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
-  private async handleFailedLogin(attemptsKey: string, blockKey: string) {
-    const attempts = await this.redisClient.incr(attemptsKey);
-    if (attempts === 1) {
-      await this.redisClient.expire(attemptsKey, 60 * 15); // expire in 15 mins
-    }
-    if (attempts >= 5) {
-      await this.redisClient.set(blockKey, '1', 'EX', 60 * 15); // block for 15 mins
-    }
-  }
 
   async refresh(refreshToken: string) {
     let payload;

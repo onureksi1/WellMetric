@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { SurveyQuestion } from './survey-question.entity';
 import { SurveyAssignment } from './survey-assignment.entity';
+import { User } from '../../user/entities/user.entity';
+import { Company } from '../../company/entities/company.entity';
 
 @Entity('surveys')
 export class Survey {
@@ -51,6 +53,20 @@ export class Survey {
 
   @Column({ type: 'uuid', nullable: true })
   created_by: string | null;
+
+  @Column({ name: 'is_pool_visible', default: true })
+  isPoolVisible: boolean;
+
+  @Column({ name: 'pool_added_at', type: 'timestamptz', nullable: true })
+  poolAddedAt: Date;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'created_by' })
+  created_by_user: User;
+
+  @ManyToOne(() => Company)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
 
   @OneToMany(() => SurveyQuestion, question => question.survey, { cascade: true })
   questions: SurveyQuestion[];

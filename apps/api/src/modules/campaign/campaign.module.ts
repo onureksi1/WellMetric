@@ -7,6 +7,7 @@ import { CampaignController } from './campaign.controller';
 import { TrackingController } from './tracking.controller';
 import { SurveyToken } from '../survey-token/entities/survey-token.entity';
 import { User } from '../user/entities/user.entity';
+import { Employee } from '../user/entities/employee.entity';
 import { AuditModule } from '../audit/audit.module';
 import { NotificationModule } from '../notification/notification.module';
 import { SettingsModule } from '../settings/settings.module';
@@ -18,6 +19,7 @@ import { SettingsModule } from '../settings/settings.module';
       DistributionLog,
       SurveyToken,
       User,
+      Employee,
     ]),
     AuditModule,
     NotificationModule,

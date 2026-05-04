@@ -91,7 +91,7 @@ export class ConsultantService {
         SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 as rate
         FROM survey_assignments sa
         JOIN survey_tokens st ON st.assignment_id = sa.id
-        LEFT JOIN survey_responses sr ON sr.survey_token_id = st.id
+        LEFT JOIN survey_responses sr ON sr.assignment_id = sa.id
         WHERE sa.company_id = ANY($1)
         GROUP BY sa.id
       ) sub
@@ -104,7 +104,7 @@ export class ConsultantService {
         (SELECT score FROM wellbeing_scores WHERE company_id = c.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1) as current_score,
         (SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 
          FROM survey_assignments sa JOIN survey_tokens st ON st.assignment_id = sa.id 
-         LEFT JOIN survey_responses sr ON sr.survey_token_id = st.id 
+         LEFT JOIN survey_responses sr ON sr.assignment_id = sa.id 
          WHERE sa.company_id = c.id GROUP BY sa.id ORDER BY sa.assigned_at DESC LIMIT 1) as last_participation
       FROM companies c
       WHERE c.consultant_id = $1 AND c.is_active = true

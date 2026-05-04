@@ -123,12 +123,12 @@ export class UserService {
 
       if (users.length === 0) {
         return {
-          data: [],
+          items: [],
           meta: {
             total,
             page,
             per_page,
-            last_page: Math.ceil(total / per_page),
+            total_pages: 0,
           },
         };
       }
@@ -149,14 +149,23 @@ export class UserService {
         .getRawMany();
       const resMap = new Map(responses.map(r => [r.user_id, parseInt(r.count)]));
 
-      const enrichedUsers = users.map(u => ({
-        ...u,
-        invitation_status: invMap.has(u.id) ? 'pending' : (u.last_login_at ? 'accepted' : 'none'),
-        completed_surveys: resMap.get(u.id) || 0,
-      }));
+      const enrichedUsers = users.map(u => {
+        let status = 'none';
+        if (u.last_login_at) status = 'active';
+        else if (invMap.has(u.id)) status = 'invited';
+        
+        return {
+          ...u,
+          department_name: u.department?.name || 'Genel',
+          status,
+          invitation_status: status === 'invited' ? 'pending' : (status === 'active' ? 'accepted' : 'none'),
+          survey_count: resMap.get(u.id) || 0,
+          completed_surveys: resMap.get(u.id) || 0,
+        };
+      });
 
       return {
-        data: enrichedUsers,
+        items: enrichedUsers,
         meta: {
           total,
           page,
@@ -256,12 +265,12 @@ export class UserService {
       const company = await this.companyRepository.findOne({ where: { id: companyId } });
       if (!company) throw new NotFoundException('Şirket bulunamadı.');
 
-      const bucket = this.configService.get('AWS_S3_BUCKET');
-      const response = await this.s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: s3Key }));
-      const csvData = await response.Body?.transformToString();
+      const { provider } = await this.uploadService.getProvider();
+      const buffer = await provider.getObject(s3Key);
+      const csvData = buffer.toString('utf-8');
       if (!csvData) throw new BadRequestException('CSV dosyası okunamadı.');
 
-      const records = parse(csvData, { columns: true, skip_empty_lines: true });
+      const records = parse(csvData, { columns: true, skip_empty_lines: true, bom: true });
       const departments = await this.departmentRepository.find({ where: { company_id: companyId, is_active: true } });
       const deptMap = new Map(departments.map(d => [d.name.toLowerCase(), d.id]));
 
@@ -287,10 +296,20 @@ export class UserService {
             throw new Error('Geçersiz email formatı.');
           }
 
-          const deptName = row.department_name?.trim().toLowerCase();
-          const department_id = deptMap.get(deptName);
-          if (deptName && !department_id) {
-            throw new Error(`Departman bulunamadı: ${row.department_name}`);
+          const deptNameRaw = row.department_name?.trim();
+          const deptNameLower = deptNameRaw?.toLowerCase();
+          let department_id = deptMap.get(deptNameLower);
+          
+          if (deptNameRaw && !department_id) {
+            // Auto-create department if missing
+            const newDept = this.departmentRepository.create({
+              name: deptNameRaw,
+              company_id: companyId,
+              is_active: true,
+            });
+            const savedDept = await this.departmentRepository.save(newDept);
+            department_id = savedDept.id;
+            deptMap.set(deptNameLower, department_id); // Add to map for next rows
           }
 
           const userData = {
@@ -361,11 +380,19 @@ export class UserService {
                 userData.language || 'tr'
               );
             } else {
-              // No active assignment, but still save to users for future surveys? 
-              // The prompt says "users tablosuna kayıt AÇILMAZ" for Token Mode.
-              // So we only create survey_token if assignment exists.
-              // If no assignment, we might want to record the error or just skip.
-              throw new Error('Aktif anket ataması bulunamadı.');
+              // No active assignment - still create/update the user record for future use
+              let user = await this.userRepository.findOne({ where: { email, company_id: companyId } });
+              if (user) {
+                Object.assign(user, userData);
+              } else {
+                user = this.userRepository.create({
+                  ...userData,
+                  email,
+                  company_id: companyId,
+                  role: 'employee',
+                });
+              }
+              await this.userRepository.save(user);
             }
           }
           success_count++;
@@ -392,10 +419,22 @@ export class UserService {
 
   async updateUser(id: string, companyId: string, dto: UpdateUserDto, adminId: string) {
     try {
+      console.log(`[DEBUG] updateUser id: ${id}, dto: ${JSON.stringify(dto)}`);
+      
       const user = await this.userRepository.findOne({ where: { id, company_id: companyId } });
       if (!user) throw new NotFoundException('Çalışan bulunamadı.');
 
-      const oldData = { ...user };
+      // Prevent validation crash if department_id is empty string or invalid
+      if (dto.department_id && dto.department_id !== '') {
+        const dept = await this.departmentRepository.findOne({ where: { id: dto.department_id, company_id: companyId } });
+        if (!dept) {
+          console.warn(`Departman bulunamadı veya yetkisiz: ${dto.department_id}`);
+        }
+      } else {
+        // If it's an empty string or missing, don't let TypeORM try to use it as a UUID
+        delete (dto as any).department_id;
+      }
+
       Object.assign(user, dto);
       const updated = await this.userRepository.save(user);
 
@@ -410,6 +449,7 @@ export class UserService {
 
       return updated;
     } catch (error) {
+      console.error(`[ERROR] updateUser failed: ${error.message}`, error.stack);
       throw error;
     }
   }

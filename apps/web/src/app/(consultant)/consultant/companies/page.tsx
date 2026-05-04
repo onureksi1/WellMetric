@@ -27,15 +27,12 @@ export default function MyCompaniesPage() {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await client.get('/admin/companies');
-        // Backend returns an object with companies array and limit info usually, 
-        // if not, we adjust based on the response structure.
-        if (Array.isArray(response.data)) {
-          setCompanies(response.data);
-          setPlanLimit(prev => ({ ...prev, used: response.data.length }));
-        } else {
-          setCompanies(response.data.companies || []);
-          setPlanLimit(response.data.limit || { used: 0, max: 5 });
+        const response = await client.get('/consultant/companies');
+        // Backend returns { data: [...], meta: { total, page, ... } }
+        const list = response.data?.data ?? response.data;
+        if (Array.isArray(list)) {
+          setCompanies(list);
+          setPlanLimit(prev => ({ ...prev, used: list.length }));
         }
       } catch (error) {
         console.error('Error fetching companies:', error);

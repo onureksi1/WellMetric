@@ -21,6 +21,9 @@ export class Payment {
   @JoinColumn({ name: 'consultant_id' })
   consultant: User;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  package_key: string | null;
+
   @Column({ type: 'uuid', nullable: true })
   subscription_id: string | null;
 

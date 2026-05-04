@@ -38,6 +38,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
+import { handleApiError } from '@/lib/utils/error-handler';
 
 // ────────────────────────────────────────────────────────────────────────────
 // SCHEMAS
@@ -94,8 +95,7 @@ export default function AdminConsultantsPage() {
       setData(res.data.data);
       setMeta(res.data.meta);
     } catch (err: any) {
-      console.error('[AdminConsultants] Fetch error:', err);
-      toast.error(t('common:error'));
+      handleApiError(err, t('common:error'));
     } finally {
       setLoading(false);
     }
@@ -126,8 +126,7 @@ export default function AdminConsultantsPage() {
       toast.success(newStatus ? t('consultants.status_change.success_active') : t('consultants.status_change.success_passive'));
       fetchConsultants(meta.page);
     } catch (err: any) {
-      console.error('[AdminConsultants] Status toggle error:', err);
-      toast.error(t('common:error'));
+      handleApiError(err, t('common:error'));
     }
   };
 
@@ -137,7 +136,7 @@ export default function AdminConsultantsPage() {
       setSelectedConsultant(res.data);
       setIsDetailOpen(true);
     } catch (err) {
-      toast.error(t('common:error'));
+      handleApiError(err, t('common:error'));
     }
   };
 
@@ -149,8 +148,7 @@ export default function AdminConsultantsPage() {
       toast.success(t('consultants.delete_success'));
       fetchConsultants(meta.page);
     } catch (err: any) {
-      console.error('[AdminConsultants] Delete error:', err);
-      toast.error(err.response?.data?.message || t('common:error'));
+      handleApiError(err, t('common:error'));
     }
   };
 
@@ -401,8 +399,7 @@ function EditConsultantModal({ isOpen, onClose, onSuccess, consultant }: any) {
       toast.success(t('consultants.update_profile.success'));
       onSuccess();
     } catch (err: any) {
-      console.error('[AdminConsultants] Update profile error:', err);
-      toast.error(err.response?.data?.message || t('common:error'));
+      handleApiError(err, t('common:error'));
     } finally {
       setLoading(false);
     }
@@ -451,12 +448,7 @@ function CreateConsultantModal({ isOpen, onClose, onSuccess, packages }: any) {
       toast.success(t('consultants.create.success'));
       onSuccess();
     } catch (err: any) {
-      console.error('[AdminConsultants] Create error:', err);
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error?.message ||
-        t('common:error');
-      toast.error(msg);
+      handleApiError(err, t('common:error'));
     } finally {
       setLoading(false);
     }
@@ -544,7 +536,7 @@ function UpdatePlanModal({ isOpen, onClose, onSuccess, consultant, packages }: a
       toast.success(t('consultants.update_plan.success'));
       onSuccess();
     } catch (err: any) {
-      toast.error(t('common:error'));
+      handleApiError(err, t('common:error'));
     } finally {
       setLoading(false);
     }

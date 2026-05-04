@@ -36,7 +36,7 @@ export default function CompanyDetailPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await client.get(`/admin/companies/${params.id}/stats`);
+        const response = await client.get(`/consultant/companies/${params.id}/stats`);
         setData(response.data);
       } catch (error) {
         console.error('Error fetching company stats:', error);

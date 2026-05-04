@@ -9,7 +9,7 @@ export class TrackingController {
   constructor(private readonly campaignService: CampaignService) {}
 
   @Get('open/:logId')
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle({ tracking: { limit: 10, ttl: 60000 } })
   async trackOpen(@Param('logId') logId: string, @Res() res: Response) {
     await this.campaignService.trackOpen(logId);
     
@@ -30,7 +30,7 @@ export class TrackingController {
   }
 
   @Get('click/:logId')
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle({ tracking: { limit: 10, ttl: 60000 } })
   async trackClick(@Param('logId') logId: string, @Res() res: Response) {
     const surveyUrl = await this.campaignService.trackClick(logId);
     res.redirect(302, surveyUrl);
