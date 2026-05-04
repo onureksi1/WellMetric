@@ -15,10 +15,12 @@ import {
   CheckCircle2,
   Loader2
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import client from '@/lib/api/client';
 
 export default function ConsultantAIPage() {
+  const router = useRouter();
   const { t } = useTranslation('consultant');
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -65,9 +67,7 @@ export default function ConsultantAIPage() {
       toast.success('AI Analizi tamamlandı!');
     } catch (err: any) {
       if (err.response?.status === 402) {
-        toast.error('AI krediniz yetersiz.', {
-          action: { label: 'Kredi Al', onClick: () => router.push('/consultant/billing?tab=purchase') },
-        });
+        toast.error('AI krediniz yetersiz. Lütfen kredi yükleyin.');
       } else {
         const message = err.response?.data?.error?.message || 'Analiz sırasında bir hata oluştu.';
         toast.error(message);
@@ -88,9 +88,7 @@ export default function ConsultantAIPage() {
       toast.success('İstihbarat raporu hazır!');
     } catch (err: any) {
       if (err.response?.status === 402) {
-        toast.error('AI krediniz yetersiz (10 kredi gerekli).', {
-          action: { label: 'Kredi Al', onClick: () => router.push('/consultant/billing?tab=purchase') },
-        });
+        toast.error('AI krediniz yetersiz (10 kredi gerekli).');
       } else {
         const message = err.response?.data?.error?.message || 'Rapor oluşturulurken bir hata oluştu.';
         toast.error(message);
