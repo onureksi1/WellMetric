@@ -141,7 +141,7 @@ export default function SurveyPoolDetailPage() {
                   </div>
                   <div className="flex-1 space-y-3">
                     <div className="flex justify-between items-start">
-                      <Badge variant="secondary" className="bg-slate-100 text-slate-500 border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5">
+                      <Badge variant="gray" className="bg-slate-100 text-slate-500 border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5">
                         {question.question_type}
                       </Badge>
                       <Badge variant="gray" className="text-[9px] uppercase font-bold border-slate-200 text-slate-400 tracking-tighter">

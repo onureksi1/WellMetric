@@ -126,7 +126,7 @@ export default function ConsultantSurveysPage() {
                           <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors hover:underline cursor-pointer">{survey.title_tr}</h4>
                         </Link>
                         {survey.company_id === null ? (
-                          <Badge variant="secondary" className="text-[10px]">Global</Badge>
+                          <Badge variant="gray" className="text-[10px]">Global</Badge>
                         ) : survey.created_by === user?.id ? (
                           <Badge variant="purple" className="text-[10px]">Benim</Badge>
                         ) : (
