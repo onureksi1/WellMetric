@@ -105,7 +105,7 @@ export default function SurveyPoolDetailPage() {
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Ölçülen Boyutlar</h3>
               <div className="flex flex-wrap gap-2">
                 {Array.from(new Set(survey.questions?.map((q: any) => q.dimension))).map((dim: any) => (
-                  <Badge key={dim} variant="outline" className="px-3 py-1 border-slate-200 text-navy font-bold uppercase text-[10px]">
+                  <Badge key={dim} variant="gray" className="px-3 py-1 border-slate-200 text-navy font-bold uppercase text-[10px]">
                     {dim}
                   </Badge>
                 ))}
@@ -144,7 +144,7 @@ export default function SurveyPoolDetailPage() {
                       <Badge variant="secondary" className="bg-slate-100 text-slate-500 border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5">
                         {question.question_type}
                       </Badge>
-                      <Badge variant="outline" className="text-[9px] uppercase font-bold border-slate-200 text-slate-400 tracking-tighter">
+                      <Badge variant="gray" className="text-[9px] uppercase font-bold border-slate-200 text-slate-400 tracking-tighter">
                         {question.dimension}
                       </Badge>
                     </div>

@@ -130,7 +130,7 @@ export default function ConsultantSurveysPage() {
                         ) : survey.created_by === user?.id ? (
                           <Badge variant="purple" className="text-[10px]">Benim</Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px]">Firma</Badge>
+                          <Badge variant="gray" className="text-[10px]">Firma</Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
