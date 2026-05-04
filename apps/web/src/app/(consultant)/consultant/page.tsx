@@ -51,7 +51,7 @@ export default function ConsultantDashboard() {
   const metrics = [
     { label: 'total_companies', value: data?.metrics?.total_companies || 0, icon: Building2, color: 'blue', change: '+0' },
     { label: 'total_employees', value: data?.metrics?.total_employees || 0, icon: Users, color: 'indigo', change: '+0' },
-    { label: 'avg_wellbeing_score', value: data?.metrics?.avg_score?.toFixed(1) || 0, icon: Activity, color: 'emerald', change: '0' },
+    { label: 'avg_wellbeing_score', value: (Number(data?.metrics?.avg_score) || 0).toFixed(1), icon: Activity, color: 'emerald', change: '0' },
     { label: 'participation_rate', value: `${data?.metrics?.avg_participation || 0}%`, icon: Target, color: 'purple', change: '0' },
     { label: 'active_surveys', value: data?.metrics?.active_surveys || 0, icon: TrendingUp, color: 'orange', change: '0' },
     { label: 'risk_alerts', value: data?.alerts?.length || 0, icon: AlertTriangle, color: 'red', change: '0' },

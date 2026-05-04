@@ -128,8 +128,8 @@ export default function AdminDashboardPage() {
         <MetricCard 
           icon={<Activity size={20} />}
           label="Platform Ort."
-          value={metrics.platform_avg_score.toFixed(1)}
-          delta={formatDelta(metrics.platform_avg_score, metrics.platform_avg_score_prev)}
+          value={(Number(metrics.platform_avg_score) || 0).toFixed(1)}
+          delta={formatDelta(Number(metrics.platform_avg_score) || 0, Number(metrics.platform_avg_score_prev) || 0)}
           subLabel="Puan Değişimi"
           href="/admin/companies"
         />
@@ -143,8 +143,8 @@ export default function AdminDashboardPage() {
         <MetricCard 
           icon={<ClipboardCheck size={20} />}
           label="Katılım Oranı"
-          value={`%${metrics.avg_participation_rate.toFixed(1)}`}
-          delta={formatDelta(metrics.avg_participation_rate, metrics.avg_participation_prev)}
+          value={`%${(Number(metrics.avg_participation_rate) || 0).toFixed(1)}`}
+          delta={formatDelta(Number(metrics.avg_participation_rate) || 0, Number(metrics.avg_participation_prev) || 0)}
           subLabel="Genel Ortalama"
           href="/admin/surveys"
         />
@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
                 <div key={entry.plan} className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                   <span className="text-[10px] font-bold text-navy uppercase">{entry.plan}</span>
-                  <span className="text-[10px] text-gray-400">%{entry.percentage.toFixed(0)}</span>
+                  <span className="text-[10px] text-gray-400">%{(Number(entry.percentage) || 0).toFixed(0)}</span>
                 </div>
               ))}
             </div>
@@ -239,8 +239,10 @@ export default function AdminDashboardPage() {
             </h3>
             <div className="space-y-3">
               {data.dimension_averages.map((dim: any) => {
-                const isLowest = dim.avg_score === Math.min(...data.dimension_averages.map((d: any) => d.avg_score));
-                const delta = formatDelta(dim.avg_score, dim.prev_avg_score);
+                const score = Number(dim.avg_score) || 0;
+                const prevScore = Number(dim.prev_avg_score) || 0;
+                const isLowest = score === Math.min(...data.dimension_averages.map((d: any) => Number(d.avg_score) || 0));
+                const delta = formatDelta(score, prevScore);
                 return (
                   <div key={dim.dimension} className={`flex items-center justify-between p-2 rounded-lg transition-colors ${isLowest ? 'bg-red-50 border border-red-100' : 'hover:bg-gray-50'}`}>
                     <div className="flex items-center gap-2">
@@ -248,7 +250,7 @@ export default function AdminDashboardPage() {
                       <span className="text-xs font-bold text-navy capitalize">{dim.dimension}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`text-sm font-black ${isLowest ? 'text-red-600' : 'text-navy'}`}>{dim.avg_score.toFixed(1)}</span>
+                      <span className={`text-sm font-black ${isLowest ? 'text-red-600' : 'text-navy'}`}>{score.toFixed(1)}</span>
                       <span className={`text-[10px] font-bold ${delta.color}`}>{delta.label}</span>
                     </div>
                   </div>
@@ -311,8 +313,8 @@ export default function AdminDashboardPage() {
                       <div className="bg-white p-4 rounded-xl shadow-xl border border-gray-100 min-w-[200px]">
                         <p className="font-black text-navy mb-2">{data.name}</p>
                         <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-gray-400 flex justify-between">SKOR: <span className="text-navy">{data.overall_score?.toFixed(1) || '-'}</span></p>
-                          <p className="text-[10px] font-bold text-gray-400 flex justify-between">KATILIM: <span className="text-navy">%{data.participation_rate?.toFixed(1) || '-'}</span></p>
+                          <p className="text-[10px] font-bold text-gray-400 flex justify-between">SKOR: <span className="text-navy">{(Number(data.overall_score) || 0).toFixed(1)}</span></p>
+                          <p className="text-[10px] font-bold text-gray-400 flex justify-between">KATILIM: <span className="text-navy">%{(Number(data.participation_rate) || 0).toFixed(1)}</span></p>
                           <p className="text-[10px] font-bold text-gray-400 flex justify-between">ÇALIŞAN: <span className="text-navy">{data.employee_count}</span></p>
                           <p className="text-[10px] font-bold text-gray-400 flex justify-between">PLAN: <span className="text-primary uppercase">{data.plan}</span></p>
                         </div>
@@ -384,12 +386,13 @@ export default function AdminDashboardPage() {
                   className="cursor-pointer"
                 >
                   {data.sector_comparison.map((entry: any, index: number) => {
-                    const max = Math.max(...data.sector_comparison.map((s: any) => s.avg_score));
-                    const min = Math.min(...data.sector_comparison.map((s: any) => s.avg_score));
+                    const max = Math.max(...data.sector_comparison.map((s: any) => Number(s.avg_score) || 0));
+                    const min = Math.min(...data.sector_comparison.map((s: any) => Number(s.avg_score) || 0));
+                    const entryScore = Number(entry.avg_score) || 0;
                     return (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.avg_score === max ? '#10b981' : entry.avg_score === min ? '#ef4444' : '#3b82f6'} 
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entryScore === max ? '#10b981' : entryScore === min ? '#ef4444' : '#3b82f6'}
                         className="cursor-pointer"
                       />
                     );
@@ -439,7 +442,7 @@ export default function AdminDashboardPage() {
                </div>
                <div>
                   <p className="text-[10px] font-bold text-gray-400 mb-0.5">ORT. TAMAMLAMA</p>
-                  <p className="text-xl font-black text-primary">%{data.survey_performance.avg_completion_rate.toFixed(1)}</p>
+                  <p className="text-xl font-black text-primary">%{(Number(data.survey_performance.avg_completion_rate) || 0).toFixed(1)}</p>
                </div>
             </div>
             {data.survey_performance.best_campaign && (
@@ -448,7 +451,7 @@ export default function AdminDashboardPage() {
                     <p className="text-[10px] font-bold text-gray-400">EN BAŞARILI</p>
                     <p className="text-xs font-black text-navy line-clamp-1">{data.survey_performance.best_campaign.company_name}</p>
                  </div>
-                 <Badge variant="green">%{data.survey_performance.best_campaign.completion_rate.toFixed(1)}</Badge>
+                 <Badge variant="green">%{(Number(data.survey_performance.best_campaign.completion_rate) || 0).toFixed(1)}</Badge>
               </div>
             )}
           </Card>
@@ -525,11 +528,11 @@ export default function AdminDashboardPage() {
                     </td>
                     <td className="px-4 py-4 text-center">
                       <span className={`text-sm font-black ${company.overall_score >= 70 ? 'text-green-600' : company.overall_score < 50 ? 'text-red-600' : 'text-navy'}`}>
-                        {company.overall_score?.toFixed(1) || '-'}
+                        {(Number(company.overall_score) || 0).toFixed(1)}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-center">
-                      <span className="text-xs font-bold text-navy">%{company.participation_rate?.toFixed(1) || '-'}</span>
+                      <span className="text-xs font-bold text-navy">%{(Number(company.participation_rate) || 0).toFixed(1)}</span>
                     </td>
                     <td className="px-4 py-4 text-center">
                       {company.trend === 'up' && <ArrowUpRight size={16} className="text-green-500 mx-auto" />}
@@ -553,7 +556,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <div className="text-right">
                       <span className={`text-lg font-black block ${company.overall_score >= 70 ? 'text-green-600' : company.overall_score < 50 ? 'text-red-600' : 'text-navy'}`}>
-                        {company.overall_score?.toFixed(1) || '-'}
+                        {(Number(company.overall_score) || 0).toFixed(1)}
                       </span>
                       <div className="flex items-center justify-end gap-1">
                         <span className="text-[10px] font-bold text-gray-400">TREND:</span>
@@ -566,7 +569,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <Badge variant="gray" className="text-[9px] font-bold uppercase">{company.industry}</Badge>
-                    <div className="text-[10px] font-bold text-navy">KATILIM: %{company.participation_rate?.toFixed(1) || '-'}</div>
+                    <div className="text-[10px] font-bold text-navy">KATILIM: %{(Number(company.participation_rate) || 0).toFixed(1)}</div>
                   </div>
                 </div>
               ))}
