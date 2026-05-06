@@ -15,6 +15,7 @@ import { AuditService } from '../audit/audit.service';
 import { CompanyService } from '../company/company.service';
 import { NotificationService } from '../notification/notification.service';
 import { AIService } from '../ai/ai.service';
+import { DepartmentService } from '../department/department.service';
 import { ErrorCode } from '../../common/constants/error-codes';
 
 @Injectable()
@@ -32,6 +33,7 @@ export class ConsultantService {
     private readonly companyService: CompanyService,
     private readonly notificationService: NotificationService,
     private readonly aiService: AIService,
+    private readonly departmentService: DepartmentService,
   ) {}
 
   async verifyOwnership(consultantId: string, companyId: string) {
@@ -50,6 +52,7 @@ export class ConsultantService {
   }
 
   async getDashboard(consultantId: string) {
+    console.log(`[ConsultantService] Fetching dashboard for consultant: ${consultantId}`);
     // 1. Get metrics
     const plan = await this.planRepository.findOne({ where: { consultant_id: consultantId } });
     const companies = await this.companyRepository.find({
@@ -57,6 +60,7 @@ export class ConsultantService {
     });
 
     const companyIds = companies.map(c => c.id);
+    console.log(`[ConsultantService] Found ${companies.length} companies for consultant: ${companyIds.join(', ')}`);
     
     if (companyIds.length === 0) {
       return {
@@ -74,13 +78,16 @@ export class ConsultantService {
     }
 
     // 2. Fetch scores and participation
-    // Using raw SQL for efficient aggregation across companies
+    // Decouple employee count from scores to ensure it shows even if no scores exist yet
+    const employeeCount = await this.dataSource.query(
+      'SELECT COUNT(*)::int as count FROM employees WHERE company_id = ANY($1) AND is_active = true',
+      [companyIds]
+    );
+    console.log(`[ConsultantService] Employee count result:`, employeeCount);
+
     const statsQuery = `
-      SELECT 
-        AVG(score) as avg_score,
-        COUNT(DISTINCT u.id) as total_employees
+      SELECT AVG(score) as avg_score
       FROM wellbeing_scores ws
-      JOIN users u ON u.company_id = ws.company_id
       WHERE ws.company_id = ANY($1) AND ws.dimension = 'overall'
       AND ws.calculated_at = (SELECT MAX(calculated_at) FROM wellbeing_scores WHERE company_id = ws.company_id)
     `;
@@ -114,7 +121,7 @@ export class ConsultantService {
     return {
       metrics: {
         total_companies: companies.length,
-        total_employees: parseInt(stats[0]?.total_employees || '0'),
+        total_employees: employeeCount[0]?.count || 0,
         avg_score: parseFloat(stats[0]?.avg_score || '0'),
         avg_participation: parseFloat(participation[0]?.avg_participation || '0'),
         plan_usage: { used: companies.length, max: plan?.max_companies || 5 }
@@ -143,12 +150,55 @@ export class ConsultantService {
       .take(per_page)
       .getManyAndCount();
 
+    const enriched = await Promise.all(items.map(async (company: any) => {
+      // 1. Toplam çalışan sayısı
+      const employeeCount = await this.dataSource.query(`
+        SELECT COUNT(*)::int as count
+        FROM employees
+        WHERE company_id = $1 AND is_active = true
+      `, [company.id]);
+
+      // 2. Son wellbeing skoru (overall)
+      const latestScore = await this.dataSource.query(`
+        SELECT score, period
+        FROM wellbeing_scores
+        WHERE company_id = $1
+          AND dimension = 'overall'
+          AND department_id IS NULL
+        ORDER BY calculated_at DESC
+        LIMIT 1
+      `, [company.id]);
+
+      // 3. Son anket tarihi
+      const lastSurvey = await this.dataSource.query(`
+        SELECT MAX(submitted_at) as last_date
+        FROM survey_responses
+        WHERE company_id = $1
+      `, [company.id]);
+
+      // 4. Departman sayısı
+      const deptCount = await this.dataSource.query(`
+        SELECT COUNT(*)::int as count
+        FROM departments
+        WHERE company_id = $1 AND is_active = true
+      `, [company.id]);
+
+      return {
+        ...company,
+        employee_count:   employeeCount[0]?.count ?? 0,
+        department_count: deptCount[0]?.count ?? 0,
+        wellbeing_score:  latestScore[0] ? Math.round(Number(latestScore[0].score) * 10) / 10 : null,
+        last_period:      latestScore[0]?.period ?? null,
+        last_survey_date: lastSurvey[0]?.last_date ?? null,
+      };
+    }));
+
     return {
-      data: items,
+      data: enriched,
       meta: {
         total,
-        page,
-        per_page,
+        page: Number(page),
+        per_page: Number(per_page),
         total_pages: Math.ceil(total / per_page)
       }
     };
@@ -181,7 +231,85 @@ export class ConsultantService {
 
   async getCompanyStats(consultantId: string, companyId: string) {
     await this.verifyOwnership(consultantId, companyId);
-    return this.companyService.getStats(companyId);
+    
+    // 1. Get Company Info
+    const company = await this.companyRepository.findOne({ 
+      where: { id: companyId },
+      select: ['id', 'name', 'industry', 'plan']
+    });
+
+    // 2. Get latest scores for all dimensions
+    const scores = await this.dataSource.query(`
+      SELECT dimension, score, calculated_at
+      FROM wellbeing_scores ws
+      WHERE ws.company_id = $1
+      AND ws.calculated_at = (SELECT MAX(calculated_at) FROM wellbeing_scores WHERE company_id = ws.company_id)
+    `, [companyId]);
+
+    const overallScore = scores.find((s: any) => s.dimension === 'overall')?.score || 0;
+
+    // 3. Get Trend Data
+    const trendData = await this.dataSource.query(`
+      SELECT 
+        TO_CHAR(period, 'Mon') as month,
+        score
+      FROM wellbeing_scores
+      WHERE company_id = $1 AND dimension = 'overall'
+      ORDER BY period ASC
+      LIMIT 6
+    `, [companyId]);
+
+    // 4. Get Participation
+    const participationRes = await this.dataSource.query(`
+      SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 as rate 
+      FROM survey_assignments sa
+      JOIN survey_tokens st ON st.assignment_id = sa.id
+      LEFT JOIN survey_responses sr ON sr.assignment_id = sa.id
+      WHERE sa.company_id = $1
+      GROUP BY sa.id ORDER BY sa.assigned_at DESC LIMIT 1
+    `, [companyId]);
+
+    // 5. Get Departments
+    const departments = await this.dataSource.query(`
+      SELECT d.name, 
+             (SELECT score FROM wellbeing_scores WHERE department_id = d.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1) as score
+      FROM departments d
+      WHERE d.company_id = $1 AND d.is_active = true
+    `, [companyId]);
+
+    // 6. Get Industry Label
+    const industryInfo = await this.dataSource.query(`
+      SELECT label_tr, label_en FROM industries WHERE slug = $1
+    `, [company?.industry]);
+
+    return {
+      company: {
+        ...company,
+        score: overallScore,
+        participation: Math.round(participationRes[0]?.rate || 0),
+        industry_label_tr: industryInfo[0]?.label_tr,
+        industry_label_en: industryInfo[0]?.label_en,
+        employee_count: await this.userRepository.count({ where: { company_id: companyId, role: 'employee', is_active: true } })
+      },
+      dimensions: [
+        { name: 'Zihinsel Sağlık', score: scores.find((s: any) => s.dimension === 'mental')?.score || 0 },
+        { name: 'Fiziksel Sağlık', score: scores.find((s: any) => s.dimension === 'physical')?.score || 0 },
+        { name: 'İş Tatmini', score: scores.find((s: any) => s.dimension === 'work')?.score || 0 },
+        { name: 'Sosyal Bağlılık', score: scores.find((s: any) => s.dimension === 'social')?.score || 0 }
+      ],
+      trend_data: trendData.length > 0 ? trendData : [
+        { month: 'Oca', score: 0 },
+        { month: 'Şub', score: 0 },
+        { month: 'Mar', score: 0 }
+      ],
+      departments: departments.map((d: any) => ({
+        name: d.name,
+        score: d.score || 0
+      })),
+      alerts: overallScore < 60 ? [
+        { title: 'Düşük Esenlik Skoru', message: 'Şirket genel esenlik skoru kritik seviyenin altında. Acil aksiyon planı önerilir.' }
+      ] : []
+    };
   }
 
   async assignSurvey(consultantId: string, dto: any) {
@@ -214,5 +342,10 @@ export class ConsultantService {
     const prompt = `Bu firmaları karşılaştır: ${JSON.stringify(data)}. Hangisi en iyi? Ortak sorunlar? Öncelikli müdahale nerede?`;
     
     return this.aiService.adminChat(prompt, []); // Reusing existing task type
+  }
+
+  async getDepartments(consultantId: string, companyId: string) {
+    await this.verifyOwnership(consultantId, companyId);
+    return this.departmentService.findAll(companyId);
   }
 }

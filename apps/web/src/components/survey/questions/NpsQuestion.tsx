@@ -43,8 +43,8 @@ export function NpsQuestion({ value, onChange, disabled }: NpsQuestionProps) {
         ))}
       </div>
       <div className="flex justify-between px-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
-        <span>0 = {t('question.nps_low', 'Hiç önermem')}</span>
-        <span>10 = {t('question.nps_high', 'Kesinlikle öneririm')}</span>
+        <span>0 = {t('survey.question.nps_low', 'Hiç önermem')}</span>
+        <span>10 = {t('survey.question.nps_high', 'Kesinlikle öneririm')}</span>
       </div>
     </div>
   );

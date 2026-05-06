@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useT } from '@/hooks/useT';
 import { 
   ArrowLeft, 
   Building2, 
@@ -24,12 +24,13 @@ import {
   AreaChart, Area
 } from 'recharts';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import client from '@/lib/api/client';
 
 export default function CompanyDetailPage() {
-  const { t } = useTranslation('consultant');
+  const { t, tc } = useT('consultant');
   const params = useParams();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
 
@@ -54,7 +55,7 @@ export default function CompanyDetailPage() {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        <p className="text-slate-500 font-medium text-lg animate-pulse">Analizler hazırlanıyor...</p>
+        <p className="text-slate-500 font-medium text-lg animate-pulse">{tc('analyzing')}</p>
       </div>
     );
   }
@@ -65,10 +66,10 @@ export default function CompanyDetailPage() {
         <div className="p-4 bg-red-50 rounded-full text-red-500 mb-2">
           <AlertTriangle size={48} />
         </div>
-        <h2 className="text-xl font-bold text-slate-900">Firma Bulunamadı</h2>
-        <p className="text-slate-500 max-w-xs">İstediğiniz firma verilerine ulaşılamadı veya yetkiniz bulunmuyor.</p>
+        <h2 className="text-xl font-bold text-slate-900">{tc('company')} {tc('not_found')}</h2>
+        <p className="text-slate-500 max-w-xs">{t('companies.not_accessible_or_found', { defaultValue: 'İstediğiniz firma verilerine ulaşılamadı veya yetkiniz bulunmuyor.' })}</p>
         <Link href="/consultant/companies" className="mt-4 text-blue-600 font-bold hover:underline flex items-center gap-2">
-          <ArrowLeft size={18} /> Firmalara Dön
+          <ArrowLeft size={18} /> {tc('back_to_companies')}
         </Link>
       </div>
     );
@@ -82,6 +83,18 @@ export default function CompanyDetailPage() {
     'Sosyal Bağlılık': Users
   };
 
+  const handleDownloadReport = () => {
+    router.push(`/consultant/reports/new?company_id=${params.id}`);
+  };
+
+  const handleAssignSurvey = () => {
+    router.push(`/consultant/surveys?company_id=${params.id}`);
+  };
+
+  const handleAiAnalysis = () => {
+    router.push(`/consultant/ai?company_id=${params.id}`);
+  };
+
   return (
     <div className="space-y-8">
       {/* Top Navigation & Header */}
@@ -91,7 +104,7 @@ export default function CompanyDetailPage() {
           className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors group w-fit"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          {t('common.back_to_companies', 'Firmalara Dön')}
+          {tc('back_to_companies')}
         </Link>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -108,18 +121,24 @@ export default function CompanyDetailPage() {
               </div>
               <div className="flex items-center gap-4 mt-1 text-sm text-slate-500 font-medium">
                 <span className="flex items-center gap-1.5"><Target size={14} /> {data.company?.industry_label_tr || data.company?.industry || '-'}</span>
-                <span className="flex items-center gap-1.5"><Users size={14} /> {data.company?.employee_count || 0} Çalışan</span>
+                <span className="flex items-center gap-1.5"><Users size={14} /> {data.company?.employee_count || 0} {tc('total')} {tc('employees')}</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <button 
+              onClick={handleDownloadReport}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            >
               <Download size={18} />
-              Rapor İndir
+              {tc('download_report')}
             </button>
-            <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
-              Yeni Anket Ata
+            <button 
+              onClick={handleAssignSurvey}
+              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
+            >
+              {t('surveys.assign') || 'Değerlendirme Ata'}
             </button>
           </div>
         </div>
@@ -160,12 +179,12 @@ export default function CompanyDetailPage() {
           <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="font-bold text-slate-900">Wellbeing Trend Analizi</h3>
-                <p className="text-xs text-slate-500 font-medium">Zaman içindeki değişim grafiği</p>
+                <h3 className="font-bold text-slate-900">{tc('wellbeing_trend')}</h3>
+                <p className="text-xs text-slate-500 font-medium">{tc('trend_subtitle')}</p>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-bold text-slate-600">
                 <Calendar size={14} />
-                SON 6 AY
+                {tc('last_6_months')}
               </div>
             </div>
             <div className="h-80 w-full">
@@ -215,7 +234,7 @@ export default function CompanyDetailPage() {
           <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl shadow-slate-900/20 relative overflow-hidden">
             <div className="relative z-10 space-y-6">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Genel Sağlık Skoru</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{tc('overall_score')}</p>
                 <div className="flex items-end gap-3">
                   <span className="text-5xl font-bold">{data.company?.score || '-'}</span>
                   {data.company?.trend && (
@@ -228,17 +247,20 @@ export default function CompanyDetailPage() {
 
               <div className="grid grid-cols-2 gap-6 pt-6 border-t border-white/10">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Katılım</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{tc('participation')}</p>
                   <p className="text-xl font-bold">{data.company?.participation || '0'}%</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Son Anket</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{tc('last_survey')}</p>
                   <p className="text-xl font-bold">{data.company?.last_survey_at ? new Date(data.company.last_survey_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '-'}</p>
                 </div>
               </div>
 
-              <button className="w-full py-4 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2">
-                AI Analizi Başlat <Brain size={18} />
+              <button 
+                onClick={handleAiAnalysis}
+                className="w-full py-4 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                {tc('start_ai_analysis')} <Brain size={18} />
               </button>
             </div>
             <Activity className="absolute -bottom-10 -right-10 text-white/5" size={200} />
@@ -247,7 +269,7 @@ export default function CompanyDetailPage() {
           {/* Department List */}
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-900">Departmanlar</h3>
+              <h3 className="font-bold text-slate-900">{tc('departments')}</h3>
               <button className="p-2 rounded-lg hover:bg-slate-50 text-slate-400">
                 <Filter size={18} />
               </button>
@@ -281,7 +303,7 @@ export default function CompanyDetailPage() {
                 ))
               ) : (
                 <div className="p-8 text-center text-slate-400 text-xs font-medium">
-                  Departman verisi henüz işlenmemiş.
+                  {tc('no_department_data')}
                 </div>
               )}
             </div>
@@ -298,7 +320,7 @@ export default function CompanyDetailPage() {
                 {data.alerts[0].message}
               </p>
               <button className="text-xs font-bold text-orange-900 hover:underline flex items-center gap-1">
-                Eylem Planı Oluştur <ChevronRight size={14} />
+                {tc('create_action_plan')} <ChevronRight size={14} />
               </button>
             </div>
           )}

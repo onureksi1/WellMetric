@@ -11,7 +11,7 @@ export class MistralProvider implements AIProvider {
     temperature: number,
     model: string,
     config: any,
-  ): Promise<{ response: string; tokensUsed: number; durationMs: number }> {
+  ): Promise<{ response: string; inputTokens: number; outputTokens: number; totalTokens: number; durationMs: number }> {
     const start = Date.now();
     try {
       const client = new Mistral({ apiKey: config.api_key });
@@ -27,9 +27,11 @@ export class MistralProvider implements AIProvider {
 
       const response = result.choices?.[0]?.message?.content as string || '';
       const durationMs = Date.now() - start;
-      const tokensUsed = result.usage?.totalTokens || 0;
+      const inputTokens = result.usage?.promptTokens || 0;
+      const outputTokens = result.usage?.completionTokens || 0;
+      const totalTokens = result.usage?.totalTokens || 0;
 
-      return { response, tokensUsed, durationMs };
+      return { response, inputTokens, outputTokens, totalTokens, durationMs };
     } catch (error) {
       throw new ServiceUnavailableException({
         code: 'AI_UNAVAILABLE',

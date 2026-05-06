@@ -34,7 +34,7 @@ export default function TopBar() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder={mounted ? t('header.search_placeholder', 'Search anything...') : 'Search...'}
+            placeholder={mounted ? t('common.header.search_placeholder', 'Search anything...') : 'Search...'}
             className="w-full bg-gray-50 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>

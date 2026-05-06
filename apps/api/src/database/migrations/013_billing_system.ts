@@ -6,7 +6,7 @@ export class BillingSystem0131777559000000 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // 1. Create credit_types table
         await queryRunner.query(`
-            CREATE TABLE credit_types (
+            CREATE TABLE IF NOT EXISTS credit_types (
                 key VARCHAR(50) PRIMARY KEY,
                 label_tr VARCHAR(100) NOT NULL,
                 label_en VARCHAR(100) NOT NULL,
@@ -23,7 +23,7 @@ export class BillingSystem0131777559000000 implements MigrationInterface {
 
         // 2. Create product_packages table
         await queryRunner.query(`
-            CREATE TABLE product_packages (
+            CREATE TABLE IF NOT EXISTS product_packages (
                 key VARCHAR(100) PRIMARY KEY,
                 type VARCHAR(20) NOT NULL, -- 'subscription' | 'credit'
                 label_tr VARCHAR(200) NOT NULL,
@@ -47,7 +47,7 @@ export class BillingSystem0131777559000000 implements MigrationInterface {
 
         // 3. Create subscriptions table
         await queryRunner.query(`
-            CREATE TABLE subscriptions (
+            CREATE TABLE IF NOT EXISTS subscriptions (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                 consultant_id UUID NOT NULL REFERENCES users(id),
                 package_key VARCHAR(100) NOT NULL REFERENCES product_packages(key),
@@ -65,7 +65,7 @@ export class BillingSystem0131777559000000 implements MigrationInterface {
 
         // 4. Create credit_balances table
         await queryRunner.query(`
-            CREATE TABLE credit_balances (
+            CREATE TABLE IF NOT EXISTS credit_balances (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                 consultant_id UUID NOT NULL REFERENCES users(id),
                 credit_type_key VARCHAR(50) NOT NULL REFERENCES credit_types(key),
@@ -79,7 +79,7 @@ export class BillingSystem0131777559000000 implements MigrationInterface {
 
         // 5. Create credit_transactions table
         await queryRunner.query(`
-            CREATE TABLE credit_transactions (
+            CREATE TABLE IF NOT EXISTS credit_transactions (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                 consultant_id UUID NOT NULL REFERENCES users(id),
                 credit_type_key VARCHAR(50) NOT NULL REFERENCES credit_types(key),
@@ -94,7 +94,7 @@ export class BillingSystem0131777559000000 implements MigrationInterface {
 
         // 6. Create payments table
         await queryRunner.query(`
-            CREATE TABLE payments (
+            CREATE TABLE IF NOT EXISTS payments (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                 consultant_id UUID NOT NULL REFERENCES users(id),
                 subscription_id UUID REFERENCES subscriptions(id),
@@ -115,10 +115,13 @@ export class BillingSystem0131777559000000 implements MigrationInterface {
             VALUES 
                 ('ai_credit', 'AI Analiz Kredisi', 'AI Analysis Credit', 'Brain', '#6C3A8E', 1),
                 ('mail_credit', 'Mail Kredisi', 'Mail Credit', 'Mail', '#1A5C3A', 2)
+            ON CONFLICT (key) DO NOTHING
         `);
 
         // 8. Update platform_settings for credit costs
         await queryRunner.query(`
+            ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS credit_costs JSONB DEFAULT '{}'::jsonb;
+
             UPDATE platform_settings SET
               credit_costs = '{
                 "intelligence_report": {"ai_credit": 10},
@@ -150,6 +153,7 @@ export class BillingSystem0131777559000000 implements MigrationInterface {
               ('mail_1000','credit','1000 Mail Kredisi','1000 Mail Credits',29,null,'TRY','{"mail_credit":1000}',null,null,false,false,20),
               ('mail_5000','credit','5000 Mail Kredisi','5000 Mail Credits',99,null,'TRY','{"mail_credit":5000}',null,null,false,false,21),
               ('mail_10000','credit','10000 Mail Kredisi','10000 Mail Credits',179,null,'TRY','{"mail_credit":10000}',null,null,false,false,22)
+            ON CONFLICT (key) DO NOTHING
         `);
     }
 

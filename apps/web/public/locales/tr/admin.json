@@ -2,35 +2,37 @@
   "menu": {
     "home": "Ana Sayfa",
     "companies": "Firmalar",
-    "surveys": "Anketler",
-    "survey_pool": "Anket Havuzu",
+    "surveys": "Değerlendirme Formları",
+    "survey_pool": "Form Havuzu",
     "content": "İçerikler",
     "settings": "Ayarlar",
     "ai_center": "AI Merkezi",
     "audit_log": "Audit Log",
-    "campaigns": "Kampanyalar",
+    "campaigns": "Esenlik Değerlendirmeleri",
     "mail_templates": "Mail Şablonları",
     "industries": "Sektörler",
     "benchmarks": "Benchmarklar",
     "demo_requests": "Demo Talepleri",
     "users": "Kullanıcılar",
-    "consultants": "Eğitmenler",
+    "consultants": "Eğitmenler / Danışmanlar",
     "logout": "Çıkış Yap",
-    "panel_subtitle": "Super Admin Panel"
+    "ai_costs": "AI Maliyetleri",
+    "panel_subtitle": "Super Admin Panel",
+    "billing": "Finans Yönetimi"
   },
   "header": {
     "title": "Super Admin Paneli",
-    "search_placeholder": "Firma, anket veya kullanıcı ara...",
+    "search_placeholder": "Firma, form veya kullanıcı ara...",
     "notifications": "Bildirimler"
   },
   "consultants": {
-    "title": "Eğitmen Yönetimi",
-    "subtitle": "Platform eğitmenlerini yönetin",
-    "new": "Yeni Eğitmen",
-    "search_placeholder": "Eğitmen ara...",
+    "title": "Eğitmen / Danışman Yönetimi",
+    "subtitle": "Platform eğitmen ve danışmanlarını yönetin",
+    "new": "Yeni Eğitmen / Danışman",
+    "search_placeholder": "Eğitmen / Danışman ara...",
     "stats": {
-      "total": "Toplam Eğitmen",
-      "active": "Aktif Eğitmen",
+      "total": "Toplam Eğitmen / Danışman",
+      "active": "Aktif Eğitmen / Danışman",
       "total_companies": "Toplam Firma"
     },
     "table": {
@@ -40,10 +42,11 @@
       "ai": "AI",
       "valid_until": "Geçerlilik",
       "status": "Durum",
-      "actions": "İşlemler"
+      "actions": "İşlemler",
+      "companies_suffix": "Firma"
     },
     "create": {
-      "title": "Yeni Eğitmen Oluştur",
+      "title": "Yeni Eğitmen / Danışman Oluştur",
       "full_name": "Ad Soyad",
       "email": "E-posta",
       "phone": "Telefon",
@@ -53,21 +56,21 @@
       "max_companies": "Max Firma",
       "max_employees": "Max Çalışan/Firma",
       "submit": "Oluştur ve Davet Gönder",
-      "success": "Eğitmen oluşturuldu, davet maili gönderildi."
+      "success": "Eğitmen / Danışman oluşturuldu, davet maili gönderildi."
     },
     "update_plan": {
       "title": "Paket Güncelle",
       "current": "Mevcut Paket",
-      "new_package": "Yeni Paket",
+      "new_package": "YENİ PAKET",
       "submit": "Paketi Güncelle",
       "success": "Paket güncellendi."
     },
     "update_profile": {
       "title": "Bilgileri Güncelle",
-      "success": "Eğitmen bilgileri güncellendi."
+      "success": "Eğitmen / Danışman bilgileri güncellendi."
     },
-    "delete_confirm": "{{name}} isimli eğitmeni silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-    "delete_success": "Eğitmen başarıyla silindi.",
+    "delete_confirm": "{{name}} isimli eğitmeni/danışmanı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "delete_success": "Eğitmen / Danışman başarıyla silindi.",
     "status": {
       "active": "Aktif",
       "passive": "Pasif"
@@ -94,6 +97,18 @@
       "starter": "Starter",
       "growth": "Growth",
       "enterprise": "Enterprise"
+    },
+    "credits": {
+      "title": "Kredi Yönetimi",
+      "add_manual": "Manuel Kredi Ekle",
+      "add_success": "Kredi başarıyla eklendi",
+      "type_label": "KREDİ TÜRÜ",
+      "amount_label": "MİKTAR",
+      "reason_label": "NEDEN (opsiyonel)",
+      "reason_placeholder": "Kampanya, telafi kredisi...",
+      "select_type": "Seçin",
+      "adding": "Ekleniyor...",
+      "add": "Ekle"
     }
   },
   "users": {
@@ -130,7 +145,9 @@
       "resend_invite": "Davet Yenile",
       "deactivate": "Deaktive Et",
       "activate": "Aktifleştir",
-      "delete": "Sil"
+      "delete": "Sil",
+      "resend_invite_success": "Davet yeniden gönderildi",
+      "permanent_delete": "Kalıcı Olarak Sil"
     },
     "never_logged_in": "Giriş yapılmadı",
     "no_users": "Kullanıcı bulunamadı",
@@ -160,7 +177,8 @@
     },
     "delete": {
       "confirm": "Bu kullanıcıyı silmek istiyor musunuz?",
-      "warning": "Anket geçmişi ve skorlar korunur.",
+      "confirm_permanent": "{{name}} isimli kullanıcıyı veritabanından kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+      "warning": "Değerlendirme geçmişi ve skorlar korunur.",
       "success": "Kullanıcı silindi."
     },
     "filter_company_all": "Tüm Firmalar",
@@ -172,7 +190,7 @@
       "seniority": "Kıdem",
       "start_date": "Başlangıç Tarihi",
       "registration_date": "Kayıt Tarihi",
-      "no_participation": "Henüz ankete katılmamış"
+      "no_participation": "Henüz değerlendirmeye katılmamış"
     },
     "placeholders": {
       "select_company": "Firma Seçin",
@@ -203,7 +221,10 @@
     "edit": "Sektörü Düzenle",
     "default_badge": "Varsayılan",
     "custom_badge": "Özel",
-    "cannot_deactivate": "Varsayılan sektörler deaktive edilemez"
+    "cannot_deactivate": "Varsayılan sektörler deaktive edilemez",
+    "errors": {
+      "already_active": "Bu kullanıcı zaten aktif"
+    }
   },
   "dashboard": {
     "view_all_companies": "Tüm Firmaları Gör",
@@ -214,13 +235,61 @@
       "active_companies": "Aktif Firma",
       "new_this_month": "Bu Ay Yeni",
       "total_responses": "Toplam Yanıt",
-      "active_surveys": "Aktif Anket",
-      "since_last_month": "geçen aya göre"
+      "active_surveys": "Aktif Değerlendirme",
+      "since_last_month": "geçen aya göre",
+      "platform_avg": "Platform Ort.",
+      "score_change": "Puan Değişimi",
+      "total_employees": "Toplam Çalışan",
+      "active_users": "Aktif Kullanıcı",
+      "participation_rate": "Katılım Oranı",
+      "general_avg": "Genel Ortalama",
+      "monthly_responses": "Bu Ay Yanıt",
+      "survey_responses": "Değerlendirme Yanıtı",
+      "ai_insights": "AI Insight",
+      "generated_this_month": "Bu Ay Üretilen"
     },
+    "wellness_trend": "Platform Esenlik Trendi (12 Ay)",
+    "response_count": "Yanıt Sayısı",
+    "avg_score": "Ort. Skor",
+    "company_count": "Firma Sayısı",
     "platform_trend": "Platform Trendi",
     "plan_distribution": "Plan Dağılımı",
-    "top_active": "En Aktif 5 Firma",
-    "top_passive": "En Pasif 5 Firma"
+    "plan_dist": "Üyelik Planı Dağılımı",
+    "dimension_avgs": "Boyut Ortalamaları",
+    "health_map": "Firma Sağlık Haritası",
+    "participation_vs_wellbeing": "Katılım Oranı vs. Wellbeing Skoru",
+    "quadrants": {
+      "hidden_risk": "Gizli Risk?",
+      "ideal": "İdeal",
+      "critical": "Kritik",
+      "follow_up": "Takip Et"
+    },
+    "sector_comparison": "Sektör Karşılaştırması",
+    "growth_trend": "Büyüme Trendi (6 Ay)",
+    "employees_div_10": "Çalışan / 10",
+    "survey_performance": "Değerlendirme Performansı",
+    "campaign_this_month": "BU AY DAĞITIM",
+    "avg_completion": "ORT. TAMAMLAMA",
+    "best_performance": "EN BAŞARILI",
+    "ai_activity": "AI Aktivite",
+    "insights_generated": "Bu Ay Üretilen Insight",
+    "companies_at_risk": "Risk Altındaki Firma",
+    "intelligence_reports": "İstihbarat Raporu",
+    "most_used": "EN ÇOK KULLANILAN",
+    "top_performance": "En İyi Performans ▲",
+    "needs_attention": "Dikkat Gereken ▼",
+    "critical_alerts": "Kritik Alarmlar",
+    "go_to_company": "FİRMAYA GİT",
+    "new_badge": "YENİ",
+    "table": {
+      "rank": "#",
+      "company": "Firma",
+      "sector": "Sektör",
+      "score": "Skor",
+      "participation": "Katılım",
+      "trend": "Trend"
+    },
+    "risk_alerts": "Riskli Alarmlar"
   },
   "companies": {
     "title": "Firmalar",
@@ -248,8 +317,8 @@
     "status_passive": "Pasif",
     "filter_consultant_title": "Eğitmenin Firmaları",
     "filter_remove": "Filtreyi Kaldır",
-    "delete_error_title": "Firma Silinemiyor",
-    "delete_error_desc": "'{{name}}' firmasında {{count}} aktif kullanıcı bulunuyor. Silmeden önce kullanıcıları yönetin.",
+    "delete_error_title": "Firmayı Silemezsiniz",
+    "delete_error_desc": "{{name}} firmasının sistemde kayıtlı {{count}} kullanıcısı bulunuyor. Önce kullanıcıları silmeli veya başka bir firmaya taşımalısınız.",
     "export_no_data": "Dışa aktarılacak veri bulunamadı.",
     "table": {
       "name": "Firma Adı",
@@ -258,7 +327,8 @@
       "industry": "Sektör",
       "status": "Durum",
       "actions": "İşlemler",
-      "employee_count": "Çalışan"
+      "employee_count": "Çalışan",
+      "employee_count_abbr": "Çal."
     },
     "create": {
       "title": "Yeni Firma Oluştur",
@@ -287,19 +357,21 @@
       "tabs": {
         "departments": "Departmanlar",
         "hr_admins": "HR Adminler",
-        "surveys": "Anketler",
+        "surveys": "Değerlendirme Formları",
         "ai_insights": "AI Analizleri"
       },
       "save_settings": "Ayarları Kaydet",
       "change_plan": "Plan Değiştir",
       "invite_hr": "HR Admin Davet Et"
-    }
+    },
+    "export_filename": "firmalar_listesi",
+    "user_search_placeholder": "İsim veya e-posta ile ara..."
   },
   "surveys": {
-    "title": "Anketler",
-    "subtitle": "Global ve firmaya özel anketleri yönetin",
-    "new": "Yeni Anket",
-    "search_placeholder": "Anket başlığı ile ara...",
+    "title": "Değerlendirme Formları",
+    "subtitle": "Global ve firmaya özel formları yönetin",
+    "new": "Yeni Değerlendirme",
+    "search_placeholder": "Değerlendirme başlığı ile ara...",
     "filter_type": "Tip",
     "filter_status": "Durum",
     "columns": {
@@ -333,12 +405,12 @@
       "assign": "Firmaya Ata"
     },
     "create": {
-      "title": "Yeni Anket Oluştur",
+      "title": "Yeni Değerlendirme Oluştur",
       "title_tr": "Türkçe Başlık",
       "title_en": "İngilizce Başlık",
       "description_tr": "Türkçe Açıklama",
       "description_en": "İngilizce Açıklama",
-      "type": "Anket Tipi",
+      "type": "Değerlendirme Tipi",
       "company": "Firma (Firmaya Özel için)",
       "frequency": "Frekans",
       "is_anonymous": "Anonim mi?",
@@ -347,8 +419,8 @@
       "ends_at": "Bitiş Tarihi",
       "questions_section": "Sorular",
       "questions_count": "{{count}} soru",
-      "save": "Anketi Kaydet",
-      "success": "Anket oluşturuldu."
+      "save": "Formu Kaydet",
+      "success": "Değerlendirme formu oluşturuldu."
     },
     "question": {
       "dimension": "Boyut",
@@ -367,7 +439,7 @@
       "options": "Seçenekler",
       "add_option": "Seçenek Ekle",
       "option_label_tr": "Seçenek (TR)",
-      "option_label_en": "Seçenek (EN)",
+      "option_label_en": "İngilizce Seçenek",
       "option_value": "Değer (0-100)",
       "rows": "Satırlar",
       "add_row": "Satır Ekle",
@@ -426,17 +498,35 @@
     "draft_continue": "Devam Et",
     "draft_new": "Yeni Başlat",
     "draft_saved": "Otomatik kaydedildi",
-    "hr_cannot_create": "Anket oluşturma yetkisi sadece Super Admin'e aittir.",
-    "header_title": "Platform Kampanya Analitiği",
-    "header_subtitle": "Tüm şirketlerin anket dağıtım performansını ve katılım oranlarını izleyin.",
+    "hr_cannot_create": "Değerlendirme oluşturma yetkisi sadece Super Admin'e aittir."
+  },
+  "campaigns": {
+    "header_title": "Esenlik Değerlendirme Analitiği",
+    "header_subtitle": "Tüm şirketlerin değerlendirme performansını ve katılım oranlarını izleyin.",
     "global_report": "Global Rapor",
-    "trend_title": "Aylık Dağıtım Trendi",
+    "trend_title": "Aylık Değerlendirme Trendi",
     "comparison_title": "Şirket Kıyaslaması",
-    "table_title": "Tüm Kampanyalar",
+    "table_title": "Tüm Değerlendirmeler",
     "all_companies": "Tüm Şirketler",
     "completed": "Tamam.",
-    "sent_mail": "Mail",
-    "campaign_count": "Kampanya"
+    "sent_mail": "Gönderim",
+    "campaign_count": "Süreç",
+    "stats": {
+      "total_sent": "Toplam Başlatılan",
+      "avg_open_rate": "Ort. Katılım",
+      "avg_click_rate": "Ort. Tıklama",
+      "avg_completion_rate": "Ort. Tamamlama"
+    },
+    "columns": {
+      "company": "Şirket",
+      "survey": "Form",
+      "period": "Dönem",
+      "recipients": "Kişi",
+      "open_rate": "Açılma",
+      "completion_rate": "Tamamlama",
+      "status": "Durum"
+    },
+    "empty_state": "Henüz esenlik değerlendirmesi yok. Değerlendirme formlarınızı çalışanlarınıza ulaştırmak için yeni bir süreç başlatın."
   },
   "content": {
     "title": "İçerik Yönetimi",
@@ -487,7 +577,8 @@
       "ai": "AI Merkezi",
       "mail": "E-posta",
       "storage": "Depolama",
-      "packages": "Paketler"
+      "payment": "Ödeme Ayarları",
+      "legal": "Yasal Metinler"
     },
     "general": {
       "card_title": "Genel Platform Ayarları",
@@ -497,6 +588,10 @@
       "risk_alert_threshold": "Risk Alarm Eşiği",
       "anonymity_desc": "Bu sayının altında yanıt olan segmentlerde skor hesaplanmaz (Min 3).",
       "risk_alert_desc": "Bu skorun altında HR Admin'e otomatik risk uyarısı gönderilir.",
+      "admin_email": "Bildirim E-postası",
+      "admin_email_desc": "Demo talepleri ve kritik sistem uyarılarının gönderileceği e-posta adresi.",
+      "debug_mode": "Debug Konsolu",
+      "debug_mode_desc": "Sağ altta görünen gerçek zamanlı API hata konsolunu açar veya kapatır.",
       "save_success": "Genel ayarlar kaydedildi",
       "fetch_error": "Ayarlar yüklenirken bir hata oluştu",
       "load_failed": "Ayarlar yüklenemedi.",
@@ -525,11 +620,13 @@
         "trend_analysis": "Trend Analizi",
         "hr_chat": "HR Sohbet",
         "admin_anomaly": "Admin Anomali",
-        "admin_chat": "Admin Sohbet"
+        "admin_chat": "Admin Sohbet",
+        "benchmark_generation": "Sektörel Benchmark Üretimi"
       },
       "api_keys": "AI API Anahtarları",
       "update_keys": "Anahtarları Güncelle",
-      "keys_updated": "API anahtarları güncellendi."
+      "keys_updated": "API anahtarları güncellendi.",
+      "error_update_keys": "API anahtarları güncellenirken hata oluştu"
     },
     "mail": {
       "title": "E-posta Servis Sağlayıcısı",
@@ -539,14 +636,26 @@
       "test_address": "Test E-posta Adresi",
       "send_test": "Test Gönder",
       "test_success": "✓ Test maili gönderildi!",
-      "save_success": "Mail ayarları güncellendi"
+      "test_error": "Mail gönderilemedi: {{error}}",
+      "save_config": "Yapılandırmayı Kaydet",
+      "save_success": "Mail ayarları güncellendi",
+      "error_test_empty": "Lütfen bir test e-postası girin",
+      "info_resend": "Resend, geliştiriciler için en modern mail gönderme servisidir.",
+      "get_api_key": "resend.com'dan API Key al"
     },
     "storage": {
       "title": "Object Storage Yapılandırması",
       "provider": "Storage Provider",
       "test_connection": "Bağlantıyı Test Et",
       "test_success": "✓ Bağlantı başarılı! ({{latency}}ms)",
-      "save_success": "Depolama ayarları güncellendi"
+      "save_success": "Depolama ayarları güncellendi",
+      "local_warning": "Yerel depolama üretim ortamı için önerilmez. Yedekleme ve veri güvenliği sorumluluğu size aittir.",
+      "provider_labels": {
+        "cloudflare_r2": "Cloudflare R2",
+        "aws_s3": "AWS S3",
+        "minio": "MinIO",
+        "local": "Yerel (VPS)"
+      }
     },
     "packages": {
       "title": "Paket Yönetimi",
@@ -567,6 +676,32 @@
       "errors": {
         "already_exists": "Bu paket anahtarı zaten mevcut."
       }
+    },
+    "payment": {
+      "title": "Ödeme Yöntemleri",
+      "subtitle": "Platform genelinde kullanılacak ödeme sağlayıcılarını yapılandırın",
+      "default_provider": "Varsayılan Ödeme Sağlayıcısı",
+      "default_provider_desc": "Platform genelinde kullanılacak birincil yöntem",
+      "active": "AKTİF",
+      "passive": "PASİF",
+      "edit_api_keys": "API Key Düzenle",
+      "cancel": "İptal",
+      "save_keys_hint": "Boş bırakılan alanlar değiştirilmez. Mevcut değerler güvenlik için maskelenmiştir.",
+      "new_value_placeholder": "Yeni değer girin",
+      "save_success": "Ödeme ayarları kaydedildi",
+      "fetch_error": "Ödeme ayarları yüklenemedi",
+      "save_keys_success": "API key'ler güncellendi"
+    },
+    "legal": {
+      "title": "Yasal Sözleşme ve Metinler",
+      "subtitle": "KVKK, GDPR ve Kullanım Koşulları metinlerini yönetin",
+      "terms_of_use_tr": "Kullanım Koşulları (TR)",
+      "terms_of_use_en": "Terms of Use (EN)",
+      "privacy_policy_tr": "Gizlilik Politikası (TR)",
+      "privacy_policy_en": "Privacy Policy (EN)",
+      "kvkk_tr": "KVKK Metni (TR)",
+      "gdpr_en": "GDPR Text (EN)",
+      "save_success": "Yasal metinler başarıyla güncellendi"
     }
   },
   "mail_templates": {
@@ -608,15 +743,16 @@
       "send": "Gönder",
       "success": "Test maili başarıyla gönderildi!",
       "error": "Mail gönderilemedi: {{error}}"
-    }
+    },
+    "subject_placeholder": "E-posta konusu..."
   },
   "audit": {
     "title": "Audit Logs",
     "subtitle": "Platform genelindeki tüm kritik işlemlerin kronolojik kaydı.",
-    "export_csv": "Logları İndir (CSV)",
+    "export_csv": "CSV Olarak Dışa Aktar",
     "search_placeholder": "İşlem türü ara...",
-    "system_global": "Sistem (Global)",
-    "pagination_info": "Toplam {{total}} kayıt, sayfa başına {{per_page}} gösteriliyor.",
+    "system_global": "Sistem / Global",
+    "pagination_info": "Toplam {{total}} kayıttan {{per_page}} tanesi gösteriliyor",
     "columns": {
       "date": "Tarih / Saat",
       "user": "Kullanıcı",
@@ -634,6 +770,10 @@
     "status_done": "Tamamlandı",
     "status_converted": "Müşteri Oldu",
     "status_rejected": "Reddedildi",
+    "stats_total": "Toplam Talep",
+    "stats_pending": "Bekleyen",
+    "stats_contacted": "İletişime Geçildi",
+    "stats_converted": "Kazanılan",
     "status_updated": "Durum güncellendi",
     "notes_saved": "Notlar kaydedildi",
     "detail_title": "Demo Talebi Detayları",
@@ -647,6 +787,65 @@
       "contact": "İletişim",
       "phone": "Telefon",
       "employee_count": "Çalışan Sayısı"
+    }
+  },
+  "common": {
+    "retry": "Tekrar Dene",
+    "loading_error": "Veriler yüklenirken bir hata oluştu.",
+    "time": {
+      "minutes_ago": "{{count}} dakika önce",
+      "hours_ago": "{{count}} saat önce",
+      "days_ago": "{{count}} gün önce"
+    },
+    "active": "Aktif",
+    "passive": "Pasif",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "search": "Ara",
+    "delete": "Sil",
+    "edit": "Düzenle"
+  },
+  "billing": {
+    "title": "Platform Finans Yönetimi",
+    "subtitle": "Kredi türlerini, paketleri ve platform gelirlerini anlık takip edin.",
+    "loading": "Finansal veriler yükleniyor...",
+    "stats": {
+      "monthly_revenue": "Aylık Toplam Gelir",
+      "active_subscriptions": "Aktif Abonelikler",
+      "total_credits": "Toplam Kredi Havuzu"
+    },
+    "transactions": {
+      "title": "Son Satışlar ve İşlemler",
+      "subtitle": "Platform üzerinden gerçekleşen son 20 işlem.",
+      "empty": "Henüz bir işlem gerçekleşmedi.",
+      "table": {
+        "customer": "Eğitmen / Müşteri",
+        "package": "Paket",
+        "amount": "Tutar",
+        "payment": "Ödeme",
+        "date": "Tarih"
+      }
+    },
+    "credit_types": {
+      "title": "Kredi Türleri",
+      "add": "Tür Ekle",
+      "empty": "Henüz kredi türü yok.",
+      "edit": "Kredi Türü Düzenle",
+      "new": "Yeni Kredi Türü"
+    },
+    "packages": {
+      "title": "Paket Tanımları",
+      "add": "Paket Ekle",
+      "hidden": "Gizli",
+      "edit": "Paket Düzenle",
+      "new": "Yeni Paket",
+      "table": {
+        "package": "Paket",
+        "price": "Fiyat",
+        "status": "Durum",
+        "action": "İşlem"
+      }
     }
   }
 }

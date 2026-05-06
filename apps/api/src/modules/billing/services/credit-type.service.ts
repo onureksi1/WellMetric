@@ -47,4 +47,9 @@ export class CreditTypeService {
     type.is_active = isActive;
     return this.creditTypeRepository.save(type);
   }
+
+  async delete(key: string) {
+    const type = await this.findOne(key);
+    return this.creditTypeRepository.remove(type);
+  }
 }

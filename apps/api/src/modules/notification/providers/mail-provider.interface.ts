@@ -8,4 +8,5 @@ export interface MailOptions {
 
 export interface IMailProvider {
   send(options: MailOptions): Promise<void>;
+  getQuota?(): Promise<any>;
 }

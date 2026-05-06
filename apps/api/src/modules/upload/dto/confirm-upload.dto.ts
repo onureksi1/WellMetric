@@ -5,6 +5,7 @@ export enum UploadContext {
   LOGO = 'logo',
   CSV = 'csv',
   REPORT = 'report',
+  PLATFORM_LOGO = 'platform_logo',
 }
 
 export class ConfirmUploadDto {

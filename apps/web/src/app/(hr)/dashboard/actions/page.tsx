@@ -8,8 +8,8 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
-  Plus, Bot, Zap, Calendar, Users, CheckCircle2,
-  Clock, MoreHorizontal, RefreshCcw, Loader2, ClipboardList, Sparkles
+  Plus, Zap, Calendar, Users, CheckCircle2,
+  Clock, MoreHorizontal, RefreshCcw, Loader2, ClipboardList
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '@/lib/i18n';
@@ -33,7 +33,6 @@ const STATUS_COLUMNS = [
 export default function ActionsPage() {
   const { t } = useTranslation('dashboard');
   const queryClient = useQueryClient();
-  const [selectedDim, setSelectedDim] = useState('mental');
   const [showCreate, setShowCreate] = useState(false);
   const [newAction, setNewAction] = useState({ title: '', description: '', dimension: 'mental', due_date: '' });
 
@@ -42,10 +41,6 @@ export default function ActionsPage() {
     queryFn: async () => { const { data } = await client.get('/hr/actions'); return data; },
   });
 
-  const { data: suggestions, isLoading: loadingSuggestions } = useQuery({
-    queryKey: ['hr-action-suggestions', selectedDim],
-    queryFn: async () => { const { data } = await client.get(`/hr/actions/suggestions?dimension=${selectedDim}`); return data; },
-  });
 
   const createMutation = useMutation({
     mutationFn: async (dto: any) => { await client.post('/hr/actions', dto); },
@@ -73,8 +68,8 @@ export default function ActionsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-navy">{t('actions.title', 'Aksiyon Planları')}</h1>
-          <p className="text-sm text-gray-500">{t('actions.subtitle', 'Wellbeing aksiyonlarını yönetin ve takip edin')}</p>
+          <h1 className="text-2xl font-bold text-navy">{t('dashboard.actions.title', 'Aksiyon Planları')}</h1>
+          <p className="text-sm text-gray-500">{t('dashboard.actions.subtitle', 'Wellbeing aksiyonlarını yönetin ve takip edin')}</p>
         </div>
         <Button className="flex gap-2" onClick={() => setShowCreate(true)}>
           <Plus size={18} /> Yeni Aksiyon
@@ -94,7 +89,7 @@ export default function ActionsPage() {
             />
             <textarea
               className="border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 min-h-[80px] md:col-span-2"
-              placeholder="Açıklama (opsiyonel)..."
+              placeholder={t('dashboard.actions.description_placeholder', 'Açıklama (opsiyonel)...')}
               value={newAction.description}
               onChange={e => setNewAction({ ...newAction, description: e.target.value })}
             />
@@ -121,67 +116,6 @@ export default function ActionsPage() {
         </Card>
       )}
 
-      {/* AI Suggestions */}
-      <Card className="bg-navy text-white border-none relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10"><Zap size={140} /></div>
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-                <Bot size={22} className="text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold">Yapay Zeka Destekli Öneriler</h3>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Boyuta Göre İçerik Önerileri</p>
-              </div>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {DIMENSIONS.map(d => (
-                <button
-                  key={d}
-                  onClick={() => setSelectedDim(d)}
-                  className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest transition-all ${selectedDim === d ? 'bg-primary text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
-                >
-                  {DIM_LABELS[d]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {loadingSuggestions ? (
-            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-primary" /></div>
-          ) : suggestions?.suggested_content?.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {suggestions.suggested_content.map((item: any) => (
-                <div key={item.id} className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all group">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles size={14} className="text-primary" />
-                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{item.type}</span>
-                  </div>
-                  <h4 className="font-bold text-sm mb-2 group-hover:text-primary transition-colors">{item.title_tr}</h4>
-                  {item.description_tr && <p className="text-xs text-gray-400 leading-relaxed mb-3 line-clamp-2">{item.description_tr}</p>}
-                  <Button
-                    size="sm"
-                    className="text-[10px] h-8 bg-primary hover:bg-primary/80 w-full"
-                    onClick={() => {
-                      setNewAction({ title: item.title_tr, description: item.description_tr ?? '', dimension: selectedDim, due_date: '' });
-                      setShowCreate(true);
-                    }}
-                  >
-                    Aksiyon Oluştur
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="py-8 text-center text-gray-400">
-              <Sparkles size={32} className="mx-auto mb-2 opacity-40" />
-              <p className="text-sm font-bold">Bu boyut için içerik önerisi bulunamadı</p>
-              <p className="text-xs opacity-60 mt-1">İçerik havuzuna ekleme yapıldıkça öneriler görünecek</p>
-            </div>
-          )}
-        </div>
-      </Card>
 
       {/* Kanban Board */}
       <div>

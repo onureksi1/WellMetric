@@ -6,7 +6,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { CacheModule } from '@nestjs/cache-manager';
-
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { ExchangeRateService } from './common/utils/exchange-rate.service';
 
 
 import { AuthModule } from './modules/auth/auth.module';
@@ -36,6 +37,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { BenchmarkModule } from './modules/benchmark/benchmark.module';
 import { WhiteLabelModule } from './modules/white-label/white-label.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { TrainingModule } from './modules/training/training.module';
 import { SeedService } from './database/seed.service';
 
 import { User } from './modules/user/entities/user.entity';
@@ -79,6 +81,15 @@ import { LoggerModule } from './common/logger/logger.module';
           port: config.get<number>('REDIS_PORT', 6379),
           password: config.get<string>('REDIS_PASSWORD'),
         },
+      }),
+      inject: [ConfigService],
+    }),
+
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        type: 'single',
+        url: `redis://${config.get('REDIS_PASSWORD') ? `:${config.get('REDIS_PASSWORD')}@` : ''}${config.get('REDIS_HOST', 'localhost')}:${config.get('REDIS_PORT', 6379)}`,
       }),
       inject: [ConfigService],
     }),
@@ -131,10 +142,11 @@ import { LoggerModule } from './common/logger/logger.module';
     BenchmarkModule,
     WhiteLabelModule,
     OnboardingModule,
+    TrainingModule,
     TypeOrmModule.forFeature([User, PlatformSettings]),
 
   ],
   controllers: [HealthController],
-  providers: [SeedService],
+  providers: [SeedService, ExchangeRateService],
 })
 export class AppModule {}

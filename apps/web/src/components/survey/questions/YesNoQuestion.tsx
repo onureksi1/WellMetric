@@ -33,7 +33,7 @@ export function YesNoQuestion({ value, onChange, disabled }: YesNoQuestionProps)
         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${value === 1 ? 'bg-white/20' : 'bg-gray-50'}`}>
           <Check size={20} strokeWidth={3} className={value === 1 ? 'text-white' : 'text-gray-300'} />
         </div>
-        <span className="text-xl font-black">{t('yes_no.yes', 'Evet')}</span>
+        <span className="text-xl font-black">{t('survey.yes_no.yes', 'Evet')}</span>
       </motion.button>
 
       <motion.button
@@ -53,7 +53,7 @@ export function YesNoQuestion({ value, onChange, disabled }: YesNoQuestionProps)
         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${value === 0 ? 'bg-white/20' : 'bg-gray-50'}`}>
           <X size={20} strokeWidth={3} className={value === 0 ? 'text-white' : 'text-gray-300'} />
         </div>
-        <span className="text-xl font-black">{t('yes_no.no', 'Hayır')}</span>
+        <span className="text-xl font-black">{t('survey.yes_no.no', 'Hayır')}</span>
       </motion.button>
     </div>
   );

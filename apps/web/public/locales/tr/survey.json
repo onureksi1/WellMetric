@@ -1,13 +1,13 @@
 {
   "welcome": {
-    "title": "Wellbeing Anketi",
+    "title": "Esenlik Değerlendirmesi",
     "greeting": "Merhaba {{name}}! 👋",
-    "intro": "{{company_name}} adına bu dönem wellbeing anketini doldurmanızı rica ediyoruz.",
+    "intro": "{{company_name}} adına bu dönem esenlik değerlendirmesini doldurmanızı rica ediyoruz.",
     "duration": "~{{minutes}} dakika",
     "anonymous": "Anonim",
     "sections": "{{count}} Bölüm",
-    "start": "Ankete Başla →",
-    "continue_draft": "Yarım kaldığınız anket var",
+    "start": "Değerlendirmeye Başla →",
+    "continue_draft": "Yarım kaldığınız değerlendirme var",
     "continue": "Devam Et",
     "restart": "Baştan Başla"
   },
@@ -19,7 +19,7 @@
   "navigation": {
     "previous": "← Önceki Bölüm",
     "next": "Sonraki Bölüm →",
-    "submit": "Anketi Gönder"
+    "submit": "Değerlendirmeyi Gönder"
   },
   "question": {
     "required": "Bu soruyu yanıtlayın",
@@ -44,7 +44,7 @@
     "no": "Hayır"
   },
   "confirmation": {
-    "title": "Anketi göndermek üzeresiniz",
+    "title": "Değerlendirmeyi göndermek üzeresiniz",
     "answered": "{{count}} soru yanıtlandı",
     "skipped": "{{count}} soru atlandı (isteğe bağlı)",
     "review": "← Gözden Geçir",
@@ -53,16 +53,16 @@
   "submitting": "Yanıtlarınız kaydediliyor...",
   "success": {
     "title": "Teşekkürler {{name}}! 🎉",
-    "message": "Wellbeing anketini başarıyla tamamladınız.",
+    "message": "Esenlik değerlendirmesini başarıyla tamamladınız.",
     "impact": "Katkınız şirketinizin wellbeing yolculuğuna değer katacak. 🌱",
     "anonymous_note": "Yanıtlarınız anonim olarak işlenecektir.",
     "close": "Sayfayı Kapat"
   },
   "errors": {
-    "token_invalid": "Geçersiz anket linki. Lütfen mailinizi kontrol edin.",
-    "token_used": "Bu anketi daha önce doldurdunuz. Katılımınız için teşekkür ederiz! ✅",
-    "token_expired": "Bu anket linkinin süresi dolmuş. Lütfen İK departmanınızla iletişime geçin. ⏰",
-    "submit_failed": "Anket gönderilemedi. Lütfen tekrar deneyin.",
+    "token_invalid": "Geçersiz değerlendirme linki. Lütfen mailinizi kontrol edin.",
+    "token_used": "Bu değerlendirmeyi daha önce doldurdunuz. Katılımınız için teşekkür ederiz! ✅",
+    "token_expired": "Bu değerlendirme linkinin süresi dolmuş. Lütfen İK departmanınızla iletişime geçin. ⏰",
+    "submit_failed": "Değerlendirme gönderilemedi. Lütfen tekrar deneyin.",
     "contact_hr": "Sorularınız için İK departmanınızla iletişime geçebilirsiniz."
   },
   "dimensions": {

@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { useTranslation } from 'react-i18next';
-import { 
-  User, 
-  Shield, 
-  CreditCard, 
-  Bell, 
+import { useT } from '@/hooks/useT';
+import {
+  User,
+  Shield,
+  CreditCard,
+  Bell,
   LogOut,
   Camera,
   Bot,
@@ -19,7 +19,6 @@ import { useAuthStore } from '@/lib/store/auth.store';
 import { toast } from 'react-hot-toast';
 import client from '@/lib/api/client';
 
-// Local type extension for safe UI display
 type ConsultantUserView = any & {
   first_name?: string;
   last_name?: string;
@@ -42,7 +41,7 @@ const getDisplayName = (rawUser: ConsultantUserView | null | undefined) => {
 };
 
 function SettingsContent() {
-  const { t } = useTranslation('consultant');
+  const { t, tc } = useT('consultant');
   const { user, clearAuth } = useAuthStore();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
@@ -50,14 +49,12 @@ function SettingsContent() {
   const [planData, setPlanData] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  
-  // Profile state
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [language, setLanguage] = useState('tr');
-  
-  // Password state
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -76,9 +73,9 @@ function SettingsContent() {
           client.get('/consultant/dashboard/overview'),
           client.get('/auth/me')
         ]);
-        
+
         setPlanData(dashRes.data.metrics?.plan_usage || { used: 0, max: 5 });
-        
+
         const userData = meRes.data.data || meRes.data;
         setFullName(userData.full_name || '');
         setEmail(userData.email || '');
@@ -97,14 +94,14 @@ function SettingsContent() {
   const handleSaveProfile = async () => {
     setProfileLoading(true);
     try {
-      await client.put('/auth/me', { 
-        full_name: fullName, 
+      await client.patch('/auth/me', {
+        full_name: fullName,
         phone: phone,
-        language: language 
+        language: language
       });
-      toast.success(t('settings.success', 'Profil bilgileri güncellendi.'));
+      toast.success(t('settings.success'));
     } catch (err: any) {
-      toast.error(err.response?.data?.error?.message || 'Profil güncellenemedi');
+      toast.error(err.response?.data?.error?.message || t('settings.password_error'));
     } finally {
       setProfileLoading(false);
     }
@@ -112,11 +109,11 @@ function SettingsContent() {
 
   const handleUpdatePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error('Yeni şifreler eşleşmiyor');
+      toast.error(t('settings.passwords_mismatch'));
       return;
     }
     if (newPassword.length < 8) {
-      toast.error('Şifre en az 8 karakter olmalı');
+      toast.error(t('settings.password_min_length'));
       return;
     }
 
@@ -126,15 +123,15 @@ function SettingsContent() {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      toast.success('Şifreniz başarıyla güncellendi.');
+      toast.success(t('settings.password_success'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
       if (err.response?.status === 401) {
-        toast.error('Mevcut şifre yanlış');
+        toast.error(t('settings.wrong_current_password'));
       } else {
-        toast.error(err.response?.data?.error?.message || 'Şifre değiştirilemedi');
+        toast.error(err.response?.data?.error?.message || t('settings.password_error'));
       }
     } finally {
       setPasswordLoading(false);
@@ -145,7 +142,7 @@ function SettingsContent() {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        <p className="text-slate-500 font-medium">Ayarlar yükleniyor...</p>
+        <p className="text-slate-500 font-medium">{t('settings.loading')}</p>
       </div>
     );
   }
@@ -155,7 +152,7 @@ function SettingsContent() {
     { id: 'auto-reporting', label: t('reports.auto_reporting'), icon: Clock },
     { id: 'security', label: t('settings.change_password'), icon: Shield },
     { id: 'plan', label: t('settings.plan_title'), icon: CreditCard },
-    { id: 'notifications', label: t('common.notifications', 'Bildirimler'), icon: Bell },
+    { id: 'notifications', label: tc('notifications', 'Bildirimler'), icon: Bell },
   ];
 
   return (
@@ -172,8 +169,8 @@ function SettingsContent() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                activeTab === tab.id 
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                   : 'text-slate-600 hover:bg-white hover:shadow-sm'
               }`}
             >
@@ -182,7 +179,7 @@ function SettingsContent() {
             </button>
           ))}
           <div className="pt-4 mt-4 border-t border-slate-200">
-            <button 
+            <button
               onClick={clearAuth}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all"
             >
@@ -207,10 +204,10 @@ function SettingsContent() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">{getDisplayName(consultantUser)}</h3>
-                    <p className="text-sm text-slate-500">{consultantUser?.role === 'consultant' ? 'Wellbeing Consultant' : consultantUser?.role}</p>
+                    <p className="text-sm text-slate-500">{t('settings.profile_role')}</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={handleSaveProfile}
                   disabled={profileLoading}
                   className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all disabled:opacity-50 flex items-center gap-2"
@@ -223,8 +220,8 @@ function SettingsContent() {
               <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.full_name')}</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
@@ -232,17 +229,17 @@ function SettingsContent() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.email')}</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     value={email}
                     disabled
                     className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 text-sm cursor-not-allowed"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('common.phone', 'Telefon')}</label>
-                  <input 
-                    type="tel" 
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{tc('phone', 'Telefon')}</label>
+                  <input
+                    type="tel"
                     placeholder="+90 5XX XXX XX XX"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -250,8 +247,8 @@ function SettingsContent() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('common.language', 'Dil')}</label>
-                  <select 
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{tc('language', 'Dil')}</label>
+                  <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none"
@@ -272,42 +269,42 @@ function SettingsContent() {
                 </div>
                 <h3 className="font-bold text-slate-900">{t('settings.change_password')}</h3>
               </div>
-              
+
               <div className="space-y-4 max-w-md">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mevcut Şifre</label>
-                  <input 
-                    type="password" 
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.current_password')}</label>
+                  <input
+                    type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Yeni Şifre</label>
-                  <input 
-                    type="password" 
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.new_password')}</label>
+                  <input
+                    type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Yeni Şifre (Tekrar)</label>
-                  <input 
-                    type="password" 
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.confirm_password')}</label>
+                  <input
+                    type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                   />
                 </div>
-                <button 
+                <button
                   onClick={handleUpdatePassword}
                   disabled={passwordLoading}
                   className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all mt-4 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Şifreyi Güncelle
+                  {t('settings.update_password')}
                 </button>
               </div>
             </div>
@@ -323,7 +320,7 @@ function SettingsContent() {
                   <h3 className="font-bold text-slate-900">{t('settings.plan_title')}</h3>
                 </div>
                 <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold uppercase rounded-full tracking-wider">
-                  Growth Plan
+                  {tc(`plans.${(user as any)?.plan || 'starter'}`, { defaultValue: (user as any)?.plan || 'Plan' })}
                 </span>
               </div>
 
@@ -332,14 +329,14 @@ function SettingsContent() {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('settings.companies_used')}</p>
                   <div className="flex items-end gap-2">
                     <span className="text-2xl font-bold text-slate-900">{planData?.used || 0} / {planData?.max || 5}</span>
-                    {planData?.used >= planData?.max && <span className="text-xs text-red-500 font-medium mb-1">%100 Dolu</span>}
+                    {planData?.used >= planData?.max && <span className="text-xs text-red-500 font-medium mb-1">%100</span>}
                   </div>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('settings.ai_enabled')}</p>
                   <div className="flex items-center gap-2 text-emerald-600">
                     <Bot size={20} />
-                    <span className="text-sm font-bold uppercase">{t('common.unlimited', 'Sınırsız')}</span>
+                    <span className="text-sm font-bold uppercase">{tc('unlimited', 'Sınırsız')}</span>
                   </div>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
@@ -360,15 +357,15 @@ function SettingsContent() {
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900">{t('reports.auto_reporting')}</h3>
-                  <p className="text-sm text-slate-500">Raporların otomatik oluşturulma ve gönderilme ayarlarını yönetin.</p>
+                  <p className="text-sm text-slate-500">{t('reports.auto_reporting_desc')}</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div className="flex items-center justify-between p-6 rounded-[24px] border-2 border-slate-50 hover:border-indigo-100 transition-all">
                   <div className="space-y-1">
-                    <p className="font-bold text-slate-900">Otomatik Gönderimi Aktifleştir</p>
-                    <p className="text-xs text-slate-500">Sistem her çeyrek sonunda otomatik rapor oluşturur.</p>
+                    <p className="font-bold text-slate-900">{t('reports.auto_reporting_enable')}</p>
+                    <p className="text-xs text-slate-500">{t('reports.auto_reporting_enable_desc')}</p>
                   </div>
                   <div className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-indigo-600">
                     <span className="translate-x-5 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" />
@@ -377,27 +374,27 @@ function SettingsContent() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Rapor Sıklığı</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('reports.frequency')}</label>
                     <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm appearance-none">
-                      <option value="quarterly">Her Çeyrek Sonu (3 Ay)</option>
-                      <option value="monthly">Her Ay Sonu</option>
+                      <option value="quarterly">{t('reports.frequency_quarterly')}</option>
+                      <option value="monthly">{t('reports.frequency_monthly')}</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Gönderilecek E-posta</label>
-                    <input 
-                      type="email" 
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('reports.email_recipient')}</label>
+                    <input
+                      type="email"
                       defaultValue={user?.email}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                     />
                   </div>
                 </div>
 
-                <button 
-                  onClick={() => toast.success('Otomatik raporlama ayarları kaydedildi.')}
+                <button
+                  onClick={() => toast.success(t('reports.save_success'))}
                   className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
                 >
-                  Ayarları Kaydet
+                  {t('settings.save_settings')}
                 </button>
               </div>
             </div>
@@ -405,11 +402,11 @@ function SettingsContent() {
 
           {activeTab === 'notifications' && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <h3 className="font-bold text-slate-900 mb-4">Bildirim Tercihleri</h3>
+              <h3 className="font-bold text-slate-900 mb-4">{t('settings.notifications_title')}</h3>
               <div className="space-y-4">
                 {[
-                  { id: 'email_reports', label: 'E-posta Raporları', desc: 'Haftalık özet raporları e-posta ile al.' },
-                  { id: 'risk_alerts', label: 'Risk Uyarıları', desc: 'Kritik wellbeing düşüşlerinde anında bildirim al.' },
+                  { id: 'email_reports', label: t('settings.email_reports_label'), desc: t('settings.email_reports_desc') },
+                  { id: 'risk_alerts', label: t('settings.risk_alerts_label'), desc: t('settings.risk_alerts_desc') },
                 ].map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50">
                     <div>
@@ -435,7 +432,6 @@ export default function ConsultantSettingsPage() {
     <Suspense fallback={
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        <p className="text-slate-500 font-medium">Ayarlar yükleniyor...</p>
       </div>
     }>
       <SettingsContent />

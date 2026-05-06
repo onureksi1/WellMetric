@@ -6,6 +6,7 @@ import { MistralProvider } from './providers/mistral.provider';
 import { AzureOpenAIProvider } from './providers/azure-openai.provider';
 import { AwsBedrockProvider } from './providers/aws-bedrock.provider';
 import { OllamaProvider } from './providers/ollama.provider';
+import { HuggingFaceProvider } from './providers/huggingface.provider';
 import { AIProvider } from './providers/ai-provider.interface';
 import { SettingsService } from '../settings/settings.service';
 
@@ -19,6 +20,8 @@ export enum AITaskEnum {
   ADMIN_CHAT = 'admin_chat',
   SURVEY_GENERATION = 'survey_generation',
   INTELLIGENCE_REPORT = 'intelligence_report',
+  BENCHMARK_GENERATION = 'benchmark_generation',
+  CONTENT_SUGGESTION = 'content_suggestion',
 }
 
 @Injectable()
@@ -31,6 +34,7 @@ export class AIProviderFactory {
     private readonly azure: AzureOpenAIProvider,
     private readonly bedrock: AwsBedrockProvider,
     private readonly ollama: OllamaProvider,
+    private readonly huggingface: HuggingFaceProvider,
     private readonly settingsService: SettingsService,
   ) {}
 
@@ -73,6 +77,8 @@ export class AIProviderFactory {
         return this.bedrock;
       case 'ollama':
         return this.ollama;
+      case 'huggingface':
+        return this.huggingface;
       default:
         throw new InternalServerErrorException(`Unsupported AI provider: ${name}`);
     }

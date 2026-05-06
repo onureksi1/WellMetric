@@ -10,16 +10,18 @@ export class AwsBedrockProvider implements AIProvider {
     temperature: number,
     model: string,
     config: any,
-  ): Promise<{ response: string; tokensUsed: number; durationMs: number }> {
+  ): Promise<{ response: string; inputTokens: number; outputTokens: number; totalTokens: number; durationMs: number }> {
     const start = Date.now();
     try {
       // Mocked implementation for AWS Bedrock
       // In production, use @aws-sdk/client-bedrock-runtime
       const response = `[AWS Bedrock Mock Response for ${model}]`;
       const durationMs = Date.now() - start;
-      const tokensUsed = 100;
+      const inputTokens = 50;
+      const outputTokens = 50;
+      const totalTokens = 100;
 
-      return { response, tokensUsed, durationMs };
+      return { response, inputTokens, outputTokens, totalTokens, durationMs };
     } catch (error) {
       throw new ServiceUnavailableException({
         code: 'AI_UNAVAILABLE_BEDROCK',

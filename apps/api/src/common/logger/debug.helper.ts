@@ -44,7 +44,7 @@ export class ServiceDebugger {
     }, data);
   }
 
-  // Dış servis çağrıları için (Stripe, iyzico, AI API vs.)
+  // Dış servis çağrıları için (Stripe, PayTR, AI API vs.)
   external(service: string, action: string, ctx: Partial<LogContext>, data?: unknown) {
     this.logger.debug(`[EXT] ${service}.${action}`, {
       service:  this.serviceName,

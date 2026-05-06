@@ -1,4 +1,5 @@
-import { IsBoolean, IsEmail, IsEnum, IsNumber, IsObject, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNumber, IsObject, IsOptional, IsString, Max, Min, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export enum MailProvider {
   RESEND = 'resend',
@@ -23,16 +24,22 @@ export class UpdatePlatformSettingsDto {
   @IsOptional()
   platform_url?: string;
 
+  @IsString()
+  @IsOptional()
+  platform_logo_url?: string;
+
   @IsNumber()
   @Min(3)
   @Max(20)
   @IsOptional()
+  @Type(() => Number)
   anonymity_threshold?: number;
 
   @IsNumber()
   @Min(20)
   @Max(80)
   @IsOptional()
+  @Type(() => Number)
   score_alert_threshold?: number;
 
   @IsBoolean()
@@ -75,7 +82,49 @@ export class UpdatePlatformSettingsDto {
   @IsOptional()
   storage_config?: any;
 
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  mail_quota_capacity?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  mail_quota_used?: number;
+
   @IsObject()
   @IsOptional()
   consultant_packages?: any;
+
+  @IsString()
+  @IsOptional()
+  terms_of_use_tr?: string;
+
+  @IsString()
+  @IsOptional()
+  terms_of_use_en?: string;
+
+  @IsString()
+  @IsOptional()
+  privacy_policy_tr?: string;
+
+  @IsString()
+  @IsOptional()
+  privacy_policy_en?: string;
+
+  @IsString()
+  @IsOptional()
+  kvkk_text_tr?: string;
+
+  @IsString()
+  @IsOptional()
+  gdpr_text_en?: string;
+
+  @IsEmail()
+  @IsOptional()
+  admin_email?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  debug_mode?: boolean;
 }

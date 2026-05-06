@@ -45,11 +45,11 @@ import { useTranslation } from 'react-i18next';
 import '@/lib/i18n';
 
 const getStatusColors = (t: any): Record<string, string> => ({
-  [t('campaigns.detail.filter_completed', 'Tamamladı')]: '#2E865A',
-  [t('campaigns.detail.columns.clicked', 'Tıkladı')]: '#3498DB',
-  [t('campaigns.detail.columns.opened', 'Açıldı')]: '#F1C40F',
-  [t('campaigns.detail.metrics.sent', 'Gönderildi')]: '#BDC3C7',
-  [t('campaigns.detail.filter_bounced', 'Bounce')]: '#E74C3C',
+  [t('dashboard.campaigns.detail.filter_completed', 'Tamamladı')]: '#2E865A',
+  [t('dashboard.campaigns.detail.columns.clicked', 'Tıkladı')]: '#3498DB',
+  [t('dashboard.campaigns.detail.columns.opened', 'Açıldı')]: '#F1C40F',
+  [t('dashboard.campaigns.detail.metrics.sent', 'Gönderildi')]: '#BDC3C7',
+  [t('dashboard.campaigns.detail.filter_bounced', 'Bounce')]: '#E74C3C',
 });
 
 
@@ -80,7 +80,7 @@ export default function CampaignDetailPage() {
       await client.post(`/hr/campaigns/${id}/remind`);
     },
     onSuccess: () => {
-      toast.success(t('campaigns.detail.actions.remind_success', 'Hatırlatma kampanyası oluşturuldu.'));
+      toast.success(t('dashboard.campaigns.detail.actions.remind_success', 'Hatırlatma kampanyası oluşturuldu.'));
       queryClient.invalidateQueries({ queryKey: ['campaign', id] });
     }
   });
@@ -123,10 +123,10 @@ export default function CampaignDetailPage() {
   }
 
   const pieData = [
-    { name: t('campaigns.detail.filter_completed', 'Tamamladı'), value: campaign.completed_count },
-    { name: t('campaigns.detail.columns.clicked', 'Tıkladı'), value: campaign.clicked_count - campaign.completed_count },
-    { name: t('campaigns.detail.columns.opened', 'Açıldı'), value: campaign.opened_count - campaign.clicked_count },
-    { name: t('campaigns.detail.metrics.sent', 'Gönderildi'), value: campaign.sent_count - campaign.opened_count },
+    { name: t('dashboard.campaigns.detail.filter_completed', 'Tamamladı'), value: campaign.completed_count },
+    { name: t('dashboard.campaigns.detail.columns.clicked', 'Tıkladı'), value: campaign.clicked_count - campaign.completed_count },
+    { name: t('dashboard.campaigns.detail.columns.opened', 'Açıldı'), value: campaign.opened_count - campaign.clicked_count },
+    { name: t('dashboard.campaigns.detail.metrics.sent', 'Gönderildi'), value: campaign.sent_count - campaign.opened_count },
   ].filter(d => d.value > 0);
 
 
@@ -153,11 +153,11 @@ export default function CampaignDetailPage() {
         <div className="flex gap-2">
           {campaign.status === 'sent' && (
              <Button variant="outline" className="gap-2" onClick={() => remindMutation.mutate()}>
-               <Send size={18} /> {t('campaigns.detail.actions.remind', 'Hatırlatma Gönder')}
+               <Send size={18} /> {t('dashboard.campaigns.detail.actions.remind', 'Hatırlatma Gönder')}
              </Button>
           )}
           <Button variant="secondary" className="gap-2">
-            <Download size={18} /> {t('campaigns.detail.actions.download_report', 'Rapor İndir')}
+            <Download size={18} /> {t('dashboard.campaigns.detail.actions.download_report', 'Rapor İndir')}
           </Button>
 
         </div>
@@ -165,10 +165,10 @@ export default function CampaignDetailPage() {
 
       {/* Top Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <MetricCard label={t('campaigns.detail.metrics.sent', 'Gönderilen')} value={campaign.sent_count} subValue={t('campaigns.detail.metrics.sent_sub', 'Kişi')} icon={<Mail className="text-blue-500" />} />
-        <MetricCard label={t('campaigns.detail.metrics.open_rate', 'Açılma Oranı')} value={`%${campaign.open_rate || 0}`} subValue={t('campaigns.detail.metrics.open_sub', '{{count}} kişi açtı', { count: campaign.opened_count })} icon={<TrendingUp className="text-yellow-500" />} />
-        <MetricCard label={t('campaigns.detail.metrics.click_rate', 'Tıklama Oranı')} value={`%${campaign.click_rate || 0}`} subValue={t('campaigns.detail.metrics.click_sub', '{{count}} kişi tıkladı', { count: campaign.clicked_count })} icon={<MousePointer2 className="text-primary" />} />
-        <MetricCard label={t('campaigns.detail.metrics.completion_rate', 'Tamamlama Oranı')} value={`%${campaign.completion_rate || 0}`} subValue={t('campaigns.detail.metrics.completion_sub', '{{count}} kişi bitirdi', { count: campaign.completed_count })} icon={<CheckCircle2 className="text-green-500" />} />
+        <MetricCard label={t('dashboard.campaigns.detail.metrics.sent', 'Gönderilen')} value={campaign.sent_count} subValue={t('dashboard.campaigns.detail.metrics.sent_sub', 'Kişi')} icon={<Mail className="text-blue-500" />} />
+        <MetricCard label={t('dashboard.campaigns.detail.metrics.open_rate', 'Açılma Oranı')} value={`%${campaign.open_rate || 0}`} subValue={t('dashboard.campaigns.detail.metrics.open_sub', '{{count}} kişi açtı', { count: campaign.opened_count })} icon={<TrendingUp className="text-yellow-500" />} />
+        <MetricCard label={t('dashboard.campaigns.detail.metrics.click_rate', 'Tıklama Oranı')} value={`%${campaign.click_rate || 0}`} subValue={t('dashboard.campaigns.detail.metrics.click_sub', '{{count}} kişi tıkladı', { count: campaign.clicked_count })} icon={<MousePointer2 className="text-primary" />} />
+        <MetricCard label={t('dashboard.campaigns.detail.metrics.completion_rate', 'Tamamlama Oranı')} value={`%${campaign.completion_rate || 0}`} subValue={t('dashboard.campaigns.detail.metrics.completion_sub', '{{count}} kişi bitirdi', { count: campaign.completed_count })} icon={<CheckCircle2 className="text-green-500" />} />
       </div>
 
 
@@ -177,11 +177,11 @@ export default function CampaignDetailPage() {
         <Card className="lg:col-span-2 p-6 space-y-6">
            <div className="flex justify-between items-center">
               <h3 className="font-black text-navy flex items-center gap-2">
-                <TrendingUp size={20} className="text-primary" /> {t('campaigns.detail.trend_title', 'Etkileşim Trendi')}
+                <TrendingUp size={20} className="text-primary" /> {t('dashboard.campaigns.detail.trend_title', 'Etkileşim Trendi')}
               </h3>
               <div className="flex gap-4">
-                <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#3498DB]" /><span className="text-[10px] font-bold text-gray-400">{t('campaigns.detail.trend_opened', 'AÇILMA')}</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2E865A]" /><span className="text-[10px] font-bold text-gray-400">{t('campaigns.detail.trend_completed', 'TAMAMLANMA')}</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#3498DB]" /><span className="text-[10px] font-bold text-gray-400">{t('dashboard.campaigns.detail.trend_opened', 'AÇILMA')}</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2E865A]" /><span className="text-[10px] font-bold text-gray-400">{t('dashboard.campaigns.detail.trend_completed', 'TAMAMLANMA')}</span></div>
               </div>
            </div>
 
@@ -223,7 +223,7 @@ export default function CampaignDetailPage() {
         {/* Distribution Chart */}
         <Card className="p-6 space-y-6">
            <h3 className="font-black text-navy flex items-center gap-2">
-             <PieChartIcon size={20} className="text-primary" /> {t('campaigns.detail.distribution_title', 'Durum Dağılımı')}
+             <PieChartIcon size={20} className="text-primary" /> {t('dashboard.campaigns.detail.distribution_title', 'Durum Dağılımı')}
            </h3>
            <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -254,16 +254,16 @@ export default function CampaignDetailPage() {
       {/* Logs Table */}
       <Card className="overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-           <h3 className="font-black text-navy">{t('campaigns.detail.log_title', 'Alıcı Detayları')}</h3>
+           <h3 className="font-black text-navy">{t('dashboard.campaigns.detail.log_title', 'Alıcı Detayları')}</h3>
            <div className="flex gap-2">
               <select 
                 className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold text-navy outline-none"
                 value={logFilter.completed}
                 onChange={(e) => setLogFilter({ ...logFilter, completed: e.target.value })}
               >
-                <option value="">{t('campaigns.detail.filter_all', 'Tüm Durumlar')}</option>
-                <option value="true">{t('campaigns.detail.filter_completed', 'Tamamladı')}</option>
-                <option value="false">{t('campaigns.detail.filter_not_completed', 'Tamamlamadı')}</option>
+                <option value="">{t('dashboard.campaigns.detail.filter_all', 'Tüm Durumlar')}</option>
+                <option value="true">{t('dashboard.campaigns.detail.filter_completed', 'Tamamladı')}</option>
+                <option value="false">{t('dashboard.campaigns.detail.filter_not_completed', 'Tamamlamadı')}</option>
               </select>
            </div>
 
@@ -272,11 +272,11 @@ export default function CampaignDetailPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white">
-                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{t('campaigns.detail.columns.email', 'E-posta')}</th>
-                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">{t('campaigns.detail.columns.opened', 'Açıldı')}</th>
-                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">{t('campaigns.detail.columns.clicked', 'Tıkladı')}</th>
-                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">{t('campaigns.detail.columns.completed', 'Tamamladı')}</th>
-                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">{t('campaigns.detail.filter_bounced', 'Bounce')}</th>
+                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{t('dashboard.campaigns.detail.columns.email', 'E-posta')}</th>
+                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">{t('dashboard.campaigns.detail.columns.opened', 'Açıldı')}</th>
+                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">{t('dashboard.campaigns.detail.columns.clicked', 'Tıkladı')}</th>
+                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">{t('dashboard.campaigns.detail.columns.completed', 'Tamamladı')}</th>
+                <th className="p-6 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">{t('dashboard.campaigns.detail.filter_bounced', 'Bounce')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -298,7 +298,7 @@ export default function CampaignDetailPage() {
                       <div className="relative group cursor-help inline-block">
                         <Badge variant="red">!</Badge>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-navy text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                          {log.bounce_reason || t('campaigns.detail.columns.bounce_hint', 'Mail adresi geçersiz veya posta kutusu dolu.')}
+                          {log.bounce_reason || t('dashboard.campaigns.detail.columns.bounce_hint', 'Mail adresi geçersiz veya posta kutusu dolu.')}
                         </div>
                       </div>
 

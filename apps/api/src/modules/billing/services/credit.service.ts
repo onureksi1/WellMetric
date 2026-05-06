@@ -5,6 +5,7 @@ import { CreditBalance } from '../entities/credit-balance.entity';
 import { CreditTransaction } from '../entities/credit-transaction.entity';
 import { CreditType } from '../entities/credit-type.entity';
 import { ErrorCode } from '../../../common/constants/error-codes';
+import { Subscription } from '../entities/subscription.entity';
 
 @Injectable()
 export class CreditService {
@@ -17,14 +18,24 @@ export class CreditService {
     private readonly transactionRepository: Repository<CreditTransaction>,
     @InjectRepository(CreditType)
     private readonly creditTypeRepository: Repository<CreditType>,
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepository: Repository<Subscription>,
     private readonly dataSource: DataSource,
   ) {}
 
   async getBalances(consultantId: string) {
-    // Get all active credit types
+    // 1. Get active subscription to see package limits
+    const sub = await this.subscriptionRepository.findOne({
+      where: { consultant_id: consultantId, status: 'active' },
+      relations: ['package']
+    });
+    
+    const pkgCredits = sub?.package?.credits || {};
+
+    // 2. Get all active credit types
     const activeTypes = await this.creditTypeRepository.find({ where: { is_active: true } });
     
-    // Get current balances
+    // 3. Get current balances
     const balances = await this.balanceRepository.find({ where: { consultant_id: consultantId } });
     
     // Map them for easy access
@@ -44,6 +55,7 @@ export class CreditService {
         color: type.color,
         balance: b ? b.balance : 0,
         used_this_month: b ? b.used_this_month : 0,
+        package_amount: pkgCredits[type.key] || 0, // Paketten gelen aylık limit
         last_reset_at: b ? b.last_reset_at : null
       };
     });
@@ -182,9 +194,13 @@ export class CreditService {
   async getUsageStats(consultantId: string) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    
+    // Get active subscription to see real package limits
+    const sub = await this.subscriptionRepository.findOne({
+      where: { consultant_id: consultantId, status: 'active' },
+      relations: ['package']
+    });
+    const pkgCredits = sub?.package?.credits || {};
 
     // 1. Get Summary (this month)
     const activeTypes = await this.creditTypeRepository.find({ where: { is_active: true } });
@@ -193,9 +209,8 @@ export class CreditService {
     const summary = activeTypes.map(type => {
       const b = balances.find(bal => bal.credit_type_key === type.key);
       const used = b ? b.used_this_month : 0;
-      // In a real scenario, the total monthly allowance would come from the current subscription package
-      const total = 5000; // Placeholder or fetch from sub
-      const percentage = Math.round((used / total) * 100) || 0;
+      const total = pkgCredits[type.key] || 0; 
+      const percentage = total > 0 ? Math.round((used / total) * 100) : 0;
       return {
         credit_type_key: type.key,
         label_tr: type.label_tr,
@@ -259,9 +274,17 @@ export class CreditService {
 
   async getTotalActiveCredits() {
     const res = await this.dataSource.query(`
-      SELECT SUM(balance) as total FROM credit_balances WHERE balance > 0
+      SELECT credit_type_key as key, SUM(balance) as total 
+      FROM credit_balances 
+      WHERE balance > 0 OR balance = -1
+      GROUP BY credit_type_key
     `);
-    const total = parseFloat(res[0]?.total || 0);
-    return total;
+    
+    const breakdown: Record<string, number> = {};
+    res.forEach((r: any) => {
+      breakdown[r.key] = parseFloat(r.total);
+    });
+    
+    return breakdown;
   }
 }

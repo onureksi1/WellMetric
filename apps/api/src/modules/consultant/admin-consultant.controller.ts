@@ -1,21 +1,19 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Param, 
-  Patch, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
   Put,
-  Delete, 
-  UseGuards, 
-  Query, 
+  Delete,
+  UseGuards,
+  Query,
   ParseUUIDPipe,
   ConflictException,
-  Inject,
-  forwardRef
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, In, IsNull, MoreThan } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { ConsultantPlan } from './entities/consultant-plan.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
@@ -24,6 +22,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { NotificationService } from '../notification/notification.service';
 import { SettingsService } from '../settings/settings.service';
+import { PackageService } from '../billing/services/package.service';
+import { CreditService } from '../billing/services/credit.service';
+import { AuditService } from '../audit/audit.service';
+import { AddCreditsDto } from '../billing/dto/add-credits.dto';
+import { ProductPackage } from '../billing/entities/product-package.entity';
+import { Subscription } from '../billing/entities/subscription.entity';
+import { CreditBalance } from '../billing/entities/credit-balance.entity';
+import { CreditTransaction } from '../billing/entities/credit-transaction.entity';
 import bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
@@ -39,6 +45,9 @@ export class AdminConsultantController {
     private readonly dataSource: DataSource,
     private readonly notificationService: NotificationService,
     private readonly settingsService: SettingsService,
+    private readonly packageService: PackageService,
+    private readonly creditService: CreditService,
+    private readonly auditService: AuditService,
   ) {}
 
   @Get()
@@ -103,9 +112,12 @@ export class AdminConsultantController {
 
   @Post()
   async create(@Body() dto: any, @CurrentUser() admin: any) {
-    const settings = await this.settingsService.getSettings();
-    const packages = settings.consultant_packages || {};
-    const selectedPackage = packages[dto.plan] || {};
+    let selectedPackage: any = {};
+    try { 
+      if (dto.plan) {
+        selectedPackage = await this.packageService.findOne(dto.plan); 
+      }
+    } catch (_) {}
 
     // Pre-check: email uniqueness
     const existing = await this.userRepository.findOne({ where: { email: dto.email } });
@@ -125,7 +137,11 @@ export class AdminConsultantController {
       
       const userId = userRes[0].id;
 
-      // 2. Create plan (apply package defaults if not overridden)
+      // 2. Fetch Package Data
+      const packageKey = dto.plan || 'starter';
+      const pkg = await manager.findOne(ProductPackage, { where: { key: packageKey } });
+
+      // 3. Create plan (apply package defaults if not overridden)
       await manager.query(`
         INSERT INTO consultant_plans (
           consultant_id, plan, max_companies, max_employees, 
@@ -134,15 +150,54 @@ export class AdminConsultantController {
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [
         userId, 
-        dto.plan || 'starter', 
-        dto.max_companies ?? selectedPackage.max_companies ?? 5, 
-        dto.max_employees ?? selectedPackage.max_employees ?? 100, 
-        dto.ai_enabled ?? selectedPackage.ai_enabled ?? false, 
-        dto.white_label ?? selectedPackage.white_label ?? false, 
+        packageKey, 
+        dto.max_companies ?? pkg?.max_companies ?? 5, 
+        dto.max_employees ?? pkg?.max_employees ?? 100, 
+        dto.ai_enabled ?? pkg?.ai_enabled ?? false, 
+        dto.white_label ?? pkg?.white_label ?? false, 
         dto.valid_until || null
       ]);
 
-      // 3. Create invitation
+      // 4. Create Subscription
+      const periodStart = new Date();
+      const periodEnd   = new Date();
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+      await manager.save(Subscription, {
+        consultant_id:        userId,
+        package_key:          packageKey,
+        status:               'active',
+        interval:             'monthly',
+        current_period_start: periodStart,
+        current_period_end:   periodEnd,
+        cancel_at_period_end: false,
+        retry_count:          0,
+      });
+
+      // 5. Initialize Credit Balances
+      if (pkg?.credits) {
+        for (const [creditTypeKey, amount] of Object.entries(pkg.credits)) {
+          if (amount === 0) continue;
+
+          await manager.save(CreditBalance, {
+            consultant_id:   userId,
+            credit_type_key: creditTypeKey,
+            balance:         amount,
+            used_this_month: 0,
+            last_reset_at:   periodStart,
+          });
+
+          await manager.save(CreditTransaction, {
+            consultant_id:   userId,
+            credit_type_key: creditTypeKey,
+            type:            'reset',
+            amount:          amount === -1 ? 0 : amount,
+            description:     `${pkg.label_tr} — ilk aktivasyon`,
+          });
+        }
+      }
+
+      // 6. Create invitation
       const inviteToken = crypto.randomBytes(64).toString('hex');
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 48);
@@ -152,7 +207,7 @@ export class AdminConsultantController {
         VALUES ($1, $2, 'consultant_invite', $3)
       `, [userId, inviteToken, expiresAt]);
 
-      // 4. Send welcome email (non-blocking — queue failure shouldn't break creation)
+      // 7. Send welcome email (non-blocking)
       try {
         await this.notificationService.sendConsultantWelcome(dto.email, dto.full_name, inviteToken);
       } catch (mailErr) {
@@ -215,9 +270,12 @@ export class AdminConsultantController {
 
   @Put(':id/plan')
   async updatePlan(@Param('id', ParseUUIDPipe) id: string, @Body() dto: any) {
-    const settings = await this.settingsService.getSettings();
-    const packages = settings.consultant_packages || {};
-    const selectedPackage = packages[dto.plan] || {};
+    let selectedPackage: any = {};
+    try {
+      if (dto.plan) {
+        selectedPackage = await this.packageService.findOne(dto.plan);
+      }
+    } catch (_) {}
 
     const updateData = {
       plan: dto.plan,
@@ -255,6 +313,40 @@ export class AdminConsultantController {
 
     await this.userRepository.update(id, updateData);
     return { success: true };
+  }
+
+  @Post(':id/credits')
+  async addCredits(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AddCreditsDto,
+    @CurrentUser() admin: any,
+  ) {
+    console.log('[AdminConsultantController.addCredits]', { consultantId: id, dto });
+
+    await this.creditService.addCredits(
+      id,
+      dto.credit_type_key,
+      dto.amount,
+      'bonus',
+      dto.reason ?? 'Admin tarafından eklendi',
+      admin?.user_id ?? admin?.id,
+    );
+
+    await this.auditService.log({
+      userId:     admin?.user_id ?? admin?.id,
+      companyId:  null,
+      action:     'credit.admin_grant',
+      targetType: 'consultant',
+      targetId:   id,
+      payload: {
+        credit_type: dto.credit_type_key,
+        amount:      dto.amount,
+        reason:      dto.reason,
+      },
+    });
+
+    console.log('[AdminConsultantController.addCredits] tamamlandı', { consultantId: id, amount: dto.amount });
+    return { added: true };
   }
 
   @Delete(':id')

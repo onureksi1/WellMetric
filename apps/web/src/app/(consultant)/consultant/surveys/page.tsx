@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useT } from '@/hooks/useT';
 import { 
   Plus, 
   ClipboardList, 
@@ -19,26 +19,27 @@ import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useApi } from '@/hooks/useApi';
+import client from '@/lib/api/client';
 import { ConsultantAssignSurveyModal } from '@/components/surveys/ConsultantAssignSurveyModal';
 
 export default function ConsultantSurveysPage() {
-  const { t } = useTranslation('consultant');
+  const { t, tc } = useT('consultant');
   const { user } = useAuthStore();
   const { data: surveysData, loading, refresh } = useApi<any>('/consultant/surveys');
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedSurvey, setSelectedSurvey] = useState<any>(null);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bu anketi silmek istediğinize emin misiniz?')) return;
+    if (!confirm(t('surveys.delete_confirm'))) return;
     try {
       await client.delete(`/consultant/surveys/${id}`);
-      toast.success('Anket başarıyla silindi.');
+      toast.success(t('surveys.delete_success'));
       refresh();
     } catch (error: any) {
       if (error.response?.data?.code === 'SURVEY_HAS_ACTIVE_ASSIGNMENT') {
-        toast.error('Ankete bağlı aktif atama var, önce atamaları iptal edin');
+        toast.error(t('surveys.delete_error_active'));
       } else {
-        toast.error('Anket silinirken bir hata oluştu.');
+        toast.error(t('surveys.delete_error'));
       }
     }
   };
@@ -47,7 +48,7 @@ export default function ConsultantSurveysPage() {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        <p className="text-slate-500 font-medium italic">Anketler yükleniyor...</p>
+        <p className="text-slate-500 font-medium italic">{t('surveys.loading')}</p>
       </div>
     );
   }
@@ -56,8 +57,8 @@ export default function ConsultantSurveysPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Anket Yönetimi</h1>
-          <p className="text-slate-500">Kendi anketlerinizi oluşturun veya global anketleri firmalara atayın.</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('surveys.title')}</h1>
+          <p className="text-slate-500">{t('surveys.subtitle')}</p>
         </div>
       </div>
 
@@ -67,11 +68,11 @@ export default function ConsultantSurveysPage() {
           <Card className="p-8 hover:shadow-xl transition-all border-2 border-transparent hover:border-purple-500 group cursor-pointer bg-gradient-to-br from-white to-purple-50/30 h-full">
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-200 group-hover:scale-110 transition-transform shrink-0">
-                <Plus size={32} />
+               <Plus size={32} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900">Yeni Anket Oluştur</h3>
-                <p className="text-slate-500 text-sm">Firmanıza özel dimension ve sorularla anket tasarlayın.</p>
+                <h3 className="text-xl font-bold text-slate-900">{t('surveys.new_custom')}</h3>
+                <p className="text-slate-500 text-sm">{t('surveys.new_custom_desc')}</p>
               </div>
             </div>
           </Card>
@@ -86,8 +87,8 @@ export default function ConsultantSurveysPage() {
               <Share2 size={32} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-slate-900">Global Anketten Seç ve Ata</h3>
-              <p className="text-slate-500 text-sm">Platform anketlerini hızlıca müşterilerinize atayın.</p>
+              <h3 className="text-xl font-bold text-slate-900">{t('surveys.assign_global')}</h3>
+              <p className="text-slate-500 text-sm">{t('surveys.assign_global_desc')}</p>
             </div>
           </div>
         </Card>
@@ -98,13 +99,13 @@ export default function ConsultantSurveysPage() {
         <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-center gap-4">
           <h2 className="font-bold text-slate-900 flex items-center gap-2">
             <ClipboardList className="text-blue-600" size={20} />
-            Anket Listesi
+            {t('surveys.list_title')}
           </h2>
           <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input 
               type="text" 
-              placeholder="Anket ara..." 
+              placeholder={t('surveys.search_placeholder')} 
               className="w-full sm:w-64 pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
             />
           </div>
@@ -126,15 +127,15 @@ export default function ConsultantSurveysPage() {
                           <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors hover:underline cursor-pointer">{survey.title_tr}</h4>
                         </Link>
                         {survey.company_id === null ? (
-                          <Badge variant="gray" className="text-[10px]">Global</Badge>
+                          <Badge variant="gray" className="text-[10px]">{t('surveys.badges.global')}</Badge>
                         ) : survey.created_by === user?.id ? (
-                          <Badge variant="purple" className="text-[10px]">Benim</Badge>
+                          <Badge variant="purple" className="text-[10px]">{t('surveys.badges.mine')}</Badge>
                         ) : (
-                          <Badge variant="gray" className="text-[10px]">Firma</Badge>
+                          <Badge variant="gray" className="text-[10px]">{t('surveys.badges.company')}</Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
-                        <span className="flex items-center gap-1"><BrainCircuit size={14} /> {survey.question_count || survey.questions?.length} Soru</span>
+                        <span className="flex items-center gap-1"><BrainCircuit size={14} /> {survey.question_count || survey.questions?.length} {tc('question')}</span>
                         <span className="flex items-center gap-1 uppercase tracking-wider">{survey.type}</span>
                       </div>
                       
@@ -150,7 +151,7 @@ export default function ConsultantSurveysPage() {
                       className="text-blue-600 hover:bg-blue-50 font-bold"
                       onClick={() => { setSelectedSurvey(survey); setIsAssignModalOpen(true); }}
                     >
-                      <Share2 size={16} className="mr-2" /> Ata
+                      <Share2 size={16} className="mr-2" /> {tc('assign')}
                     </Button>
                     
                     {isOwned && (
@@ -179,7 +180,7 @@ export default function ConsultantSurveysPage() {
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
                 <ClipboardList size={40} />
               </div>
-              <p className="text-slate-400 font-medium italic">Henüz bir anket bulunamadı.</p>
+              <p className="text-slate-400 font-medium italic">{t('surveys.empty')}</p>
             </div>
           )}
         </div>

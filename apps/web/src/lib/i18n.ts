@@ -47,6 +47,7 @@ i18n
     fallbackLng: 'tr',
     ns: ['common', 'auth', 'admin', 'dashboard', 'survey', 'employee', 'consultant'],
     defaultNS: 'common',
+    nsSeparator: '.',
     interpolation: {
       escapeValue: false,
     },

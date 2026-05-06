@@ -44,4 +44,13 @@ export class UpdateAiModelsDto {
   @ValidateNested()
   @Type(() => AiModelDef)
   admin_chat?: AiModelDef;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AiModelDef)
+  benchmark_generation?: AiModelDef;
+
+  @IsOptional()
+  @IsObject()
+  model_prices?: Record<string, { input: number; output: number }>;
 }

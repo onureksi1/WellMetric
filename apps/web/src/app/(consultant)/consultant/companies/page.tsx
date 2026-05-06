@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useT } from '@/hooks/useT';
 import { 
   Plus, 
   Search, 
@@ -18,7 +18,7 @@ import Link from 'next/link';
 import client from '@/lib/api/client';
 
 export default function MyCompaniesPage() {
-  const { t } = useTranslation('consultant');
+  const { t, tc, i18n } = useT('consultant');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -55,7 +55,7 @@ export default function MyCompaniesPage() {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        <p className="text-slate-500 font-medium">Firmalar yükleniyor...</p>
+        <p className="text-slate-500 font-medium">{t('companies.loading')}</p>
       </div>
     );
   }
@@ -105,7 +105,7 @@ export default function MyCompaniesPage() {
         <div className="flex gap-2">
           <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all">
             <Filter size={18} />
-            {t('common.filter', 'Filtrele')}
+            {tc('filter')}
           </button>
         </div>
       </div>
@@ -129,31 +129,55 @@ export default function MyCompaniesPage() {
                 {/* Info */}
                 <div>
                   <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{c.name}</h3>
-                  <p className="text-sm text-slate-500">{c.industry_label_tr || c.industry || 'Sektör Belirtilmedi'}</p>
+                  <p className="text-sm text-slate-500">
+                    {(i18n.language === 'en' ? c.industry_label_en : c.industry_label_tr) || c.industry || t('companies.no_industry')}
+                  </p>
                 </div>
 
                 {/* Stats Row */}
                 <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-50">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Wellbeing</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('companies.wellbeing')}</p>
                     <div className="flex items-center gap-1.5">
-                      <Activity size={14} className={(c.score || 0) < 60 ? 'text-red-500' : 'text-emerald-500'} />
-                      <span className="text-lg font-bold text-slate-900">{c.score || '-'}</span>
+                      <Activity size={14} className={c.wellbeing_score ? (c.wellbeing_score >= 70 ? 'text-emerald-500' : c.wellbeing_score >= 50 ? 'text-orange-500' : 'text-red-500') : 'text-slate-300'} />
+                      <span className="text-lg font-bold" style={{ 
+                        color: c.wellbeing_score 
+                          ? c.wellbeing_score >= 70 
+                            ? 'var(--color-text-success)' 
+                            : c.wellbeing_score >= 50 
+                              ? 'var(--color-text-warning)' 
+                              : 'var(--color-text-danger)' 
+                          : 'var(--color-text-tertiary)' 
+                      }}>
+                        {c.wellbeing_score ? `${c.wellbeing_score}/100` : 'Veri yok'}
+                      </span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('common.employees', 'Çalışan')}</p>
-                    <div className="flex items-center gap-1.5 text-slate-600">
-                      <Users size={14} />
-                      <span className="text-lg font-bold text-slate-900">{c.employee_count || 0}</span>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ÇALIŞAN / DEPT</p>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1.5 text-slate-600 text-[11px] font-medium">
+                        <Users size={12} />
+                        <span>{c.employee_count ?? 0} çalışan</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-medium">
+                        <Building2 size={12} />
+                        <span>{c.department_count ?? 0} departman</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Footer Info */}
-                <div className="flex items-center justify-between text-xs pt-2">
-                  <span className="px-2 py-1 bg-slate-100 rounded text-slate-600 font-medium">{c.plan || 'Standard'}</span>
-                  <span className="text-slate-400">Son: {c.last_survey_at ? new Date(c.last_survey_at).toLocaleDateString() : '-'}</span>
+                <div className="flex items-center justify-between text-[10px] pt-2">
+                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-lg font-bold uppercase tracking-wider">
+                    {c.plan === 'enterprise' ? 'Enterprise' : c.plan === 'growth' ? 'Growth' : 'Starter'}
+                  </span>
+                  <span className="text-slate-400 font-medium">
+                    {c.last_survey_date 
+                      ? new Date(c.last_survey_date).toLocaleDateString('tr-TR') 
+                      : 'Anket yok'}
+                  </span>
                 </div>
               </div>
 
@@ -162,14 +186,14 @@ export default function MyCompaniesPage() {
                 href={`/consultant/companies/${c.id}`}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 text-sm font-bold hover:bg-blue-600 hover:text-white transition-all border-t border-slate-100"
               >
-                {t('common.view_details', 'Detayları Gör')} <ArrowRight size={16} />
+                {t('companies.view_details')} <ArrowRight size={16} />
               </Link>
             </div>
           ))
         ) : (
           <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-slate-100">
             <Building2 className="mx-auto text-slate-200 mb-4" size={48} />
-            <p className="text-slate-500 font-medium">Aradığınız kriterlere uygun firma bulunamadı.</p>
+            <p className="text-slate-500 font-medium">{t('companies.no_results')}</p>
           </div>
         )}
       </div>

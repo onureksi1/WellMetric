@@ -36,8 +36,8 @@ export default function ManageDepartmentsPage() {
   
   // Validation Schemas (Inside component to use t)
   const departmentSchema = z.object({
-    name: z.string().min(2, t('errors.min_length', { min: 2, defaultValue: 'En az 2 karakter olmalıdır' }))
-                   .max(150, t('errors.max_length', { max: 150, defaultValue: 'En fazla 150 karakter olabilir' })),
+    name: z.string().min(2, t('common.errors.min_length', { min: 2, defaultValue: 'En az 2 karakter olmalıdır' }))
+                   .max(150, t('common.errors.max_length', { max: 150, defaultValue: 'En fazla 150 karakter olabilir' })),
   });
 
   const moveUsersSchema = z.object({
@@ -72,11 +72,11 @@ export default function ManageDepartmentsPage() {
     mutationFn: (data: DepartmentFormValues) => client.post('/hr/departments', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] });
-      toast.success(t('departments.manage.created', 'Departman oluşturuldu'));
+      toast.success(t('dashboard.departments.manage.created', 'Departman oluşturuldu'));
       setIsCreateModalOpen(false);
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || t('departments.manage.create_error', 'Bu departman adı zaten var'));
+      toast.error(err.response?.data?.message || t('dashboard.departments.manage.create_error', 'Bu departman adı zaten var'));
     },
   });
 
@@ -85,7 +85,7 @@ export default function ManageDepartmentsPage() {
       client.put(`/hr/departments/${selectedDept?.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] });
-      toast.success(t('departments.manage.updated', 'Departman güncellendi'));
+      toast.success(t('dashboard.departments.manage.updated', 'Departman güncellendi'));
       setIsEditModalOpen(false);
     },
   });
@@ -94,7 +94,7 @@ export default function ManageDepartmentsPage() {
     mutationFn: () => client.delete(`/hr/departments/${selectedDept?.id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] });
-      toast.success(t('departments.manage.deleted', 'Departman silindi'));
+      toast.success(t('dashboard.departments.manage.deleted', 'Departman silindi'));
       setIsDeleteModalOpen(false);
     },
   });
@@ -104,7 +104,7 @@ export default function ManageDepartmentsPage() {
       client.post(`/hr/departments/${selectedDept?.id}/move-users`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] });
-      toast.success(t('departments.manage.users_moved', 'Çalışanlar taşındı'));
+      toast.success(t('dashboard.departments.manage.users_moved', 'Çalışanlar taşındı'));
       setIsMoveModalOpen(false);
     },
   });
@@ -149,7 +149,7 @@ export default function ManageDepartmentsPage() {
         setIsDeleteModalOpen(true);
       }
     } catch (err) {
-      toast.error(t('departments.manage.info_error', 'Departman bilgisi alınamadı'));
+      toast.error(t('dashboard.departments.manage.info_error', 'Departman bilgisi alınamadı'));
     }
 
   };
@@ -162,8 +162,8 @@ export default function ManageDepartmentsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-navy">{t('departments.manage.title', 'Departman Yönetimi')}</h1>
-          <p className="text-sm text-gray-500">{t('departments.manage.subtitle', 'Şirket yapısını ve departmanları yönetin.')}</p>
+          <h1 className="text-2xl font-bold text-navy">{t('dashboard.departments.manage.title', 'Departman Yönetimi')}</h1>
+          <p className="text-sm text-gray-500">{t('dashboard.departments.manage.subtitle', 'Şirket yapısını ve departmanları yönetin.')}</p>
         </div>
         <Button 
           onClick={() => {
@@ -173,7 +173,7 @@ export default function ManageDepartmentsPage() {
           className="flex gap-2"
         >
           <Plus size={18} />
-          {t('departments.manage.new', 'Yeni Departman')}
+          {t('dashboard.departments.manage.new', 'Yeni Departman')}
         </Button>
       </div>
 
@@ -182,7 +182,7 @@ export default function ManageDepartmentsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder={t('departments.manage.search', 'Departman ara...')}
+            placeholder={t('dashboard.departments.manage.search', 'Departman ara...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-gray-50 border border-gray-100 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/10 transition-all outline-none"
@@ -193,7 +193,7 @@ export default function ManageDepartmentsPage() {
           <div className="text-center py-20 text-gray-400">{t('common.loading', 'Yükleniyor...')}</div>
         ) : filteredDepts.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
-            {searchTerm ? t('departments.manage.no_results', 'Aramanızla eşleşen departman bulunamadı.') : t('departments.manage.empty', 'Henüz departman eklenmemiş.')}
+            {searchTerm ? t('dashboard.departments.manage.no_results', 'Aramanızla eşleşen departman bulunamadı.') : t('dashboard.departments.manage.empty', 'Henüz departman eklenmemiş.')}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -229,7 +229,7 @@ export default function ManageDepartmentsPage() {
                     onClick={() => handleMoveClick(dept)}
                   >
                     <ArrowRightLeft size={14} />
-                    {t('departments.manage.move_users', 'Çalışan Taşı')}
+                    {t('dashboard.departments.manage.move_users', 'Çalışan Taşı')}
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -250,17 +250,17 @@ export default function ManageDepartmentsPage() {
       <Modal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
-        title={t('departments.manage.new', 'Yeni Departman')}
+        title={t('dashboard.departments.manage.new', 'Yeni Departman')}
       >
         <form onSubmit={createForm.handleSubmit(v => createMutation.mutate(v))} className="space-y-4">
           <div>
             <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">
-              {t('departments.manage.dept_name', 'Departman Adı')}*
+              {t('dashboard.departments.manage.dept_name', 'Departman Adı')}*
             </label>
             <input
               {...createForm.register('name')}
               className="w-full bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10"
-              placeholder={t('departments.manage.name_placeholder', 'Örn: Pazarlama')}
+              placeholder={t('dashboard.departments.manage.name_placeholder', 'Örn: Pazarlama')}
             />
 
             {createForm.formState.errors.name && (
@@ -282,12 +282,12 @@ export default function ManageDepartmentsPage() {
       <Modal 
         isOpen={isEditModalOpen} 
         onClose={() => setIsEditModalOpen(false)} 
-        title={t('departments.manage.edit_title', 'Departmanı Düzenle')}
+        title={t('dashboard.departments.manage.edit_title', 'Departmanı Düzenle')}
       >
         <form onSubmit={editForm.handleSubmit(v => updateMutation.mutate(v))} className="space-y-4">
           <div>
             <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">
-              {t('departments.manage.dept_name', 'Departman Adı')}*
+              {t('dashboard.departments.manage.dept_name', 'Departman Adı')}*
             </label>
             <input
               {...editForm.register('name')}
@@ -312,15 +312,15 @@ export default function ManageDepartmentsPage() {
       <Modal 
         isOpen={isMoveModalOpen} 
         onClose={() => setIsMoveModalOpen(false)} 
-        title={t('departments.manage.move_users', 'Çalışan Taşı')}
+        title={t('dashboard.departments.manage.move_users', 'Çalışan Taşı')}
       >
         <div className="mb-6 p-4 bg-primary/5 border border-primary/10 rounded-xl text-xs text-primary font-medium leading-relaxed">
-          {t('departments.manage.move_hint', '{{dept_name}} departmanındaki tüm çalışanlar taşınacak.', { dept_name: selectedDept?.name })}
+          {t('dashboard.departments.manage.move_hint', '{{dept_name}} departmanındaki tüm çalışanlar taşınacak.', { dept_name: selectedDept?.name })}
         </div>
         <form onSubmit={moveForm.handleSubmit(v => moveUsersMutation.mutate(v))} className="space-y-4">
           <div>
             <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">
-              {t('departments.manage.target_dept', 'Hedef Departman')}*
+              {t('dashboard.departments.manage.target_dept', 'Hedef Departman')}*
             </label>
             <select
               {...moveForm.register('target_department_id')}
@@ -340,7 +340,7 @@ export default function ManageDepartmentsPage() {
               {t('common.cancel', 'İptal')}
             </Button>
             <Button loading={moveUsersMutation.isPending} className="flex-1" type="submit">
-              {t('departments.manage.move_action', 'Taşı')}
+              {t('dashboard.departments.manage.move_action', 'Taşı')}
             </Button>
           </div>
         </form>
@@ -350,7 +350,7 @@ export default function ManageDepartmentsPage() {
       <Modal 
         isOpen={isDeleteModalOpen} 
         onClose={() => setIsDeleteModalOpen(false)} 
-        title={t('departments.manage.delete_title', 'Departmanı Sil')}
+        title={t('dashboard.departments.manage.delete_title', 'Departmanı Sil')}
       >
         <div className="space-y-6">
           <div className="flex flex-col items-center text-center">
@@ -359,13 +359,13 @@ export default function ManageDepartmentsPage() {
             </div>
             <h3 className="text-lg font-bold text-navy">
               {selectedDept?.users_count && selectedDept.users_count > 0 
-                ? t('departments.manage.delete_warning_title', 'Departman Silinemez')
-                : t('departments.manage.delete_confirm_title', 'Silmek istediğinize emin misiniz?')}
+                ? t('dashboard.departments.manage.delete_warning_title', 'Departman Silinemez')
+                : t('dashboard.departments.manage.delete_confirm_title', 'Silmek istediğinize emin misiniz?')}
             </h3>
             <p className="text-sm text-gray-500 mt-2">
               {selectedDept?.users_count && selectedDept.users_count > 0 
-                ? t('departments.manage.delete_warning_desc', 'Bu departmanda {{count}} çalışan var. Silmeden önce çalışanları taşıyın.', { count: selectedDept.users_count })
-                : t('departments.manage.delete_confirm_desc', '{{name}} departmanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.', { name: selectedDept?.name })}
+                ? t('dashboard.departments.manage.delete_warning_desc', 'Bu departmanda {{count}} çalışan var. Silmeden önce çalışanları taşıyın.', { count: selectedDept.users_count })
+                : t('dashboard.departments.manage.delete_confirm_desc', '{{name}} departmanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.', { name: selectedDept?.name })}
             </p>
           </div>
 
@@ -381,7 +381,7 @@ export default function ManageDepartmentsPage() {
                   setIsMoveModalOpen(true);
                 }}
               >
-                {t('departments.manage.move_users', 'Çalışanları Taşı')}
+                {t('dashboard.departments.manage.move_users', 'Çalışanları Taşı')}
               </Button>
             ) : (
               <Button 

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { DataSource } from 'typeorm';
 import { SettingsService } from '../settings/settings.service';
 import { DimensionLabels } from '../../common/constants/dimension-labels';
 import { MailProviderFactory } from './providers/mail-provider.factory';
@@ -13,6 +14,7 @@ export class NotificationService {
     @InjectQueue('mail-queue') private readonly mailQueue: Queue,
     private readonly settingsService: SettingsService,
     private readonly providerFactory: MailProviderFactory,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -32,7 +34,25 @@ export class NotificationService {
     });
     
     this.logger.log(`Provider delivery method completed.`);
-    return result;
+      // Sync quota if headers are present (Automatic synchronization)
+      const syncResult = result as any;
+      if (syncResult && syncResult.headers) {
+        const monthlyUsed = syncResult.headers['x-resend-monthly-quota'];
+        
+        if (monthlyUsed) {
+          try {
+            await this.dataSource.query(
+              `UPDATE platform_settings SET mail_quota_used = $1, updated_at = NOW()`,
+              [parseInt(monthlyUsed)]
+            );
+            console.log(`[NotificationService] Auto-synced mail quota: ${monthlyUsed} used`);
+          } catch (syncErr) {
+            console.error('[NotificationService] Quota sync failed:', syncErr.message);
+          }
+        }
+      }
+
+      return result;
   }
 
   private async getPlatformUrl(): Promise<string> {
@@ -61,17 +81,17 @@ export class NotificationService {
     }
   }
 
-  async sendWelcomeHr(to: string, hrName: string, companyName: string, inviteLink: string, language: string = 'tr') {
+  async sendWelcomeHr(to: string, hrName: string, companyName: string, inviteLink: string, language: string = 'tr', companyId?: string, consultantId?: string) {
     const platformUrl = await this.getPlatformUrl();
     const subject = language === 'tr' ? 'Wellbeing Platformuna Hoş Geldiniz' : 'Welcome to Wellbeing Platform';
-    
+
     console.log(`[Notification] Preparing welcome_hr email for: ${to}`);
     await this.addToQueue('welcome_hr', to, subject, {
       hr_name: hrName,
       company_name: companyName,
       platform_url: platformUrl,
       invite_link: inviteLink,
-    }, language);
+    }, language, companyId, consultantId);
   }
 
   async sendPasswordReset(to: string, userName: string, resetToken: string, language: string = 'tr') {
@@ -87,11 +107,11 @@ export class NotificationService {
     }, language);
   }
 
-  async sendSurveyTokenInvite(to: string, fullName: string, companyName: string, surveyTitle: string, token: string, dueDate: Date, language: string = 'tr', logId?: string) {
+  async sendSurveyTokenInvite(to: string, fullName: string, companyName: string, surveyTitle: string, token: string, dueDate: Date, language: string = 'tr', logId?: string, companyId?: string, consultantId?: string) {
     const platformUrl = await this.getPlatformUrl();
     const subject = language === 'tr' ? '🌱 Wellbeing Anketiniz Hazır' : '🌱 Your Wellbeing Survey is Ready';
-    
-    const surveyLink = logId 
+
+    const surveyLink = logId
       ? `${platformUrl}/api/v1/track/click/${logId}`
       : `${platformUrl}/surveys/${token}`;
 
@@ -104,19 +124,19 @@ export class NotificationService {
       estimated_minutes: '5',
     };
 
-    await this.addToQueue('survey_token_invite', to, subject, variables, language);
+    await this.addToQueue('survey_token_invite', to, subject, variables, language, companyId, consultantId);
   }
 
-  async sendCampaignInvite(to: string, fullName: string, companyName: string, surveyTitle: string, surveyLink: string, dueDate: Date, language: string = 'tr') {
+  async sendCampaignInvite(to: string, fullName: string, companyName: string, surveyTitle: string, surveyLink: string, dueDate: Date, language: string = 'tr', companyId?: string, consultantId?: string) {
     const subject = language === 'tr' ? `📋 Wellbeing Anketi — ${surveyTitle}` : `📋 Wellbeing Survey — ${surveyTitle}`;
-    
+
     await this.addToQueue('campaign_invite', to, subject, {
       full_name: fullName,
       company_name: companyName,
       survey_title: surveyTitle,
       survey_link: surveyLink,
       due_date: dueDate.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US'),
-    }, language);
+    }, language, companyId, consultantId);
   }
 
   async sendCampaignReminder(to: string, fullName: string, companyName: string, surveyTitle: string, surveyLink: string, daysRemaining: number, language: string = 'tr') {
@@ -131,7 +151,7 @@ export class NotificationService {
     }, language);
   }
 
-  async sendEmployeeInvite(to: string, fullName: string, companyName: string, inviteToken: string, language: string = 'tr') {
+  async sendEmployeeInvite(to: string, fullName: string, companyName: string, inviteToken: string, language: string = 'tr', companyId?: string, consultantId?: string) {
     const platformUrl = await this.getPlatformUrl();
     const subject = language === 'tr' ? 'Wellbeing Hesabınızı Oluşturun' : 'Create Your Wellbeing Account';
     const inviteLink = `${platformUrl}/invite?token=${inviteToken}`;
@@ -141,7 +161,7 @@ export class NotificationService {
       company_name: companyName,
       invite_link: inviteLink,
       expires_in: expiresIn,
-    }, language);
+    }, language, companyId, consultantId);
   }
 
   async sendSurveyReminder(to: string, fullName: string, surveyTitle: string, surveyLink: string, daysRemaining: number, language: string = 'tr') {
@@ -257,6 +277,7 @@ export class NotificationService {
       company_name: data.company_name,
       company_size: data.company_size || '-',
       industry: data.industry || '-',
+      user_type: data.user_type || '-',
       message: data.message || '-',
     }, 'tr');
   }
@@ -271,7 +292,7 @@ export class NotificationService {
 
   async sendConsultantWelcome(to: string, fullName: string, inviteToken: string, language: string = 'tr') {
     const platformUrl = await this.getPlatformUrl();
-    const subject = language === 'tr' ? 'Eğitmen Hesabınızı Oluşturun' : 'Create Your Consultant Account';
+    const subject = language === 'tr' ? 'Eğitmen / Danışman Hesabınızı Oluşturun' : 'Create Your Consultant Account';
     const inviteLink = `${platformUrl}/invite?token=${inviteToken}`;
     const expiresIn = language === 'tr' ? '48 saat' : '48 hours';
     
@@ -287,5 +308,24 @@ export class NotificationService {
       const language = variables.language || 'tr';
       const subject = variables.subject || 'Wellbeing Platform Bildirimi';
       await this.addToQueue(template, to, subject, variables, language);
+  }
+
+  async getMailQuota() {
+    try {
+      const provider = await this.providerFactory.getProvider();
+      console.log('[NotificationService] Provider found:', provider?.constructor?.name);
+      
+      if (provider && typeof (provider as any).getQuota === 'function') {
+        const quota = await (provider as any).getQuota();
+        console.log('[NotificationService] Quota result:', quota ? 'Success' : 'Null/Fail');
+        return quota;
+      }
+      
+      console.log('[NotificationService] Provider has no getQuota method');
+      return null;
+    } catch (err) {
+      console.error('[NotificationService] Failed to get mail quota:', err.message);
+      return null;
+    }
   }
 }

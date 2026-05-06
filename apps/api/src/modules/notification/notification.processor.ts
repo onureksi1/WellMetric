@@ -6,6 +6,7 @@ import { MailTemplateService } from './mail-template.service';
 import { AuditService } from '../audit/audit.service';
 import { SettingsService } from '../settings/settings.service';
 import { CreditService } from '../billing/services/credit.service';
+import { WhiteLabelService } from '../white-label/white-label.service';
 
 export interface MailJobData {
   template: string;
@@ -27,6 +28,7 @@ export class NotificationProcessor {
     private readonly auditService: AuditService,
     private readonly settingsService: SettingsService,
     private readonly creditService: CreditService,
+    private readonly whiteLabelService: WhiteLabelService,
   ) {}
 
   @Process('send_mail')
@@ -35,18 +37,45 @@ export class NotificationProcessor {
     console.log(`[MailProcessor] Processing job: ${job.id} | Template: ${template} to: ${to}`);
 
     try {
-      // 1. Render Template from DB/Cache
-      const html = await this.mailTemplateService.render(template, language, variables);
-      console.log(`[MailProcessor] Template rendered successfully, length: ${html.length}`);
-
-      // 2. Get Provider
-      const provider = await this.providerFactory.getProvider();
-      console.log(`[MailProcessor] Using provider: ${provider.constructor.name}`);
-
-      // 3. Get Platform Settings for From Address
-      const settings = await this.settingsService.getSettings();
+      // 1. Get Platform Settings for From Address
+      const [settings, provider] = await Promise.all([
+        this.settingsService.getSettings(),
+        this.providerFactory.getProvider(),
+      ]);
       const from = settings?.mail_from_address || 'no-reply@mg.wellbeingmetric.com';
-      const fromName = settings?.mail_from_name || 'Wellbeing Metric';
+      let fromName = settings?.mail_from_name || 'Wellbeing Metric';
+
+      // 2. Apply white label branding before rendering so brand vars are in the template
+      const platformUrl = process.env.NEXT_PUBLIC_APP_URL || settings?.platform_url || 'https://app.wellbeingmetric.com';
+      let brandLogoUrl = settings?.platform_logo_url || `${platformUrl}/images/logo.png`;
+      
+      // If logo URL is relative, prepend platform URL
+      if (brandLogoUrl.startsWith('/')) {
+        brandLogoUrl = `${platformUrl}${brandLogoUrl}`;
+      }
+
+      const mergedVars = { 
+        ...variables, 
+        platform_url: platformUrl,
+        brand_logo_url: brandLogoUrl,
+        brand_name: settings?.platform_name || 'Wellbeing Metric',
+        brand_color: '#2E865A' // Default brand color
+      };
+      
+      if (consultantId) {
+        const wlConfig = await this.whiteLabelService.getConfig(consultantId);
+        if (wlConfig?.is_active) {
+          fromName = wlConfig.brand_name;
+          mergedVars['brand_name'] = wlConfig.brand_name;
+          if (wlConfig.brand_logo_url) mergedVars['brand_logo_url'] = wlConfig.brand_logo_url;
+          if (wlConfig.brand_color) mergedVars['brand_color'] = wlConfig.brand_color;
+        }
+      }
+
+      // 3. Render Template from DB/Cache with merged variables
+      const html = await this.mailTemplateService.render(template, language, mergedVars);
+      console.log(`[MailProcessor] Template rendered successfully, length: ${html.length}`);
+      console.log(`[MailProcessor] Using provider: ${provider.constructor.name}`);
 
       // 4. Send
       await provider.send({

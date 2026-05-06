@@ -57,8 +57,19 @@ export class PackageService {
   }
 
   async updateStatus(key: string, isActive: boolean) {
+    await this.findOne(key);
+    await this.packageRepository.update({ key }, { is_active: isActive });
+    return { updated: true };
+  }
+
+  async toggleVisibility(key: string, isVisible: boolean) {
+    await this.findOne(key);
+    await this.packageRepository.update({ key }, { is_visible: isVisible });
+    return { updated: true };
+  }
+
+  async delete(key: string) {
     const pkg = await this.findOne(key);
-    pkg.is_active = isActive;
-    return this.packageRepository.save(pkg);
+    return this.packageRepository.remove(pkg);
   }
 }

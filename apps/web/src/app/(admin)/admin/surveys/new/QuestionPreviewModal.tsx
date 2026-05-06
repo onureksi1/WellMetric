@@ -20,8 +20,8 @@ export function QuestionPreviewModal({ isOpen, onClose, question }: any) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div>
-            <h3 className="text-xl font-bold text-navy">{t('surveys.question.preview_modal.title', 'Soru Önizleme')}</h3>
-            <p className="text-sm text-gray-500">{t('surveys.question.preview_modal.subtitle', 'Çalışanın ekranında böyle görünecek.')}</p>
+            <h3 className="text-xl font-bold text-navy">{t('admin.surveys.question.preview_modal.title', 'Soru Önizleme')}</h3>
+            <p className="text-sm text-gray-500">{t('admin.surveys.question.preview_modal.subtitle', 'Çalışanın ekranında böyle görünecek.')}</p>
           </div>
 
           <button 
@@ -36,7 +36,7 @@ export function QuestionPreviewModal({ isOpen, onClose, question }: any) {
         <div className="p-6 md:p-8 overflow-y-auto flex-1 bg-gray-50/50">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-6">
             <h2 className="text-lg sm:text-xl font-bold text-navy text-center mb-8">
-              {question.question_text_tr || t('admin:surveys.question.preview_modal.empty_text', 'Soru metni girilmedi...')}
+              {question.question_text_tr || t('admin.surveys.question.preview_modal.empty_text', 'Soru metni girilmedi...')}
             </h2>
 
             

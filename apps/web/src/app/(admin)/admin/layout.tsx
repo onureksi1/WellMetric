@@ -22,7 +22,7 @@ export default function AdminLayout({
         <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
           <TopBar />
           <main className="p-4 md:p-8 flex-1 w-full overflow-x-hidden">
-            <React.Suspense fallback={<div className="flex justify-center py-20 text-gray-400 italic">{t('common:loading')}</div>}>
+            <React.Suspense fallback={<div className="flex justify-center py-20 text-gray-400 italic">{t('common.loading')}</div>}>
               {children}
             </React.Suspense>
           </main>

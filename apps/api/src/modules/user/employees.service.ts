@@ -189,11 +189,11 @@ export class EmployeesService {
     const delimiter = firstLine.includes(';') ? ';' : ',';
 
     const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase()
-      .replace(/ad soyad|ad_soyad|fullname/g, 'full_name')
-      .replace(/e-posta|eposta|email_address/g, 'email')
-      .replace(/departman|department_name/g, 'department')
-      .replace(/pozisyon|job_title/g, 'position')
-      .replace(/başlangıç tarihi|baslangic_tarihi|startdate/g, 'start_date')
+      .replace(/ad soyad|ad_soyad|fullname|isim soyisim|ad soyisim/g, 'full_name')
+      .replace(/e-posta|eposta|email_address|mail/g, 'email')
+      .replace(/departman|department_name|department|bölüm|bolum/g, 'department')
+      .replace(/pozisyon|job_title|unvan|görev/g, 'position')
+      .replace(/başlangıç tarihi|baslangic_tarihi|startdate|is_basi/g, 'start_date')
     );
 
     return lines.slice(1).map(line => {

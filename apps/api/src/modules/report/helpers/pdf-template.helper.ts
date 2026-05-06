@@ -5,6 +5,7 @@ export const ReportColors = {
   NAVY: '#1A1A2E',
   GRAY: '#BDC3C7',
   WHITE: '#FFFFFF',
+  MINT: '#EAF7F2',
 };
 
 export class PdfTemplateHelper {

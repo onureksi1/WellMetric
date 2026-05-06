@@ -59,12 +59,23 @@ export class CampaignFilterDto {
   survey_id?: string;
 
   @IsOptional()
+  @IsUUID()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
+  company_id?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
   page?: number = 1;
 
   @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
   per_page?: number = 20;
+
+  @IsOptional()
+  @IsNumber()
+  limit?: number; // Some parts use limit instead of per_page
 }
 
 export class LogFilterDto {
@@ -88,9 +99,11 @@ export class LogFilterDto {
 export class AdminStatsFilterDto {
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   period?: string;
 
   @IsOptional()
   @IsUUID()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   company_id?: string;
 }

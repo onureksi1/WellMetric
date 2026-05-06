@@ -62,7 +62,7 @@ const inviteSchema = z.object({
   age_group: z.string().optional().or(z.literal('')),
   gender: z.string().optional().or(z.literal('')),
   start_date: z.string().optional().or(z.literal('')),
-  language: z.enum(['tr', 'en']).optional().default('tr'),
+  language: z.enum(['tr', 'en']),
 });
 
 const editSchema = inviteSchema.extend({});
@@ -137,12 +137,12 @@ export default function EmployeesPage() {
     mutationFn: (data: InviteFormValues) => client.post('/hr/employees-no-account', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast.success(t('employees.invite_modal.success', 'Davet gönderildi'));
+      toast.success(t('dashboard.employees.invite_modal.success', 'Davet gönderildi'));
       setIsInviteModalOpen(false);
     },
     onError: (err: any) => {
       if (err.response?.data?.code === 'EMAIL_ALREADY_EXISTS') {
-        toast.error(t('employees.errors.email_exists', 'Bu e-posta zaten kayıtlı'));
+        toast.error(t('dashboard.employees.errors.email_exists', 'Bu e-posta zaten kayıtlı'));
       } else {
         toast.error(err.response?.data?.message || 'Bir hata oluştu');
       }
@@ -153,7 +153,7 @@ export default function EmployeesPage() {
     mutationFn: (data: InviteFormValues) => client.put(`/hr/employees-no-account/${selectedEmployee?.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast.success(t('common:saved', 'Çalışan güncellendi'));
+      toast.success(t('common.saved', 'Çalışan güncellendi'));
       setIsEditModalOpen(false);
     },
     onError: (err: any) => {
@@ -167,7 +167,7 @@ export default function EmployeesPage() {
     mutationFn: (surveyData: { survey_id: string; period: string }) => 
       client.post(`/hr/employees-no-account/${selectedEmployee?.id}/send-survey`, surveyData),
     onSuccess: () => {
-      toast.success(t('employees.actions.resend_success', 'Yeni davet gönderildi'));
+      toast.success(t('dashboard.employees.actions.resend_success', 'Yeni davet gönderildi'));
       setIsResendModalOpen(false);
     },
     onError: (err: any) => {
@@ -214,7 +214,7 @@ export default function EmployeesPage() {
       client.patch(`/hr/employees/${selectedEmployee?.id}/status`, { is_active }),
     onSuccess: (_, is_active) => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast.success(is_active ? t('employees.actions.activated', 'Çalışan aktifleştirildi') : t('employees.actions.deactivated', 'Çalışan devre dışı bırakıldı'));
+      toast.success(is_active ? t('dashboard.employees.actions.activated', 'Çalışan aktifleştirildi') : t('dashboard.employees.actions.deactivated', 'Çalışan devre dışı bırakıldı'));
       setIsStatusModalOpen(false);
     }
   });
@@ -231,6 +231,7 @@ export default function EmployeesPage() {
       setCsvResults(res.data);
       setCsvStep(3);
       queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
     },
     onError: (err: any) => {
       console.error('CSV Import Error:', err.response?.data || err.message);
@@ -247,7 +248,8 @@ export default function EmployeesPage() {
   });
 
   const editForm = useForm<InviteFormValues>({
-    resolver: zodResolver(editSchema)
+    resolver: zodResolver(editSchema),
+    defaultValues: { language: 'tr' }
   });
 
   // Handlers
@@ -300,8 +302,8 @@ export default function EmployeesPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-navy">{t('employees.title')}</h1>
-          <p className="text-sm text-gray-500">{t('employees.subtitle')}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-navy">{t('dashboard.employees.title')}</h1>
+          <p className="text-sm text-gray-500">{t('dashboard.employees.subtitle')}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
           <Button 
@@ -314,7 +316,7 @@ export default function EmployeesPage() {
             }}
           >
             <Upload size={18} />
-            <span className="hidden xs:inline">{t('employees.invite_csv')}</span>
+            <span className="hidden xs:inline">{t('dashboard.employees.invite_csv')}</span>
             <span className="xs:hidden">CSV</span>
           </Button>
           <Button 
@@ -325,7 +327,7 @@ export default function EmployeesPage() {
             }}
           >
             <UserPlus size={18} />
-            {t('employees.invite_single')}
+            {t('dashboard.employees.invite_single')}
           </Button>
           <Button 
             variant="outline"
@@ -344,7 +346,7 @@ export default function EmployeesPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder={t('employees.search_placeholder')}
+              placeholder={t('dashboard.employees.search_placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-gray-50/50 border border-gray-100 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/10 transition-all outline-none"
@@ -356,7 +358,7 @@ export default function EmployeesPage() {
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
             >
-              <option value="">{t('employees.filter_department')}</option>
+              <option value="">{t('dashboard.employees.filter_department')}</option>
               {departments.map(d => (
                 <option key={d.id} value={d.id}>{d.name}</option>
               ))}
@@ -366,10 +368,10 @@ export default function EmployeesPage() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="">{t('employees.filter_status')}</option>
-              <option value="active">{t('employees.invite_status.active')}</option>
-              <option value="invited">{t('employees.invite_status.invited')}</option>
-              <option value="expired">{t('employees.invite_status.expired')}</option>
+              <option value="">{t('dashboard.employees.filter_status')}</option>
+              <option value="active">{t('dashboard.employees.invite_status.active')}</option>
+              <option value="invited">{t('dashboard.employees.invite_status.invited')}</option>
+              <option value="expired">{t('dashboard.employees.invite_status.expired')}</option>
             </select>
           </div>
         </div>
@@ -379,18 +381,18 @@ export default function EmployeesPage() {
           <table className="hidden md:table w-full text-left text-sm">
             <thead className="bg-gray-50/50 text-gray-400 font-bold uppercase tracking-widest text-[10px]">
               <tr>
-                <th className="py-4 px-4">{t('employees.columns.name')}</th>
-                <th className="py-4 px-4">{t('employees.columns.department')} / {t('employees.columns.position')}</th>
-                <th className="py-4 px-4 text-center">{t('employees.columns.invite_status')}</th>
-                <th className="py-4 px-4 text-center">{t('employees.columns.survey_count')}</th>
-                <th className="py-4 px-4 text-right">{t('employees.columns.actions')}</th>
+                <th className="py-4 px-4">{t('dashboard.employees.columns.name')}</th>
+                <th className="py-4 px-4">{t('dashboard.employees.columns.department')} / {t('dashboard.employees.columns.position')}</th>
+                <th className="py-4 px-4 text-center">{t('dashboard.employees.columns.invite_status')}</th>
+                <th className="py-4 px-4 text-center">{t('dashboard.employees.columns.survey_count')}</th>
+                <th className="py-4 px-4 text-right">{t('dashboard.employees.columns.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {employeesLoading ? (
-                <tr><td colSpan={5} className="text-center py-20 text-gray-400 italic">{t('common:loading')}</td></tr>
+                <tr><td colSpan={5} className="text-center py-20 text-gray-400 italic">{t('common.loading')}</td></tr>
               ) : employees.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-20 text-gray-400 font-medium">{t('common:no_data')}</td></tr>
+                <tr><td colSpan={5} className="text-center py-20 text-gray-400 font-medium">{t('common.no_data')}</td></tr>
               ) : employees.map((emp: Employee) => (
                 <tr key={emp.id} className="hover:bg-gray-50/30 transition-colors group">
                   <td className="py-4 px-4">
@@ -479,9 +481,9 @@ export default function EmployeesPage() {
           {/* Mobile Card View */}
           <div className="md:hidden divide-y divide-gray-100">
              {employeesLoading ? (
-                <div className="py-12 text-center text-gray-400 italic">{t('common:loading')}</div>
+                <div className="py-12 text-center text-gray-400 italic">{t('common.loading')}</div>
              ) : employees.length === 0 ? (
-                <div className="py-12 text-center text-gray-400">{t('common:no_data')}</div>
+                <div className="py-12 text-center text-gray-400">{t('common.no_data')}</div>
              ) : employees.map((emp: Employee) => (
                 <div key={emp.id} className="p-4 space-y-4 active:bg-gray-50 transition-colors">
                    <div className="flex justify-between items-start">
@@ -499,7 +501,7 @@ export default function EmployeesPage() {
 
                    <div className="grid grid-cols-2 gap-4 pt-2">
                       <div className="space-y-1">
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{t('employees.columns.department')}</p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.employees.columns.department')}</p>
                         <p className="text-xs font-bold text-navy truncate">{emp.department_name}</p>
                       </div>
                       <div className="space-y-1">
@@ -532,38 +534,38 @@ export default function EmployeesPage() {
       </Card>
 
       {/* Invite Modal */}
-      <Modal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} title={t('employees.invite_modal.title')}>
+      <Modal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} title={t('dashboard.employees.invite_modal.title')}>
         <form onSubmit={inviteForm.handleSubmit(v => inviteMutation.mutate(v))} className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.full_name')}*</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.employees.invite_modal.full_name')}*</label>
             <input {...inviteForm.register('full_name')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10" />
             {inviteForm.formState.errors.full_name && <p className="text-danger text-[10px] font-bold mt-1">{inviteForm.formState.errors.full_name.message}</p>}
           </div>
           <div className="col-span-2">
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.email')}*</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.employees.invite_modal.email')}*</label>
             <input {...inviteForm.register('email')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10" />
             {inviteForm.formState.errors.email && <p className="text-danger text-[10px] font-bold mt-1">{inviteForm.formState.errors.email.message}</p>}
           </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.department')}*</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.employees.invite_modal.department')}*</label>
             <select {...inviteForm.register('department_id')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10">
-              <option value="">{t('common:select')}</option>
+              <option value="">{t('common.select')}</option>
               {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.position')}</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.employees.invite_modal.position')}</label>
             <input {...inviteForm.register('position')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10" />
           </div>
           <div className="col-span-2 flex flex-col sm:flex-row gap-3 pt-4">
             <Button variant="ghost" className="flex-1" onClick={() => setIsInviteModalOpen(false)}>{t('common.cancel')}</Button>
-            <Button loading={inviteMutation.isPending} className="flex-1" type="submit">{t('employees.invite_modal.submit')}</Button>
+            <Button loading={inviteMutation.isPending} className="flex-1" type="submit">{t('dashboard.employees.invite_modal.submit')}</Button>
           </div>
         </form>
       </Modal>
 
       {/* CSV Modal */}
-      <Modal isOpen={isCsvModalOpen} onClose={() => { setIsCsvModalOpen(false); setCsvStep(1); setCsvResults(null); }} title={t('employees.invite_csv')}>
+      <Modal isOpen={isCsvModalOpen} onClose={() => { setIsCsvModalOpen(false); setCsvStep(1); setCsvResults(null); }} title={t('dashboard.employees.invite_csv')}>
         <div className="space-y-8">
           {/* Steps indicator */}
           <div className="flex justify-between relative">
@@ -581,12 +583,12 @@ export default function EmployeesPage() {
                 <FileText size={32} />
               </div>
               <div>
-                <h4 className="font-bold text-navy">{t('employees.csv_modal.step1_title')}</h4>
-                <p className="text-xs text-gray-500 mt-2">{t('employees.csv_modal.step1_desc')}</p>
+                <h4 className="font-bold text-navy">{t('dashboard.employees.csv_modal.step1_title')}</h4>
+                <p className="text-xs text-gray-500 mt-2">{t('dashboard.employees.csv_modal.step1_desc')}</p>
               </div>
               <Button variant="ghost" className="flex gap-2 mx-auto border border-gray-100" onClick={downloadTemplate}>
                 <Download size={16} />
-                {t('employees.csv_modal.download_template')}
+                {t('dashboard.employees.csv_modal.download_template')}
               </Button>
               <Button className="w-full" onClick={() => {
                 if (fileInputRef.current) fileInputRef.current.value = '';
@@ -604,7 +606,7 @@ export default function EmployeesPage() {
                 <Loader2 className="animate-spin" size={32} />
               </div>
               <div>
-                <h4 className="font-bold text-navy">{t('employees.csv_modal.step2_title')}</h4>
+                <h4 className="font-bold text-navy">{t('dashboard.employees.csv_modal.step2_title')}</h4>
                 <p className="text-xs text-gray-500 mt-2">Dosya yükleniyor ve işleniyor...</p>
               </div>
               <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
@@ -617,9 +619,9 @@ export default function EmployeesPage() {
             <div className="space-y-6">
               <div className="text-center">
                 <CheckCircle2 className="text-green-500 mx-auto mb-2" size={48} />
-                <h4 className="font-bold text-navy">{t('employees.csv_modal.success_count', { count: csvResults.success_count })}</h4>
+                <h4 className="font-bold text-navy">{t('dashboard.employees.csv_modal.success_count', { count: csvResults.success_count })}</h4>
                 {csvResults.error_count > 0 && (
-                   <p className="text-sm text-danger font-bold mt-1">{t('employees.csv_modal.error_count', { count: csvResults.error_count })}</p>
+                   <p className="text-sm text-danger font-bold mt-1">{t('dashboard.employees.csv_modal.error_count', { count: csvResults.error_count })}</p>
                 )}
               </div>
               
@@ -646,7 +648,7 @@ export default function EmployeesPage() {
                 </div>
               )}
               
-              <Button className="w-full" onClick={() => { setIsCsvModalOpen(false); setCsvStep(1); setCsvResults(null); }}>{t('common:close')}</Button>
+              <Button className="w-full" onClick={() => { setIsCsvModalOpen(false); setCsvStep(1); setCsvResults(null); }}>{t('common.close')}</Button>
             </div>
           )}
           
@@ -661,38 +663,38 @@ export default function EmployeesPage() {
       </Modal>
 
       {/* Edit Modal (Summary same as Invite) */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title={t('employees.actions.edit')}>
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title={t('dashboard.employees.actions.edit')}>
         <form 
           onSubmit={editForm.handleSubmit((v) => updateMutation.mutate(v))} 
           className="grid grid-cols-2 gap-4"
         >
           <div className="col-span-2">
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.full_name')}*</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.employees.invite_modal.full_name')}*</label>
             <input {...editForm.register('full_name')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10" />
           </div>
           <div className="col-span-2">
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.email')}*</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.employees.invite_modal.email')}*</label>
             <input {...editForm.register('email')} readOnly className="w-full bg-gray-50/50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none cursor-not-allowed" />
           </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.department')}*</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.employees.invite_modal.department')}*</label>
             <select {...editForm.register('department_id')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10">
-              <option value="">{t('common:select')}</option>
+              <option value="">{t('common.select')}</option>
               {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('employees.invite_modal.position')}</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.employees.invite_modal.position')}</label>
             <input {...editForm.register('position')} className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10" />
           </div>
           <div className="col-span-2 flex gap-3 mt-4">
-            <Button variant="ghost" className="flex-1" type="button" onClick={() => setIsEditModalOpen(false)}>{t('common:cancel')}</Button>
+            <Button variant="ghost" className="flex-1" type="button" onClick={() => setIsEditModalOpen(false)}>{t('common.cancel')}</Button>
             <Button 
               loading={updateMutation.isPending} 
               className="flex-1" 
               type="submit"
             >
-              {t('common:save')}
+              {t('common.save')}
             </Button>
           </div>
         </form>
@@ -734,7 +736,7 @@ export default function EmployeesPage() {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="ghost" className="flex-1" onClick={() => setIsAllSurveyModalOpen(false)}>{t('common:cancel')}</Button>
+            <Button variant="ghost" className="flex-1" onClick={() => setIsAllSurveyModalOpen(false)}>{t('common.cancel')}</Button>
             <Button 
               className="flex-1" 
               onClick={() => {
@@ -750,7 +752,7 @@ export default function EmployeesPage() {
                   .catch((err) => toast.error(err.response?.data?.message || 'Gönderim sırasında hata oluştu'));
               }}
             >
-              {t('common:confirm')}
+              {t('common.confirm')}
             </Button>
           </div>
         </div>
@@ -759,7 +761,7 @@ export default function EmployeesPage() {
       <Modal 
         isOpen={isResendModalOpen} 
         onClose={() => setIsResendModalOpen(false)} 
-        title={t('employees.actions.resend')}
+        title={t('dashboard.employees.actions.resend')}
       >
         <div className="space-y-6">
           <div className="h-16 w-16 bg-primary/5 text-primary rounded-full flex items-center justify-center mx-auto">
@@ -791,7 +793,7 @@ export default function EmployeesPage() {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="ghost" className="flex-1" onClick={() => setIsResendModalOpen(false)}>{t('common:cancel')}</Button>
+            <Button variant="ghost" className="flex-1" onClick={() => setIsResendModalOpen(false)}>{t('common.cancel')}</Button>
             <Button 
               loading={resendInviteMutation.isPending} 
               className="flex-1" 
@@ -801,7 +803,7 @@ export default function EmployeesPage() {
                 resendInviteMutation.mutate({ survey_id, period });
               }}
             >
-              {t('common:confirm')}
+              {t('common.confirm')}
             </Button>
           </div>
         </div>
@@ -810,7 +812,7 @@ export default function EmployeesPage() {
       <Modal 
         isOpen={isStatusModalOpen} 
         onClose={() => setIsStatusModalOpen(false)} 
-        title={selectedEmployee?.is_active ? t('employees.actions.deactivate') : t('employees.actions.activate')}
+        title={selectedEmployee?.is_active ? t('dashboard.employees.actions.deactivate') : t('dashboard.employees.actions.activate')}
       >
         <div className="text-center space-y-6">
           <div className={`h-16 w-16 ${selectedEmployee?.is_active ? 'bg-danger/5 text-danger' : 'bg-green-50 text-green-500'} rounded-full flex items-center justify-center mx-auto`}>
@@ -820,14 +822,14 @@ export default function EmployeesPage() {
             <strong>{selectedEmployee?.full_name}</strong> isimli çalışanın hesabını {selectedEmployee?.is_active ? 'devre dışı bırakmak' : 'aktifleştirmek'} istediğinize emin misiniz?
           </p>
           <div className="flex gap-3">
-            <Button variant="ghost" className="flex-1" onClick={() => setIsStatusModalOpen(false)}>{t('common:cancel')}</Button>
+            <Button variant="ghost" className="flex-1" onClick={() => setIsStatusModalOpen(false)}>{t('common.cancel')}</Button>
             <Button 
               variant={selectedEmployee?.is_active ? "danger" : "primary"}
               loading={updateStatusMutation.isPending} 
               className="flex-1" 
               onClick={() => updateStatusMutation.mutate(!selectedEmployee?.is_active)}
             >
-              {t('common:confirm')}
+              {t('common.confirm')}
             </Button>
           </div>
         </div>
@@ -908,7 +910,7 @@ export default function EmployeesPage() {
           </div>
           <div className="flex gap-3">
             <Button variant="ghost" className="flex-1" onClick={() => setDeleteTarget(null)} disabled={deleteMutation.isPending}>
-              {t('common:cancel')}
+              {t('common.cancel')}
             </Button>
             <Button
               className="flex-1 bg-red-500 hover:bg-red-600 text-white border-0"
@@ -927,13 +929,13 @@ export default function EmployeesPage() {
 function StatusBadge({ status, t }: { status: string, t: any }) {
   switch (status) {
     case 'active':
-      return <Badge variant="green" size="md">{t('employees.invite_status.active')}</Badge>;
+      return <Badge variant="green" size="md">{t('dashboard.employees.invite_status.active')}</Badge>;
     case 'invited':
-      return <Badge variant="yellow" size="md">{t('employees.invite_status.invited')}</Badge>;
+      return <Badge variant="yellow" size="md">{t('dashboard.employees.invite_status.invited')}</Badge>;
     case 'token_sent':
-      return <Badge variant="blue" size="md">{t('employees.invite_status.token_sent')}</Badge>;
+      return <Badge variant="blue" size="md">{t('dashboard.employees.invite_status.token_sent')}</Badge>;
     case 'expired':
-      return <Badge variant="red" size="md">{t('employees.invite_status.expired')}</Badge>;
+      return <Badge variant="red" size="md">{t('dashboard.employees.invite_status.expired')}</Badge>;
     default:
       return <Badge variant="gray" size="md">BİLİNMİYOR</Badge>;
   }

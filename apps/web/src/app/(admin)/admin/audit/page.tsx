@@ -21,12 +21,13 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import { tr, enUS } from 'date-fns/locale';
 
 import { useTranslation } from 'react-i18next';
 
 export default function AuditLogPage() {
-  const { t } = useTranslation('admin');
+  const { t, i18n } = useTranslation('admin');
+  const dateLocale = i18n.language === 'tr' ? tr : enUS;
   const searchParams = useSearchParams();
   const companyIdParam = searchParams.get('company_id') || '';
   
@@ -76,7 +77,14 @@ export default function AuditLogPage() {
 
   const handleExport = () => {
     // Basic CSV export
-    const headers = ['Tarih', 'Kullanıcı', 'Firma', 'İşlem', 'Hedef', 'IP'];
+    const headers = [
+      t('admin.audit.columns.date'),
+      t('admin.audit.columns.user'),
+      t('admin.audit.columns.company'),
+      t('admin.audit.columns.action'),
+      t('admin.audit.columns.target'),
+      t('admin.audit.columns.ip')
+    ];
     const csvContent = [
       headers.join(';'),
       ...logs.map(l => [
@@ -110,12 +118,12 @@ export default function AuditLogPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-navy">{t('audit.title')}</h1>
-          <p className="text-sm text-gray-500">{t('audit.subtitle')}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-navy">{t('admin.audit.title')}</h1>
+          <p className="text-sm text-gray-500">{t('admin.audit.subtitle')}</p>
         </div>
         <Button variant="ghost" onClick={handleExport} className="w-full sm:w-auto flex gap-2 text-xs md:text-sm border border-gray-100 bg-white shadow-sm">
           <Download size={16} />
-          {t('audit.export_csv')}
+          {t('admin.audit.export_csv')}
         </Button>
       </div>
 
@@ -126,7 +134,7 @@ export default function AuditLogPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder={t('audit.search_placeholder')}
+              placeholder={t('admin.audit.search_placeholder')}
               value={filters.action}
               onChange={(e) => setFilters({ ...filters, action: e.target.value, page: 1 })}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
@@ -138,8 +146,8 @@ export default function AuditLogPage() {
               onChange={(e) => setFilters({ ...filters, company_id: e.target.value, page: 1 })}
               className="w-full sm:w-48 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="">{t('common:all_companies')}</option>
-              <option value="system">{t('audit.system_global')}</option>
+              <option value="">{t('common.all_companies')}</option>
+              <option value="system">{t('admin.audit.system_global')}</option>
               {companies.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -158,7 +166,7 @@ export default function AuditLogPage() {
                  className="flex-1 sm:w-32 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" 
                />
             </div>
-            <Button variant="secondary" className="lg:px-6" onClick={() => setFilters({ ...filters, page: 1 })}>{t('common:filter')}</Button>
+            <Button variant="secondary" className="lg:px-6" onClick={() => setFilters({ ...filters, page: 1 })}>{t('common.filter')}</Button>
           </div>
         </div>
 
@@ -174,24 +182,24 @@ export default function AuditLogPage() {
           <table className="hidden md:table w-full text-left text-sm">
             <thead className="bg-gray-50 text-gray-500 font-black uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="py-4 px-4">{t('audit.columns.date')}</th>
-                <th className="py-4 px-4">{t('audit.columns.user')}</th>
-                <th className="py-4 px-4">{t('audit.columns.company')}</th>
-                <th className="py-4 px-4">{t('audit.columns.action')}</th>
-                <th className="py-4 px-4">{t('audit.columns.target')}</th>
-                <th className="py-4 px-4 text-right">{t('audit.columns.ip')}</th>
+                <th className="py-4 px-4">{t('admin.audit.columns.date')}</th>
+                <th className="py-4 px-4">{t('admin.audit.columns.user')}</th>
+                <th className="py-4 px-4">{t('admin.audit.columns.company')}</th>
+                <th className="py-4 px-4">{t('admin.audit.columns.action')}</th>
+                <th className="py-4 px-4">{t('admin.audit.columns.target')}</th>
+                <th className="py-4 px-4 text-right">{t('admin.audit.columns.ip')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {logs.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-400 italic">{t('common:no_data')}</td>
+                  <td colSpan={6} className="py-12 text-center text-gray-400 italic">{t('common.no_data')}</td>
                 </tr>
               ) : (
                 logs.map((log) => (
                   <AuditRow 
                     key={log.id}
-                    date={format(new Date(log.created_at), 'dd MMM HH:mm', { locale: tr })} 
+                    date={format(new Date(log.created_at), 'dd MMM HH:mm', { locale: dateLocale })} 
                     user={log.user?.full_name || log.user?.email || 'System'} 
                     company={log.user?.company?.name || 'System'} 
                     action={log.action} 
@@ -209,7 +217,7 @@ export default function AuditLogPage() {
              {logs.map((log) => (
                 <MobileAuditCard 
                   key={log.id}
-                  date={format(new Date(log.created_at), 'dd MMM HH:mm', { locale: tr })} 
+                  date={format(new Date(log.created_at), 'dd MMM HH:mm', { locale: dateLocale })} 
                   user={log.user?.full_name || log.user?.email || 'System'} 
                   company={log.user?.company?.name || 'System'} 
                   action={log.action} 
@@ -223,7 +231,7 @@ export default function AuditLogPage() {
 
         {/* Pagination */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between border-t border-gray-50 pt-4 gap-4">
-          <p className="text-xs text-gray-500">{t('audit.pagination_info', { total, per_page: filters.per_page })}</p>
+          <p className="text-xs text-gray-500">{t('admin.audit.pagination_info', { total, per_page: filters.per_page })}</p>
           <div className="flex gap-2">
             <Button 
               variant="ghost" 
@@ -271,7 +279,7 @@ function MobileAuditCard({ date, user, company, action, target, ip, variant }: a
             <Badge variant={variant} className="text-[8px] px-1 py-0 font-black uppercase tracking-widest">{action}</Badge>
             <span className="text-[10px] text-gray-400 font-mono">{ip}</span>
          </div>
-         <p className="text-[10px] text-gray-500 italic bg-gray-50 p-2 rounded-lg border border-gray-100">{t('audit.columns.target')}: {target}</p>
+         <p className="text-[10px] text-gray-500 italic bg-gray-50 p-2 rounded-lg border border-gray-100">{t('admin.audit.columns.target')}: {target}</p>
       </div>
     </div>
   );

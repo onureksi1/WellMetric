@@ -17,6 +17,7 @@ import { UserModule } from '../user/user.module';
 import { CompanyModule } from '../company/company.module';
 import { CampaignModule } from '../campaign/campaign.module';
 import { BillingModule } from '../billing/billing.module';
+import { TrainingModule } from '../training/training.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { BillingModule } from '../billing/billing.module';
     CompanyModule,
     CampaignModule,
     BillingModule,
+    TrainingModule,
   ],
   controllers: [CronController],
   providers: [

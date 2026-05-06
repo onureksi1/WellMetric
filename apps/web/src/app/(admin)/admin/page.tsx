@@ -67,7 +67,7 @@ const formatDelta = (current: number, prev: number) => {
   return { label: '→', color: 'text-gray-400' };
 };
 
-const timeAgo = (date: string | Date) => {
+const timeAgo = (date: string | Date, t: any) => {
   const now = new Date();
   const past = new Date(date);
   const diffMs = now.getTime() - past.getTime();
@@ -75,10 +75,10 @@ const timeAgo = (date: string | Date) => {
   const diffHrs = Math.floor(diffMin / 60);
   const diffDays = Math.floor(diffHrs / 24);
 
-  if (diffMin < 60) return `${diffMin} dakika önce`;
-  if (diffHrs < 24) return `${diffHrs} saat önce`;
-  if (diffDays < 7) return `${diffDays} gün önce`;
-  return past.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+  if (diffMin < 60) return t('common.time.minutes_ago', { count: diffMin });
+  if (diffHrs < 24) return t('common.time.hours_ago', { count: diffHrs });
+  if (diffDays < 7) return t('common.time.days_ago', { count: diffDays });
+  return past.toLocaleDateString();
 };
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -102,8 +102,8 @@ export default function AdminDashboardPage() {
   if (isLoading) return <DashboardSkeleton />;
   if (isError) return (
     <div className="flex flex-col items-center justify-center h-96 space-y-4">
-      <p className="text-gray-500 font-medium">Veriler yüklenirken bir hata oluştu.</p>
-      <Button onClick={() => refetch()} variant="outline">Tekrar Dene</Button>
+      <p className="text-gray-500 font-medium">{t('common.loading_error')}</p>
+      <Button onClick={() => refetch()} variant="outline">{t('common.retry')}</Button>
     </div>
   );
 
@@ -116,51 +116,51 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8 pb-12">
       {/* ROW 1: 6 METRIC CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard 
           icon={<Building2 size={20} />}
-          label="Aktif Firma"
+          label={t('admin.dashboard.metrics.active_companies')}
           value={metrics.active_companies}
           delta={formatDelta(metrics.new_this_month, metrics.new_prev_month)}
-          subLabel="Bu Ay Yeni"
+          subLabel={t('admin.dashboard.metrics.new_this_month')}
           href="/admin/companies"
         />
         <MetricCard 
           icon={<Activity size={20} />}
-          label="Platform Ort."
+          label={t('admin.dashboard.metrics.platform_avg')}
           value={(Number(metrics.platform_avg_score) || 0).toFixed(1)}
           delta={formatDelta(Number(metrics.platform_avg_score) || 0, Number(metrics.platform_avg_score_prev) || 0)}
-          subLabel="Puan Değişimi"
+          subLabel={t('admin.dashboard.metrics.score_change')}
           href="/admin/companies"
         />
         <MetricCard 
           icon={<Users size={20} />}
-          label="Toplam Çalışan"
+          label={t('admin.dashboard.metrics.total_employees')}
           value={formatNumber(metrics.total_employees)}
-          subLabel="Aktif Kullanıcı"
+          subLabel={t('admin.dashboard.metrics.active_users')}
           href="/admin/companies"
         />
         <MetricCard 
           icon={<ClipboardCheck size={20} />}
-          label="Katılım Oranı"
+          label={t('admin.dashboard.metrics.participation_rate')}
           value={`%${(Number(metrics.avg_participation_rate) || 0).toFixed(1)}`}
           delta={formatDelta(Number(metrics.avg_participation_rate) || 0, Number(metrics.avg_participation_prev) || 0)}
-          subLabel="Genel Ortalama"
+          subLabel={t('admin.dashboard.metrics.general_avg')}
           href="/admin/surveys"
         />
         <MetricCard 
           icon={<TrendingUp size={20} />}
-          label="Bu Ay Yanıt"
+          label={t('admin.dashboard.metrics.monthly_responses')}
           value={formatNumber(metrics.total_responses_this_month)}
           delta={formatDelta(metrics.total_responses_this_month, metrics.total_responses_prev_month)}
-          subLabel="Anket Yanıtı"
+          subLabel={t('admin.dashboard.metrics.survey_responses')}
           href="/admin/surveys"
         />
         <MetricCard 
           icon={<Bot size={20} />}
-          label="AI Insight"
+          label={t('admin.dashboard.metrics.ai_insights')}
           value={metrics.ai_insights_this_month}
-          subLabel="Bu Ay Üretilen"
+          subLabel={t('admin.dashboard.metrics.generated_this_month')}
           href="/admin/audit"
         />
       </div>
@@ -171,7 +171,7 @@ export default function AdminDashboardPage() {
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-navy flex items-center gap-2">
               <TrendingUp size={18} className="text-primary" />
-              Platform Esenlik Trendi (12 Ay)
+              {t('admin.dashboard.wellness_trend')}
             </h3>
           </div>
           <div style={{ height: chartHeight }} className="w-full">
@@ -186,9 +186,9 @@ export default function AdminDashboardPage() {
                   cursor={{ fill: '#f8fafc' }}
                 />
                 <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-                <Bar yAxisId="left" name="Yanıt Sayısı" dataKey="response_count" fill="#dcfce7" radius={[4, 4, 0, 0]} />
-                <Line yAxisId="right" name="Ort. Skor" type="monotone" dataKey="avg_score" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} />
-                <Line yAxisId="right" name="Firma Sayısı" type="monotone" dataKey="company_count" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth={2} dot={false} />
+                <Bar yAxisId="left" name={t('admin.dashboard.response_count')} dataKey="response_count" fill="#dcfce7" radius={[4, 4, 0, 0]} />
+                <Line yAxisId="right" name={t('admin.dashboard.avg_score')} type="monotone" dataKey="avg_score" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} />
+                <Line yAxisId="right" name={t('admin.dashboard.company_count')} type="monotone" dataKey="company_count" stroke="#94a3b8" strokeDasharray="5 5" strokeWidth={2} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -198,7 +198,7 @@ export default function AdminDashboardPage() {
           <Card className="p-6">
             <h3 className="font-bold text-navy mb-4 text-sm flex items-center gap-2">
               <PieIcon size={16} className="text-primary" />
-              Üyelik Planı Dağılımı
+              {t('admin.dashboard.plan_dist')}
             </h3>
             <div className="h-[180px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -235,7 +235,7 @@ export default function AdminDashboardPage() {
           <Card className="p-6">
             <h3 className="font-bold text-navy mb-4 text-sm flex items-center gap-2">
               <Target size={16} className="text-primary" />
-              Boyut Ortalamaları
+              {t('admin.dashboard.dimension_avgs')}
             </h3>
             <div className="space-y-3">
               {data.dimension_averages.map((dim: any) => {
@@ -267,18 +267,18 @@ export default function AdminDashboardPage() {
           <div>
             <h3 className="font-bold text-navy flex items-center gap-2">
               <Activity size={18} className="text-primary" />
-              Firma Sağlık Haritası
+              {t('admin.dashboard.health_map')}
             </h3>
-            <p className="text-xs text-gray-400 font-medium">Katılım Oranı vs. Wellbeing Skoru</p>
+            <p className="text-xs text-gray-400 font-medium">{t('admin.dashboard.participation_vs_wellbeing')}</p>
           </div>
         </div>
         <div style={{ height: healthMapHeight }} className="w-full relative">
           {/* QUADRANTS BACKGROUND */}
           <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 opacity-5 pointer-events-none ml-[40px] md:ml-[60px] mb-[20px] md:mb-[30px]">
-            <div className="border-r border-b border-navy flex items-start justify-start p-2 md:p-4"><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-navy">Gizli Risk?</span></div>
-            <div className="border-b border-navy flex items-start justify-end p-2 md:p-4"><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-green-600">İdeal</span></div>
-            <div className="border-r border-navy flex items-end justify-start p-2 md:p-4"><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-red-600">Kritik</span></div>
-            <div className="flex items-end justify-end p-2 md:p-4"><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-navy">Takip Et</span></div>
+            <div className="border-r border-b border-navy flex items-start justify-start p-2 md:p-4"><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-navy">{t('admin.dashboard.quadrants.hidden_risk')}</span></div>
+            <div className="border-b border-navy flex items-start justify-end p-2 md:p-4"><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-green-600">{t('admin.dashboard.quadrants.ideal')}</span></div>
+            <div className="border-r border-navy flex items-end justify-start p-2 md:p-4"><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-red-600">{t('admin.dashboard.quadrants.critical')}</span></div>
+            <div className="flex items-end justify-end p-2 md:p-4"><span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-navy">{t('admin.dashboard.quadrants.follow_up')}</span></div>
           </div>
           
           <ResponsiveContainer width="100%" height="100%">
@@ -287,7 +287,7 @@ export default function AdminDashboardPage() {
               <XAxis 
                 type="number" 
                 dataKey="participation_rate" 
-                name="Katılım Oranı" 
+                name={t('admin.dashboard.table.participation')} 
                 unit="%" 
                 domain={[0, 100]}
                 axisLine={false}
@@ -297,7 +297,7 @@ export default function AdminDashboardPage() {
               <YAxis 
                 type="number" 
                 dataKey="overall_score" 
-                name="Wellbeing Skoru" 
+                name={t('admin.dashboard.table.score')} 
                 domain={[0, 100]}
                 axisLine={false}
                 tickLine={false}
@@ -313,10 +313,10 @@ export default function AdminDashboardPage() {
                       <div className="bg-white p-4 rounded-xl shadow-xl border border-gray-100 min-w-[200px]">
                         <p className="font-black text-navy mb-2">{data.name}</p>
                         <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-gray-400 flex justify-between">SKOR: <span className="text-navy">{(Number(data.overall_score) || 0).toFixed(1)}</span></p>
-                          <p className="text-[10px] font-bold text-gray-400 flex justify-between">KATILIM: <span className="text-navy">%{(Number(data.participation_rate) || 0).toFixed(1)}</span></p>
-                          <p className="text-[10px] font-bold text-gray-400 flex justify-between">ÇALIŞAN: <span className="text-navy">{data.employee_count}</span></p>
-                          <p className="text-[10px] font-bold text-gray-400 flex justify-between">PLAN: <span className="text-primary uppercase">{data.plan}</span></p>
+                          <p className="text-[10px] font-bold text-gray-400 flex justify-between uppercase">{t('admin.dashboard.table.score')}: <span className="text-navy">{(Number(data.overall_score) || 0).toFixed(1)}</span></p>
+                          <p className="text-[10px] font-bold text-gray-400 flex justify-between uppercase">{t('admin.dashboard.table.participation')}: <span className="text-navy">%{(Number(data.participation_rate) || 0).toFixed(1)}</span></p>
+                          <p className="text-[10px] font-bold text-gray-400 flex justify-between uppercase">{t('admin.companies.table.employee_count')}: <span className="text-navy">{data.employee_count}</span></p>
+                          <p className="text-[10px] font-bold text-gray-400 flex justify-between uppercase">{t('admin.companies.table.plan')}: <span className="text-primary uppercase">{data.plan}</span></p>
                         </div>
                       </div>
                     );
@@ -324,7 +324,7 @@ export default function AdminDashboardPage() {
                   return null;
                 }}
               />
-              <Scatter name="Firmalar" data={data.company_health} onClick={(node: any) => window.location.href=`/admin/companies/${node.id || node.payload?.id}`}>
+              <Scatter name={t('admin.dashboard.health_map')} data={data.company_health} onClick={(node: any) => window.location.href=`/admin/companies/${node.id || node.payload?.id}`}>
                 {data.company_health.map((entry: any, index: number) => (
                   <Cell 
                     key={`cell-${index}`} 
@@ -348,7 +348,7 @@ export default function AdminDashboardPage() {
         <Card className="lg:col-span-4 p-6">
           <h3 className="font-bold text-navy mb-6 flex items-center gap-2">
             <BarChartIcon size={18} className="text-primary" />
-            Sektör Karşılaştırması
+            {t('admin.dashboard.sector_comparison')}
           </h3>
           <div style={{ height: sectorChartHeight }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -407,7 +407,7 @@ export default function AdminDashboardPage() {
         <Card className="lg:col-span-4 p-6">
           <h3 className="font-bold text-navy mb-6 flex items-center gap-2">
             <Zap size={18} className="text-primary" />
-            Büyüme Trendi (6 Ay)
+            {t('admin.dashboard.growth_trend')}
           </h3>
           <div style={{ height: sectorChartHeight }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -422,8 +422,8 @@ export default function AdminDashboardPage() {
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                 <Tooltip />
-                <Area type="monotone" dataKey="company_count" name="Firma Sayısı" stroke="#1e293b" fillOpacity={1} fill="url(#colorCount)" strokeWidth={2} />
-                <Area type="monotone" dataKey={(d) => d.employee_count / 10} name="Çalışan / 10" stroke="#10b981" fill="transparent" strokeWidth={2} strokeDasharray="4 4" />
+                <Area type="monotone" dataKey="company_count" name={t('admin.dashboard.company_count')} stroke="#1e293b" fillOpacity={1} fill="url(#colorCount)" strokeWidth={2} />
+                <Area type="monotone" dataKey={(d) => d.employee_count / 10} name={t('admin.dashboard.employees_div_10')} stroke="#10b981" fill="transparent" strokeWidth={2} strokeDasharray="4 4" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -433,22 +433,22 @@ export default function AdminDashboardPage() {
         <div className="lg:col-span-4 space-y-4">
           <Card className="p-5 bg-gradient-to-br from-white to-primary/5 border-primary/10">
             <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-1.5">
-              <ClipboardCheck size={12} /> Anket Performansı
+              <ClipboardCheck size={12} /> {t('admin.dashboard.survey_performance')}
             </h4>
             <div className="grid grid-cols-2 gap-4">
                <div>
-                  <p className="text-[10px] font-bold text-gray-400 mb-0.5">BU AY KAMPANYA</p>
+                  <p className="text-[10px] font-bold text-gray-400 mb-0.5 uppercase">{t('admin.dashboard.campaign_this_month')}</p>
                   <p className="text-xl font-black text-navy">{data.survey_performance.total_campaigns_this_month}</p>
                </div>
                <div>
-                  <p className="text-[10px] font-bold text-gray-400 mb-0.5">ORT. TAMAMLAMA</p>
+                  <p className="text-[10px] font-bold text-gray-400 mb-0.5 uppercase">{t('admin.dashboard.avg_completion')}</p>
                   <p className="text-xl font-black text-primary">%{(Number(data.survey_performance.avg_completion_rate) || 0).toFixed(1)}</p>
                </div>
             </div>
             {data.survey_performance.best_campaign && (
               <div className="mt-4 pt-4 border-t border-primary/10 flex items-center justify-between">
                  <div>
-                    <p className="text-[10px] font-bold text-gray-400">EN BAŞARILI</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase">{t('admin.dashboard.best_performance')}</p>
                     <p className="text-xs font-black text-navy line-clamp-1">{data.survey_performance.best_campaign.company_name}</p>
                  </div>
                  <Badge variant="green">%{(Number(data.survey_performance.best_campaign.completion_rate) || 0).toFixed(1)}</Badge>
@@ -458,23 +458,23 @@ export default function AdminDashboardPage() {
 
           <Card className="p-5 bg-gradient-to-br from-white to-navy/5 border-navy/10">
             <h4 className="text-[10px] font-black text-navy uppercase tracking-widest mb-4 flex items-center gap-1.5">
-              <Bot size={12} /> AI Aktivite
+              <Bot size={12} /> {t('admin.dashboard.ai_activity')}
             </h4>
             <div className="space-y-4">
                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-gray-500">Bu Ay Üretilen Insight</span>
+                  <span className="text-xs font-bold text-gray-500">{t('admin.dashboard.insights_generated')}</span>
                   <span className="text-sm font-black text-navy">{data.ai_activity.total_insights_this_month}</span>
                </div>
                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-gray-500">Risk Altındaki Firma</span>
+                  <span className="text-xs font-bold text-gray-500">{t('admin.dashboard.companies_at_risk')}</span>
                   <span className="text-sm font-black text-red-600">{data.ai_activity.risk_alerts_this_month}</span>
                </div>
                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-gray-500">İstihbarat Raporu</span>
+                  <span className="text-xs font-bold text-gray-500">{t('admin.dashboard.intelligence_reports')}</span>
                   <span className="text-sm font-black text-primary">{data.ai_activity.intelligence_reports_generated}</span>
                </div>
                <div className="pt-2">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase">EN ÇOK KULLANILAN</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">{t('admin.dashboard.most_used')}</p>
                   <p className="text-xs font-black text-navy">{data.ai_activity.most_used_feature}</p>
                </div>
             </div>
@@ -491,13 +491,13 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab('top')}
               className={`flex-1 px-6 py-4 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'top' ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-gray-400 hover:text-navy'}`}
             >
-              En İyi Performans ▲
+              {t('admin.dashboard.top_performance')}
             </button>
             <button 
               onClick={() => setActiveTab('bottom')}
               className={`flex-1 px-6 py-4 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'bottom' ? 'text-red-600 border-b-2 border-red-600 bg-red-50' : 'text-gray-400 hover:text-navy'}`}
             >
-              Dikkat Gereken ▼
+              {t('admin.dashboard.needs_attention')}
             </button>
           </div>
           <div className="p-0 overflow-x-auto">
@@ -505,12 +505,12 @@ export default function AdminDashboardPage() {
             <table className="hidden md:table w-full text-left">
               <thead>
                 <tr className="bg-gray-50/50 text-[10px] font-black text-gray-400 uppercase border-b">
-                  <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">Firma</th>
-                  <th className="px-4 py-3">Sektör</th>
-                  <th className="px-4 py-3 text-center">Skor</th>
-                  <th className="px-4 py-3 text-center">Katılım</th>
-                  <th className="px-4 py-3 text-center">Trend</th>
+                  <th className="px-4 py-3">{t('admin.dashboard.table.rank')}</th>
+                  <th className="px-4 py-3">{t('admin.dashboard.table.company')}</th>
+                  <th className="px-4 py-3">{t('admin.dashboard.table.sector')}</th>
+                  <th className="px-4 py-3 text-center">{t('admin.dashboard.table.score')}</th>
+                  <th className="px-4 py-3 text-center">{t('admin.dashboard.table.participation')}</th>
+                  <th className="px-4 py-3 text-center">{t('admin.dashboard.table.trend')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -538,7 +538,7 @@ export default function AdminDashboardPage() {
                       {company.trend === 'up' && <ArrowUpRight size={16} className="text-green-500 mx-auto" />}
                       {company.trend === 'down' && <ArrowDownRight size={16} className="text-red-500 mx-auto" />}
                       {company.trend === 'stable' && <Minus size={16} className="text-gray-300 mx-auto" />}
-                      {company.trend === 'new' && <Badge variant="blue" className="text-[8px] px-1 py-0">YENİ</Badge>}
+                      {company.trend === 'new' && <Badge variant="blue" className="text-[8px] px-1 py-0">{t('admin.dashboard.new_badge')}</Badge>}
                     </td>
                   </tr>
                 ))}
@@ -559,24 +559,24 @@ export default function AdminDashboardPage() {
                         {(Number(company.overall_score) || 0).toFixed(1)}
                       </span>
                       <div className="flex items-center justify-end gap-1">
-                        <span className="text-[10px] font-bold text-gray-400">TREND:</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">{t('admin.dashboard.table.trend')}:</span>
                         {company.trend === 'up' && <ArrowUpRight size={12} className="text-green-500" />}
                         {company.trend === 'down' && <ArrowDownRight size={12} className="text-red-500" />}
                         {company.trend === 'stable' && <Minus size={12} className="text-gray-300" />}
-                        {company.trend === 'new' && <Badge variant="blue" className="text-[8px] px-1 py-0">YENİ</Badge>}
+                        {company.trend === 'new' && <Badge variant="blue" className="text-[8px] px-1 py-0">{t('admin.dashboard.new_badge')}</Badge>}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <Badge variant="gray" className="text-[9px] font-bold uppercase">{company.industry}</Badge>
-                    <div className="text-[10px] font-bold text-navy">KATILIM: %{(Number(company.participation_rate) || 0).toFixed(1)}</div>
+                    <div className="text-[10px] font-bold text-navy uppercase">{t('admin.dashboard.table.participation')}: %{(Number(company.participation_rate) || 0).toFixed(1)}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
           <Link href="/admin/companies" className="p-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors border-t">
-            {t('dashboard.view_all_companies')} →
+            {t('admin.dashboard.view_all_companies')} →
           </Link>
         </Card>
 
@@ -584,14 +584,14 @@ export default function AdminDashboardPage() {
         <Card className="lg:col-span-3 p-6 flex flex-col h-full">
            <h3 className="font-bold text-navy mb-6 flex items-center gap-2">
             <AlertTriangle size={18} className="text-red-500" />
-            Kritik Alarmlar
+            {t('admin.dashboard.critical_alerts')}
           </h3>
           <div className="flex-1 space-y-4 overflow-y-auto max-h-[400px] pr-2">
             {data.alerts.length > 0 ? data.alerts.map((alert: any, idx: number) => (
               <div key={idx} className="p-4 rounded-xl border border-red-100 bg-red-50/50 hover:bg-red-50 transition-colors group cursor-pointer" onClick={() => window.location.href=`/admin/companies/${alert.company_id}`}>
                 <div className="flex justify-between items-start mb-1">
                   <span className="text-xs font-black text-navy">{alert.company_name}</span>
-                  <Badge variant="red" className="text-[8px] px-1 py-0">KRİTİK</Badge>
+                  <Badge variant="red" className="text-[8px] px-1 py-0 uppercase">{t('admin.dashboard.quadrants.critical')}</Badge>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-gray-500 uppercase">{alert.dimension}:</span>
@@ -599,8 +599,8 @@ export default function AdminDashboardPage() {
                   <span className="text-[10px] font-bold text-red-400">(▼{alert.delta})</span>
                 </div>
                 <div className="flex justify-end mt-2">
-                  <span className="text-[8px] font-black text-red-600 group-hover:underline flex items-center gap-0.5">
-                    FİRMAYA GİT <ChevronRight size={8} />
+                  <span className="text-[8px] font-black text-red-600 group-hover:underline flex items-center gap-0.5 uppercase">
+                    {t('admin.dashboard.go_to_company')} <ChevronRight size={8} />
                   </span>
                 </div>
               </div>
@@ -609,7 +609,7 @@ export default function AdminDashboardPage() {
                 <div className="h-12 w-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
                    <Trophy size={24} />
                 </div>
-                <p className="text-xs font-bold text-navy">{t('dashboard.all_companies_normal')}</p>
+                <p className="text-xs font-bold text-navy">{t('admin.dashboard.all_companies_normal')}</p>
               </div>
             )}
           </div>
@@ -619,7 +619,7 @@ export default function AdminDashboardPage() {
         <Card className="lg:col-span-4 p-6 flex flex-col h-full">
           <h3 className="font-bold text-navy mb-6 flex items-center gap-2">
             <Clock size={18} className="text-primary" />
-            {t('dashboard.recent_actions')}
+            {t('admin.dashboard.recent_actions')}
           </h3>
           <div className="flex-1 space-y-4 overflow-y-auto max-h-[400px] pr-2">
             {data.recent_audit.map((log: any, idx: number) => (
@@ -630,7 +630,7 @@ export default function AdminDashboardPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-0.5">
                     <p className="text-xs font-black text-navy line-clamp-1">{log.action}</p>
-                    <span className="text-[8px] font-bold text-gray-400 whitespace-nowrap">{timeAgo(log.created_at)}</span>
+                    <span className="text-[8px] font-bold text-gray-400 whitespace-nowrap">{timeAgo(log.created_at, t)}</span>
                   </div>
                   <p className="text-[10px] text-gray-500 font-medium truncate">{log.user_email}</p>
                   {log.company_name && <p className="text-[10px] font-bold text-primary mt-1">{log.company_name}</p>}
@@ -639,7 +639,7 @@ export default function AdminDashboardPage() {
             ))}
           </div>
           <Link href="/admin/audit" className="mt-6 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors border-t pt-4">
-            {t('dashboard.view_all_audit_logs')} →
+            {t('admin.dashboard.view_all_audit_logs')} →
           </Link>
         </Card>
       </div>

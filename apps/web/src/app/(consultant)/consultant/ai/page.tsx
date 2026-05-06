@@ -1,47 +1,59 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { 
-  Bot, 
-  Sparkles, 
-  Brain, 
-  LineChart, 
+import { useT } from '@/hooks/useT';
+import {
+  Bot,
+  Sparkles,
+  Brain,
+  LineChart,
   Zap,
   ArrowRight,
-  Plus,
   MessageSquare,
   Building2,
   CheckCircle2,
   Loader2
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import client from '@/lib/api/client';
+import Link from 'next/link';
+
+const getScoreColor = (score: number | null) => {
+  if (!score) return '#94a3b8';
+  if (score >= 70) return '#10b981';
+  if (score >= 50) return '#f59e0b';
+  return '#ef4444';
+};
 
 export default function ConsultantAIPage() {
-  const router = useRouter();
-  const { t } = useTranslation('consultant');
+  const { t, tc } = useT('consultant');
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [credits, setCredits] = useState<any>(null);
-  
-  const currentPeriod = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+  const currentPeriod = new Date().toISOString().slice(0, 7);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [compRes, billRes] = await Promise.all([
-          client.get('/consultant/companies'),
-          client.get('/consultant/billing/overview')
-        ]);
-        setCompanies(Array.isArray(compRes.data) ? compRes.data : (compRes.data.data || []));
-        setCredits(billRes.data.credits?.ai_credit || { balance: 0 });
+        const compRes = await client.get('/consultant/companies');
+        const companiesData = compRes.data?.data || compRes.data || [];
+        setCompanies(Array.isArray(companiesData) ? companiesData : []);
+        
+        try {
+          const billRes = await client.get('/consultant/billing/credits');
+          const balances = Array.isArray(billRes.data) ? billRes.data : [];
+          const aiCredit = balances.find((b: any) => b.key === 'ai_credit');
+          setCredits(aiCredit || { balance: 0 });
+        } catch (err) {
+          setCredits({ balance: 0 });
+        }
       } catch (error) {
         console.error('Error fetching data for AI page:', error);
+        toast.error('Veriler yüklenirken bir hata oluştu');
       } finally {
         setLoading(false);
       }
@@ -52,7 +64,7 @@ export default function ConsultantAIPage() {
 
   const handleRunAnalysis = async () => {
     if (selectedCompanies.length < 2) {
-      toast.error('Lütfen karşılaştırma için en az 2 firma seçin.');
+      toast.error('Lütfen karşılaştırmak için en az 2 firma seçin');
       return;
     }
 
@@ -64,232 +76,205 @@ export default function ConsultantAIPage() {
         period: currentPeriod,
       });
       setAnalysisResult(response.data.data || response.data);
-      toast.success('AI Analizi tamamlandı!');
+      toast.success('Analiz başarıyla tamamlandı');
     } catch (err: any) {
-      if (err.response?.status === 402) {
-        toast.error('AI krediniz yetersiz. Lütfen kredi yükleyin.');
-      } else {
-        const message = err.response?.data?.error?.message || 'Analiz sırasında bir hata oluştu.';
-        toast.error(message);
-      }
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleIntelligenceReport = async (companyId: string) => {
-    setIsAnalyzing(true);
-    setAnalysisResult(null);
-    try {
-      const response = await client.post(`/consultant/ai/intelligence-report/${companyId}`, {
-        period: currentPeriod,
-      });
-      setAnalysisResult(response.data.data || response.data);
-      toast.success('İstihbarat raporu hazır!');
-    } catch (err: any) {
-      if (err.response?.status === 402) {
-        toast.error('AI krediniz yetersiz (10 kredi gerekli).');
-      } else {
-        const message = err.response?.data?.error?.message || 'Rapor oluşturulurken bir hata oluştu.';
-        toast.error(message);
-      }
+      const message = err.response?.data?.error?.message || 'Analiz sırasında bir hata oluştu';
+      toast.error(message);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const toggleCompany = (id: string) => {
-    setSelectedCompanies(prev => 
+    setSelectedCompanies(prev =>
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
     );
   };
 
   if (loading) {
     return (
-      <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        <p className="text-slate-500 font-medium italic">Yapay zeka modelleri hazırlanıyor...</p>
+      <div style={{ height: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+        <Loader2 className="animate-spin" size={40} style={{ color: '#2563eb' }} />
+        <p style={{ color: '#64748b', fontWeight: 500 }}>Veriler hazırlanıyor...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div style={{ padding: '2rem 1.5rem', maxWidth: '1100px', margin: '0 auto', fontFamily: '"Outfit", sans-serif' }}>
+      
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Bot className="text-blue-600" />
-            {t('ai.title')}
+          <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Bot color="#2563eb" /> AI Analiz & Kıyaslama
           </h1>
-          <p className="text-slate-500">{t('ai.subtitle')}</p>
+          <p style={{ color: '#64748b', marginTop: '4px' }}>Firmalar arası verimlilik ve esenlik kıyaslamalarını yapay zeka ile yapın.</p>
         </div>
 
         {credits && (
-          <div className={`px-6 py-3 rounded-2xl border-2 flex items-center gap-3 transition-all ${credits.balance < 10 ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-100'}`}>
-            <Zap className={credits.balance < 10 ? 'text-amber-500' : 'text-blue-600'} size={20} />
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-tight">AI KREDİ BAKİYESİ</p>
-              <p className={`text-lg font-black leading-tight ${credits.balance < 10 ? 'text-amber-700' : 'text-blue-700'}`}>
-                {credits.balance} <span className="text-xs font-bold text-slate-400">Kredi</span>
-              </p>
+          <div style={{ 
+            background: '#ffffff', padding: '16px 24px', borderRadius: '24px', 
+            border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+            display: 'flex', alignItems: 'center', gap: '16px'
+          }}>
+            <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '14px' }}>
+              <Zap color="#2563eb" size={20} />
             </div>
-            {credits.balance === 0 && (
-              <div className="ml-2 px-3 py-1 bg-red-100 text-red-600 text-[10px] font-bold rounded-full animate-pulse">
-                YETERSİZ
-              </div>
-            )}
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI KREDİSİ</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>{credits.balance} <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 500 }}>kalan</span></div>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <Sparkles size={18} className="text-amber-500" />
-              {t('ai.comparative_analysis')}
+      <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '2rem' }}>
+        
+        {/* Left Sidebar: Selection */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '32px', padding: '24px', border: '1px solid #e2e8f0' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Building2 size={18} color="#64748b" /> Firma Seçimi
             </h3>
-            
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">FİRMA SEÇİMİ (MİN. 2)</p>
-            
-            <div className="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '450px', overflowY: 'auto', paddingRight: '4px' }}>
               {companies.length > 0 ? (
-                companies.map((c) => (
-                  <button
+                companies.map(c => (
+                  <div 
                     key={c.id}
                     onClick={() => toggleCompany(c.id)}
-                    className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
-                      selectedCompanies.includes(c.id)
-                        ? 'border-blue-600 bg-blue-50/50 shadow-sm'
-                        : 'border-slate-100 hover:border-slate-200 bg-slate-50'
-                    }`}
+                    style={{ 
+                      padding: '16px', borderRadius: '18px', cursor: 'pointer', transition: 'all 0.2s',
+                      border: selectedCompanies.includes(c.id) ? '2px solid #2563eb' : '1px solid #f1f5f9',
+                      background: selectedCompanies.includes(c.id) ? '#eff6ff' : '#f8fafc',
+                      position: 'relative'
+                    }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${selectedCompanies.includes(c.id) ? 'bg-blue-600 text-white' : 'bg-white text-slate-400'}`}>
-                        <Building2 size={16} />
-                      </div>
-                      <span className={`text-sm font-bold ${selectedCompanies.includes(c.id) ? 'text-blue-900' : 'text-slate-700'}`}>{c.name}</span>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>{c.name}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                      {c.industry || 'Genel'} · <span style={{ color: getScoreColor(c.wellbeing_score), fontWeight: 600 }}>{c.wellbeing_score || '-'} Skor</span>
                     </div>
-                    <span className="text-xs font-bold text-slate-400">{c.score || '-'}</span>
-                  </button>
+                    {selectedCompanies.includes(c.id) && (
+                      <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#2563eb' }}>
+                        <CheckCircle2 size={18} />
+                      </div>
+                    )}
+                  </div>
                 ))
               ) : (
-                <p className="text-center py-8 text-slate-400 text-xs italic">Analiz edilecek firma bulunamadı.</p>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8', fontSize: '13px', fontStyle: 'italic' }}>
+                  Analiz edilecek firma bulunamadı.
+                </div>
               )}
             </div>
 
             <button
               onClick={handleRunAnalysis}
               disabled={isAnalyzing || selectedCompanies.length < 2 || credits?.balance === 0}
-              className="w-full mt-6 py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50 shadow-lg shadow-slate-900/10"
+              style={{ 
+                width: '100%', marginTop: '24px', padding: '16px', borderRadius: '18px', border: 'none',
+                background: selectedCompanies.length >= 2 ? '#2563eb' : '#f1f5f9',
+                color: selectedCompanies.length >= 2 ? '#ffffff' : '#94a3b8',
+                fontWeight: 700, fontSize: '15px', cursor: (isAnalyzing || selectedCompanies.length < 2) ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                boxShadow: selectedCompanies.length >= 2 ? '0 10px 15px -3px rgba(37, 99, 235, 0.2)' : 'none'
+              }}
             >
-              {isAnalyzing ? <><Loader2 className="animate-spin" size={18} /> Analiz Ediliyor...</> : <><Zap size={18} /> {t('ai.run_analysis')}</>}
+              {isAnalyzing ? (
+                <><Loader2 className="animate-spin" size={18} /> Analiz Ediliyor...</>
+              ) : (
+                <><Sparkles size={18} /> Analizi Başlat</>
+              )}
             </button>
+            <p style={{ textAlign: 'center', fontSize: '11px', color: '#94a3b8', marginTop: '12px' }}>
+              Minimum 2 firma seçilmelidir. Analiz ⚡ 5 kredi tüketir.
+            </p>
           </div>
 
-          <div className="bg-blue-600 rounded-3xl p-6 text-white shadow-xl shadow-blue-600/20 relative overflow-hidden">
-            <div className="relative z-10 space-y-4">
-              <h4 className="font-bold flex items-center gap-2">
-                <Brain size={20} />
-                {t('ai.intelligence_report')}
-              </h4>
-              <p className="text-xs text-blue-100 leading-relaxed">
-                {t('ai.intelligence_report_desc')}
-              </p>
-              <div className="space-y-2">
-                {companies.slice(0, 3).map(c => (
-                  <button 
-                    key={c.id}
-                    onClick={() => handleIntelligenceReport(c.id)}
-                    disabled={isAnalyzing || credits?.balance === 0}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="text-[10px] font-bold truncate max-w-[150px]">{c.name}</span>
-                    <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                ))}
-              </div>
-            </div>
-            <Sparkles className="absolute -bottom-4 -right-4 text-white/10" size={100} />
+          <div style={{ padding: '20px', background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+            <p style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.6' }}>
+              💡 <strong>İpucu:</strong> Daha detaylı ve profesyonel PDF raporları oluşturmak için 
+              <Link href="/consultant/reports" style={{ color: '#2563eb', fontWeight: 600, marginLeft: '4px', textDecoration: 'none' }}>
+                Raporlar →
+              </Link> sekmesini kullanabilirsiniz.
+            </p>
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-12 text-center min-h-[600px]">
+        {/* Right Content: Results */}
+        <div style={{ background: '#ffffff', borderRadius: '32px', border: '1px solid #e2e8f0', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
           {isAnalyzing ? (
-            <div className="space-y-6">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin mx-auto" />
-                <Bot className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600" size={32} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px', padding: '40px' }}>
+              <div style={{ position: 'relative' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '24px', border: '4px solid #eff6ff', borderTopColor: '#2563eb' }} className="animate-spin" />
+                <Bot style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} color="#2563eb" size={32} />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">Veriler İşleniyor</h3>
-                <p className="text-slate-500 max-w-sm mt-2">Yapay zeka modelleri firmaların verilerini karşılaştırıyor ve içgörüleri oluşturuyor.</p>
+              <div style={{ textAlign: 'center' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>Yapay Zeka Verileri İşliyor</h3>
+                <p style={{ color: '#64748b', marginTop: '8px', maxWidth: '300px' }}>Seçilen firmaların esenlik ve verimlilik skorları karşılaştırılıyor...</p>
               </div>
             </div>
           ) : analysisResult ? (
-            <div className="w-full h-full p-8 text-left space-y-6 overflow-y-auto">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-                    <Brain size={24} />
+            <div style={{ padding: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ background: '#2563eb', padding: '12px', borderRadius: '16px' }}>
+                    <Brain color="#ffffff" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900">AI Analiz Sonucu</h3>
-                    <p className="text-xs text-slate-500 font-medium">{currentPeriod} Dönemi Raporu</p>
+                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>Analiz Sonuçları</h3>
+                    <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>{currentPeriod} DÖNEMİ KIYASLAMASI</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setAnalysisResult(null)}
-                  className="text-xs font-bold text-slate-400 hover:text-slate-600 px-4 py-2 rounded-xl bg-slate-50"
+                  style={{ background: '#f1f5f9', border: 'none', padding: '10px 20px', borderRadius: '12px', color: '#64748b', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
                 >
                   Yeni Analiz
                 </button>
               </div>
-              
-              <div className="prose prose-slate max-w-none">
-                <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 whitespace-pre-wrap text-slate-700 leading-relaxed italic">
-                  {typeof analysisResult === 'string' ? analysisResult : analysisResult.ai_suggestion || analysisResult.content || JSON.stringify(analysisResult)}
+
+              <div style={{ 
+                background: '#f8fafc', borderRadius: '24px', padding: '24px', border: '1px solid #f1f5f9',
+                color: '#334155', lineHeight: '1.8', fontSize: '15px', whiteSpace: 'pre-wrap'
+              }}>
+                {typeof analysisResult === 'string' ? analysisResult : analysisResult.ai_suggestion || analysisResult.content || JSON.stringify(analysisResult)}
+              </div>
+
+              <div style={{ marginTop: '32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                  <CheckCircle2 color="#10b981" style={{ marginBottom: '12px' }} />
+                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '14px' }}>Güçlü Yönler</div>
+                  <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Firmaların ortaklaşa başarılı olduğu alanlar ve pozitif trendler.</p>
+                </div>
+                <div style={{ padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                  <MessageSquare color="#2563eb" style={{ marginBottom: '12px' }} />
+                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '14px' }}>Öneriler</div>
+                  <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Verimliliği artırmak için atılabilecek stratejik adımlar.</p>
                 </div>
               </div>
-              
-              {analysisResult.content_matches && (
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <Sparkles size={16} className="text-amber-500" />
-                    Önerilen Kaynaklar
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {analysisResult.content_matches.map((match: any, idx: number) => (
-                      <div key={idx} className="p-4 rounded-2xl border border-slate-100 bg-white hover:border-blue-200 transition-all cursor-default">
-                        <p className="text-xs font-bold text-slate-900 line-clamp-1">{match.title_tr}</p>
-                        <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">{match.description_tr}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="w-20 h-20 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-300 mx-auto">
-                <LineChart size={40} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px', textAlign: 'center' }}>
+              <div style={{ width: '80px', height: '80px', background: '#f8fafc', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                <LineChart size={40} color="#cbd5e1" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">Analiz Bekleniyor</h3>
-                <p className="text-slate-500 max-w-sm mt-2">
-                  Sol taraftaki panelden analiz etmek istediğiniz firmaları seçerek "Analiz Başlat" butonuna tıklayın.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                <div className="p-4 rounded-2xl bg-slate-50 text-left border border-slate-100">
-                  <CheckCircle2 className="text-emerald-500 mb-2" size={20} />
-                  <p className="text-xs font-bold text-slate-800">Çapraz Karşılaştırma</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Sektörel benchmark ve firma bazlı analizler.</p>
+              <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>Analiz İçin Hazır</h3>
+              <p style={{ color: '#64748b', marginTop: '8px', maxWidth: '350px' }}>
+                Soldaki listeden karşılaştırmak istediğiniz firmaları seçin ve analizi başlatın.
+              </p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '40px', width: '100%', maxWidth: '400px' }}>
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '16px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#2563eb', marginBottom: '4px' }}>01</div>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>Kıyasla</div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>Sektörel bazda durum tespiti.</div>
                 </div>
-                <div className="p-4 rounded-2xl bg-slate-50 text-left border border-slate-100">
-                  <MessageSquare className="text-blue-500 mb-2" size={20} />
-                  <p className="text-xs font-bold text-slate-800">Doğal Dil Özetleri</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Karmaşık verilerin sade ve anlaşılır raporlanması.</p>
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '16px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#2563eb', marginBottom: '4px' }}>02</div>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>Keşfet</div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>Gizli riskleri ve fırsatları gör.</div>
                 </div>
               </div>
             </div>

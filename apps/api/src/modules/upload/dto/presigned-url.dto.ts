@@ -5,11 +5,12 @@ export enum FileType {
   LOGO = 'logo',
   CSV = 'csv',
   REPORT = 'report',
+  PLATFORM_LOGO = 'platform_logo',
 }
 
 export class PresignedUrlDto {
-  @ApiProperty({ enum: ['logo', 'csv', 'pdf'] })
-  @IsIn(['logo', 'csv', 'pdf'])
+  @ApiProperty({ enum: ['logo', 'csv', 'pdf', 'platform_logo'] })
+  @IsIn(['logo', 'csv', 'pdf', 'platform_logo'])
   file_type: string;
 
   @ApiProperty({ example: 'image/jpeg' })

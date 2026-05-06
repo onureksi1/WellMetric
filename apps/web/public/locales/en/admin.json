@@ -14,7 +14,9 @@
     "demo_requests": "Demo Requests",
     "users": "Users",
     "consultants": "Consultants",
-    "logout": "Logout"
+    "logout": "Logout",
+    "ai_costs": "AI Costs",
+    "billing": "Finance Management"
   },
   "consultants": {
     "title": "Consultant Management",
@@ -33,7 +35,8 @@
       "ai": "AI",
       "valid_until": "Validity",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "companies_suffix": "Companies"
     },
     "create": {
       "title": "Create New Consultant",
@@ -50,8 +53,8 @@
     },
     "update_plan": {
       "title": "Update Package",
-      "current": "Current Package",
-      "new_package": "New Package",
+      "current": "Current Plan",
+      "new_package": "NEW PACKAGE",
       "submit": "Update Package",
       "success": "Package updated."
     },
@@ -81,6 +84,22 @@
       "starter": "Starter",
       "growth": "Growth",
       "enterprise": "Enterprise"
+    },
+    "errors": {
+      "name_min": "At least 3 characters",
+      "select_plan": "Select a plan"
+    },
+    "credits": {
+      "title": "Credit Management",
+      "add_manual": "Add Manual Credit",
+      "add_success": "Credit added successfully",
+      "type_label": "CREDIT TYPE",
+      "amount_label": "AMOUNT",
+      "reason_label": "REASON (optional)",
+      "reason_placeholder": "Campaign, compensation credit...",
+      "select_type": "Select",
+      "adding": "Adding...",
+      "add": "Add"
     }
   },
   "users": {
@@ -117,7 +136,9 @@
       "resend_invite": "Resend Invite",
       "deactivate": "Deactivate",
       "activate": "Activate",
-      "delete": "Delete"
+      "delete": "Delete",
+      "resend_invite_success": "Invitation resent successfully",
+      "permanent_delete": "Permanently Delete"
     },
     "never_logged_in": "Never logged in",
     "no_users": "No users found",
@@ -138,6 +159,7 @@
     },
     "delete": {
       "confirm": "Do you want to delete this user?",
+      "confirm_permanent": "Are you sure you want to permanently delete the user named {{name}}? This action cannot be undone.",
       "warning": "Survey history and scores are preserved.",
       "success": "User deleted."
     }
@@ -164,54 +186,84 @@
     "edit": "Edit Industry",
     "default_badge": "Default",
     "custom_badge": "Custom",
-    "cannot_deactivate": "Default industries cannot be deactivated"
+    "cannot_deactivate": "Default industries cannot be deactivated",
+    "errors": {
+      "already_active": "This user is already active"
+    }
   },
   "header": {
     "title": "Super Admin Panel",
     "search_placeholder": "Search companies, surveys or users...",
     "notifications": "Notifications"
   },
-  "home": {
-    "title": "Platform Overview",
-    "subtitle": "Real-time status of all companies",
+  "dashboard": {
+    "view_all_companies": "View All Companies",
+    "all_companies_normal": "All companies are at normal level",
+    "recent_actions": "Recent Critical Actions",
+    "view_all_audit_logs": "View All Audit Logs",
     "metrics": {
       "active_companies": "Active Companies",
       "new_this_month": "New This Month",
       "total_responses": "Total Responses",
       "active_surveys": "Active Surveys",
-      "since_last_month": "since last month"
+      "since_last_month": "since last month",
+      "platform_avg": "Platform Avg.",
+      "score_change": "Score Change",
+      "total_employees": "Total Employees",
+      "active_users": "Active Users",
+      "participation_rate": "Participation Rate",
+      "general_avg": "General Average",
+      "monthly_responses": "Monthly Responses",
+      "survey_responses": "Survey Responses",
+      "ai_insights": "AI Insight",
+      "generated_this_month": "Generated This Month"
     },
-    "months": {
-      "january": "January",
-      "february": "February",
-      "march": "March",
-      "april": "April",
-      "may": "May",
-      "june": "June",
-      "july": "July",
-      "august": "August",
-      "september": "September",
-      "october": "October",
-      "november": "November",
-      "december": "December"
-    },
+    "wellness_trend": "Platform Wellbeing Trend (12 Months)",
+    "response_count": "Response Count",
+    "avg_score": "Avg. Score",
+    "company_count": "Company Count",
     "platform_trend": "Platform Trend",
     "plan_distribution": "Plan Distribution",
-    "top_active": "Top 5 Active Companies",
-    "top_passive": "Top 5 Passive Companies",
-    "recent_audit": "Recent Critical Actions",
-    "columns": {
+    "plan_dist": "Membership Plan Distribution",
+    "dimension_avgs": "Dimension Averages",
+    "health_map": "Company Health Map",
+    "participation_vs_wellbeing": "Participation Rate vs. Wellbeing Score",
+    "quadrants": {
+      "hidden_risk": "Hidden Risk?",
+      "ideal": "Ideal",
+      "critical": "Critical",
+      "follow_up": "Follow Up"
+    },
+    "sector_comparison": "Sector Comparison",
+    "growth_trend": "Growth Trend (6 Months)",
+    "employees_div_10": "Employees / 10",
+    "survey_performance": "Survey Performance",
+    "campaign_this_month": "CAMPAIGN THIS MONTH",
+    "avg_completion": "AVG. COMPLETION",
+    "best_performance": "BEST PERFORMANCE",
+    "ai_activity": "AI Activity",
+    "insights_generated": "Insights Generated This Month",
+    "companies_at_risk": "Companies at Risk",
+    "intelligence_reports": "Intelligence Reports",
+    "most_used": "MOST USED",
+    "top_performance": "Top Performance ▲",
+    "needs_attention": "Needs Attention ▼",
+    "critical_alerts": "Critical Alerts",
+    "go_to_company": "GO TO COMPANY",
+    "recent_actions_title": "Recent Critical Actions",
+    "new_badge": "NEW",
+    "recent_actions_list": "Recent Actions",
+    "view_all_recent": "View All Audit Logs",
+    "recent_audit_logs": "Recent Audit Logs",
+    "table": {
+      "rank": "#",
       "company": "Company",
-      "plan": "Plan",
-      "employees": "Employees",
-      "last_survey": "Last Survey",
+      "sector": "Sector",
       "score": "Score",
       "participation": "Participation",
-      "status": "Status",
-      "action": "Action",
-      "user": "User",
-      "date": "Date"
-    }
+      "trend": "Trend"
+    },
+    "risk_alerts": "Risk Alerts"
   },
   "companies": {
     "title": "Companies",
@@ -226,7 +278,8 @@
       "edit": "Edit",
       "suspend": "Suspend",
       "activate": "Activate",
-      "delete": "Delete"
+      "delete": "Delete",
+      "manage_users": "Manage Users"
     },
     "confirm_suspend": "Are you sure you want to suspend this company?",
     "confirm_delete": "Are you sure you want to delete this company? All data will be deleted.",
@@ -238,7 +291,8 @@
       "contact": "Contact / HR Email",
       "industry": "Industry",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "employee_count_abbr": "Emp."
     },
     "create": {
       "title": "Create New Company",
@@ -273,7 +327,13 @@
       "save_settings": "Save Settings",
       "change_plan": "Change Plan",
       "invite_hr": "Invite HR Admin"
-    }
+    },
+    "export_filename": "companies_list",
+    "status_active": "Active",
+    "status_passive": "Passive",
+    "delete_error_title": "Cannot Delete Company",
+    "delete_error_desc": "{{name}} company has {{count}} users registered. You must delete or move users first.",
+    "user_search_placeholder": "Search by name or email..."
   },
   "surveys": {
     "title": "Surveys",
@@ -396,7 +456,8 @@
       "ai": "AI Settings",
       "mail": "Mail",
       "storage": "Storage",
-      "packages": "Packages"
+      "payment": "Payment Settings",
+      "legal": "Legal Documents"
     },
     "packages": {
       "title": "Package Management",
@@ -416,6 +477,21 @@
       },
       "errors": {
         "already_exists": "This package key already exists."
+      },
+      "payment": {
+        "title": "Payment Methods",
+        "subtitle": "Configure payment providers to be used across the platform",
+        "default_provider": "Default Payment Provider",
+        "default_provider_desc": "Primary method to be used across the platform",
+        "active": "ACTIVE",
+        "passive": "PASSIVE",
+        "edit_api_keys": "Edit API Keys",
+        "cancel": "Cancel",
+        "save_keys_hint": "Empty fields are not changed. Existing values are masked for security.",
+        "new_value_placeholder": "Enter new value",
+        "save_success": "Payment settings saved",
+        "fetch_error": "Failed to load payment settings",
+        "save_keys_success": "API keys updated"
       }
     },
     "general": {
@@ -423,8 +499,17 @@
       "platform_url": "Platform URL",
       "anonymity_threshold": "Anonymity Threshold",
       "anonymity_threshold_hint": "Score is not calculated below this many responses (min 3)",
-      "score_alert_threshold": "Risk Alert Threshold",
-      "score_alert_threshold_hint": "Alert is generated below this score"
+      "risk_alert_threshold": "Risk Alert Threshold",
+      "risk_alert_desc": "Automated alert sent to HR Admin below this score",
+      "admin_email": "Notification Email",
+      "admin_email_desc": "Email address where demo requests and critical system alerts will be sent.",
+      "debug_mode": "Debug Console",
+      "debug_mode_desc": "Enable or disable the real-time API debug console in the bottom right corner.",
+      "save_success": "General settings saved",
+      "fetch_error": "Failed to load settings",
+      "load_failed": "Settings could not be loaded.",
+      "error_platform_name": "Platform name must be at least 2 characters",
+      "error_platform_url": "Please enter a valid URL"
     },
     "ai": {
       "enabled": "AI Active",
@@ -442,41 +527,57 @@
         "trend_analysis": "Trend Analysis",
         "hr_chat": "HR Chat",
         "admin_anomaly": "Admin Anomaly",
-        "admin_chat": "Admin Chat"
+        "admin_chat": "Admin Chat",
+        "benchmark_generation": "Sectoral Benchmark Generation"
       },
       "api_keys": "AI API Keys",
       "api_key_hint": "Stored securely with encryption",
       "update_keys": "Update Keys",
-      "keys_updated": "API keys updated."
+      "keys_updated": "API keys updated.",
+      "error_update_keys": "An error occurred while updating API keys"
     },
     "mail": {
-      "provider": "Mail Provider",
-      "from_address": "From Email",
-      "from_name": "From Name",
-      "api_key": "Mail API Key",
-      "smtp_host": "SMTP Host",
-      "smtp_port": "SMTP Port",
-      "smtp_user": "SMTP User",
-      "smtp_pass": "SMTP Pass",
-      "test": "Send Test Email",
-      "test_success": "Test email sent successfully!",
+      "title": "Email Provider",
+      "select_provider": "Select Provider",
+      "api_key": "API Key",
+      "test_mail": "Test Email",
+      "test_address": "Test Email Address",
+      "send_test": "Send Test",
+      "test_success": "✓ Test email sent!",
       "test_error": "Failed to send email: {{error}}",
-      "test_to": "Test email will be sent to:"
+      "save_config": "Save Configuration",
+      "save_success": "Mail settings updated",
+      "error_test_empty": "Please enter a test email address",
+      "info_resend": "Resend is the most modern email sending service for developers.",
+      "get_api_key": "Get API Key from resend.com"
     },
     "storage": {
+      "title": "Object Storage Configuration",
       "provider": "Storage Provider",
-      "bucket": "Bucket Name",
-      "region": "Region",
-      "endpoint": "Custom Endpoint",
-      "endpoint_hint": "For Cloudflare R2 or MinIO",
-      "access_key": "Access Key",
-      "secret_key": "Secret Key",
-      "test": "Connection Test",
-      "test_success": "Connection successful! Latency: {{latency}}ms",
-      "test_error": "Connection failed: {{error}}"
+      "test_connection": "Test Connection",
+      "test_success": "✓ Connection successful! ({{latency}}ms)",
+      "save_success": "Storage settings updated",
+      "local_warning": "Local storage is not recommended for production. Data backup and security is your responsibility.",
+      "provider_labels": {
+        "cloudflare_r2": "Cloudflare R2",
+        "aws_s3": "AWS S3",
+        "minio": "MinIO",
+        "local": "Local (VPS)"
+      }
     },
     "save_success": "Settings saved.",
-    "save_error": "Failed to save settings."
+    "save_error": "Failed to save settings.",
+    "legal": {
+      "title": "Legal Contracts & Texts",
+      "subtitle": "Manage KVKK, GDPR, and Terms of Use texts",
+      "terms_of_use_tr": "Terms of Use (TR)",
+      "terms_of_use_en": "Terms of Use (EN)",
+      "privacy_policy_tr": "Privacy Policy (TR)",
+      "privacy_policy_en": "Privacy Policy (EN)",
+      "kvkk_tr": "KVKK Text (TR)",
+      "gdpr_en": "GDPR Text (EN)",
+      "save_success": "Legal documents updated successfully"
+    }
   },
   "ai_center": {
     "title": "AI Center",
@@ -525,7 +626,10 @@
       "target": "Target",
       "ip": "IP Address"
     },
-    "no_logs": "No records found."
+    "no_logs": "No records found.",
+    "export_csv": "Export as CSV",
+    "system_global": "System / Global",
+    "pagination_info": "Showing {{per_page}} of {{total}} records"
   },
   "campaigns": {
     "title": "Campaign Reports",
@@ -557,20 +661,84 @@
     "sent_mail": "Mail",
     "campaign_count": "Campaign"
   },
-  "demo_requests": {
+  "demo": {
     "title": "Demo Requests",
     "subtitle": "Manage incoming demo requests",
-    "status": {
-      "pending": "Pending",
-      "contacted": "Contacted",
-      "demo_done": "Demo Done",
-      "converted": "Converted",
-      "rejected": "Rejected"
-    },
+    "status_pending": "Pending",
+    "status_contacted": "Contacted",
+    "status_done": "Done",
+    "status_converted": "Converted",
+    "status_rejected": "Rejected",
+    "stats_total": "Total Requests",
+    "stats_pending": "Pending",
+    "stats_contacted": "Contacted",
+    "stats_converted": "Converted",
     "notes": "Admin Notes",
     "save_notes": "Save Note",
     "change_status": "Change Status"
   },
   "ai_generate": "Generate with AI",
-  "ai_generating": "AI Generating..."
+  "ai_generating": "AI Generating...",
+  "common": {
+    "retry": "Retry",
+    "loading_error": "An error occurred while loading data.",
+    "time": {
+      "minutes_ago": "{{count}} minutes ago",
+      "hours_ago": "{{count}} hours ago",
+      "days_ago": "{{count}} days ago"
+    },
+    "active": "Active",
+    "passive": "Passive",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "search": "Search",
+    "delete": "Delete",
+    "edit": "Edit"
+  },
+  "billing": {
+    "title": "Platform Finance Management",
+    "subtitle": "Track credit types, packages and platform revenue in real-time.",
+    "loading": "Loading financial data...",
+    "stats": {
+      "monthly_revenue": "Total Monthly Revenue",
+      "active_subscriptions": "Active Subscriptions",
+      "total_credits": "Total Credit Pool"
+    },
+    "transactions": {
+      "title": "Recent Sales and Transactions",
+      "subtitle": "Last 20 transactions occurred on the platform.",
+      "empty": "No transactions yet.",
+      "table": {
+        "customer": "Consultant / Customer",
+        "package": "Package",
+        "amount": "Amount",
+        "payment": "Payment",
+        "date": "Date"
+      }
+    },
+    "credit_types": {
+      "title": "Credit Types",
+      "add": "Add Type",
+      "empty": "No credit types yet.",
+      "edit": "Edit Credit Type",
+      "new": "New Credit Type"
+    },
+    "packages": {
+      "title": "Package Definitions",
+      "add": "Add Package",
+      "hidden": "Hidden",
+      "edit": "Edit Package",
+      "new": "New Package",
+      "table": {
+        "package": "Package",
+        "price": "Price",
+        "status": "Status",
+        "action": "Action"
+      }
+    }
+  },
+  "mail_templates": {
+    "subject_placeholder": "Email subject..."
+  }
 }

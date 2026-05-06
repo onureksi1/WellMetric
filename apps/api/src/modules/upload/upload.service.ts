@@ -14,6 +14,10 @@ const FILE_LIMITS = {
     mimes: ['image/jpeg', 'image/png', 'image/webp'],
     maxSize: 2097152, // 2MB
   },
+  platform_logo: {
+    mimes: ['image/jpeg', 'image/png', 'image/webp'],
+    maxSize: 2097152, // 2MB
+  },
   csv: {
     mimes: ['text/csv', 'application/vnd.ms-excel', 'text/plain'],
     maxSize: 10485760, // 10MB
@@ -56,6 +60,9 @@ export class UploadService {
         break;
       case 'csv':
         s3Key = `uploads/csv/${companyId}/${uuid}.csv`;
+        break;
+      case 'platform_logo':
+        s3Key = `platform/logo/${uuid}.${ext}`;
         break;
       case 'report':
         const period = dto.period || new Date().toISOString().slice(0, 7);
@@ -109,6 +116,24 @@ export class UploadService {
           }
         }
       });
+    }
+
+    if (dto.context === 'platform_logo') {
+      this.logger.log(`Confirming platform logo upload: ${dto.s3_key}`);
+      await this.dataSource.transaction(async (manager) => {
+        // Update new logo URL (full URL)
+        const updateRes = await manager.query(`UPDATE platform_settings SET platform_logo_url = $1`, [cdnUrl]);
+        this.logger.log(`Logo update result: ${JSON.stringify(updateRes)}`);
+        
+        // Audit log
+        await manager.query(`
+          INSERT INTO audit_logs (user_id, action, target_type, payload)
+          VALUES ($1, 'settings.logo.update', 'platform_settings', $2)
+        `, [null, JSON.stringify({ logo_url: cdnUrl, s3_key: dto.s3_key })]);
+      });
+
+      // Invalidate caches properly via service
+      await this.settingsService.invalidateCache();
     }
 
     if (dto.context === 'report') {

@@ -55,4 +55,9 @@ export class ConsultantController {
   getComparativeInsight(@CurrentUser() user: any, @Body() dto: any) {
     return this.consultantService.getComparativeInsight(user.consultant_id, dto);
   }
+
+  @Get('companies/:id/departments')
+  getDepartments(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.consultantService.getDepartments(user.consultant_id, id);
+  }
 }

@@ -37,8 +37,9 @@ export class CampaignService {
       .leftJoinAndSelect('c.survey', 's')
       .orderBy('c.created_at', 'DESC');
 
-    if (companyId) {
-      query.andWhere('c.companyId = :companyId', { companyId });
+    const effectiveCompanyId = companyId || filters.company_id;
+    if (effectiveCompanyId) {
+      query.andWhere('c.companyId = :companyId', { companyId: effectiveCompanyId });
     }
 
     if (filters.status) query.andWhere('c.status = :status', { status: filters.status });
@@ -376,20 +377,73 @@ export class CampaignService {
     if (filters.company_id) query.andWhere('c.companyId = :companyId', { companyId: filters.company_id });
     if (filters.period) query.andWhere('c.period = :period', { period: filters.period });
 
-    const campaigns = await query.getMany();
+    const campaigns = await query.leftJoinAndSelect('c.company', 'company').getMany();
     
     const total_campaigns = campaigns.length;
-    const avg_open_rate = campaigns.length > 0 
-      ? campaigns.reduce((acc, c) => acc + (c.sent_count > 0 ? (c.opened_count / c.sent_count) : 0), 0) / campaigns.length * 100
-      : 0;
-    const avg_completion_rate = campaigns.length > 0
-      ? campaigns.reduce((acc, c) => acc + (c.sent_count > 0 ? (c.completed_count / c.sent_count) : 0), 0) / campaigns.length * 100
-      : 0;
+    const total_sent = campaigns.reduce((acc, c) => acc + c.sent_count, 0);
+    const total_opened = campaigns.reduce((acc, c) => acc + c.opened_count, 0);
+    const total_clicked = campaigns.reduce((acc, c) => acc + c.clicked_count, 0);
+    const total_completed = campaigns.reduce((acc, c) => acc + c.completed_count, 0);
+
+    const avg_open_rate = total_sent > 0 ? (total_opened / total_sent) * 100 : 0;
+    const avg_click_rate = total_opened > 0 ? (total_clicked / total_opened) * 100 : 0;
+    const avg_completion_rate = total_sent > 0 ? (total_completed / total_sent) * 100 : 0;
+
+    // Monthly Trend (Last 6 months)
+    const trend_data = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthLabel = date.toLocaleString('tr-TR', { month: 'short' });
+      const monthValue = date.getMonth() + 1;
+      const yearValue = date.getFullYear();
+
+      const monthCampaigns = campaigns.filter(c => {
+        const cDate = new Date(c.created_at);
+        return (cDate.getMonth() + 1) === monthValue && cDate.getFullYear() === yearValue;
+      });
+
+      const mSent = monthCampaigns.reduce((acc, c) => acc + c.sent_count, 0);
+      const mComp = monthCampaigns.reduce((acc, c) => acc + c.completed_count, 0);
+      
+      trend_data.push({
+        month: monthLabel,
+        count: mSent,
+        rate: mSent > 0 ? Math.round((mComp / mSent) * 100) : 0
+      });
+    }
+
+    // Company Comparison (Top 5 companies by completion rate)
+    const companyMap: Map<string, any> = new Map();
+    campaigns.forEach(c => {
+      if (!c.company) return;
+      const existing = companyMap.get(c.companyId) || { name: c.company.name, campaigns: 0, sent: 0, completed: 0, open: 0, click: 0 };
+      existing.campaigns += 1;
+      existing.sent += c.sent_count;
+      existing.completed += c.completed_count;
+      existing.open += c.opened_count;
+      existing.click += c.clicked_count;
+      companyMap.set(c.companyId, existing);
+    });
+
+    const company_comparison = Array.from(companyMap.values())
+      .map(comp => ({
+        ...comp,
+        comp: comp.sent > 0 ? Math.round((comp.completed / comp.sent) * 100) : 0,
+        open_rate: comp.sent > 0 ? Math.round((comp.open / comp.sent) * 100) : 0,
+        click_rate: comp.open > 0 ? Math.round((comp.click / comp.open) * 100) : 0,
+      }))
+      .sort((a, b) => b.comp - a.comp)
+      .slice(0, 5);
 
     return {
       total_campaigns,
+      total_sent,
       avg_open_rate: parseFloat(avg_open_rate.toFixed(1)),
+      avg_click_rate: parseFloat(avg_click_rate.toFixed(1)),
       avg_completion_rate: parseFloat(avg_completion_rate.toFixed(1)),
+      trend_data,
+      company_comparison
     };
   }
 }

@@ -3,51 +3,60 @@
     "overview": "Genel Bakış",
     "departments": "Departmanlar",
     "employees": "Çalışanlar",
-    "surveys": "Anketler",
+    "surveys": "Değerlendirmeler",
     "actions": "Aksiyonlar",
     "segments": "Segmentasyon",
     "reports": "Raporlar",
     "ai": "AI Asistan",
     "ai_assistant": "AI Asistan",
-    "campaigns": "Kampanyalar",
+    "campaigns": "Dağıtımlar",
+    "consultant_content": "İçerik Kütüphanesi",
+    "training": "Eğitim Planları",
+    "consultant_reports": "Danışman Raporları",
     "logout": "Çıkış Yap"
   },
   "overview": {
-    "title": "Genel Bakış",
-    "subtitle": "{{company_name}} wellbeing durumu",
+    "title": "Dashboard",
+    "subtitle": "{{company_name}} için genel durum özeti",
     "score_card": {
-      "this_month": "Bu Ay",
-      "last_month": "Geçen Ay",
-      "sector_avg": "Sektör Ort.",
-      "above_sector": "Sektör ortalamasının üzerinde",
-      "below_sector": "Sektör ortalamasının altında",
-      "no_benchmark": "Karşılaştırma için yeterli sektör verisi yok"
+      "this_month": "BU AYIN SKORU",
+      "last_month": "GEÇEN AY",
+      "first_month": "İlk Ay",
+      "no_prev_data": "Henüz karşılaştırma verisi yok",
+      "points": "Puan",
+      "above": "yukarıda",
+      "below": "aşağıda",
+      "overall_change": "Genel skor değişimi",
+      "comparison_prefix": "GEÇEN AYA GÖRE"
     },
     "participation": {
-      "title": "Katılım Oranı",
-      "responded": "{{count}} çalışan yanıtladı",
-      "of_total": "{{total}} kişiden"
+      "title": "KATILIM ORANI",
+      "responded": "{{count}} çalışan yanıtladı"
     },
     "risk_alerts": {
-      "title": "Risk Alarmları",
-      "no_alerts": "Tüm boyutlar normal seviyede",
-      "critical": "{{dimension}} boyutu kritik seviyede ({{score}})"
-    },
-    "ai_insight": {
-      "title": "AI Analizi",
-      "no_insight": "Bu dönem için henüz analiz yapılmadı.",
-      "generated": "{{date}} tarihinde oluşturuldu"
+      "title": "RİSK ALARMLARI",
+      "critical": "{{dimension}} boyutu kritik seviyede: {{score}}",
+      "no_alerts": "Şu an için riskli bir boyut bulunmuyor."
     },
     "trend": {
-      "title": "Son 6 Ay Trendi",
-      "select_dimension": "Boyut seçin"
+      "title": "Skor Trendi",
+      "select_dimension": "Boyut Analizi"
     },
     "benchmark": {
-      "title": "Sektör Karşılaştırması",
-      "your_score": "Sizin Skorunuz",
-      "sector_avg": "Sektör Ortalaması",
-      "difference": "Fark",
-      "avg_suffix": "ortalaması",
+      "title": "Benchmark Analizi",
+      "subtitle": "{{industry}} sektörü ve genel ortalamalarla karşılaştırma",
+      "your_company": "Senin Şirketin",
+      "turkey": "Türkiye Ortalaması",
+      "world": "Dünya Ortalaması",
+      "your_company_avg": "Senin Şirketin",
+      "turkey_avg": "TR Ortalaması",
+      "world_avg": "Global Ortalama",
+      "comparison_result": "{{points}} puan {{direction}} TR",
+      "general": "Genel",
+      "enflation_effect": "TR ENFLASYON ETKİSİ ↓",
+      "research_disclaimer": "Türkiye ortalaması, WellAnalytics tarafından yapılan bağımsız araştırma verilerine dayanmaktadır. Kaynaklar: Gallup, Intellect, Better Being, Mercer, McKinsey, ILO, OECD, WTW Turkey, Moodivation, İŞKUR, SGK, DİSK-AR, TÜİK.",
+      "enflation_note": "Türkiye finansal boyut skoru, global ortalamadan -8 puan (WTW 2024 enflasyon etkisi) düzeltilerek yansıtılmıştır.",
+      "platform_data_note": "Bu sektör için min. 3 firma + 30 yanıt biriktiğinde, veriler otomatik olarak gerçek verilerle güncellenecektir.",
       "unavailable": "Sektörünüzden yeterli firma verisi henüz yok."
     }
   },
@@ -163,21 +172,21 @@
     }
   },
   "surveys": {
-    "title": "Anket Takibi",
-    "subtitle": "Devam eden ve tamamlanan anketlerin katılım oranları ve sonuçları.",
-    "no_distribution": "Bu anket için henüz dağıtım yapılmadı.",
+    "title": "Değerlendirme Takibi",
+    "subtitle": "Devam eden ve tamamlanan değerlendirmelerin katılım oranları ve sonuçları.",
+    "no_distribution": "Bu değerlendirme için henüz dağıtım yapılmadı.",
     "participation_status": "Katılım Durumu",
     "distributed": "Dağıtım Yapıldı",
     "view_results": "Sonuçları Gör",
-    "start_distribution": "Dağıtım Başlat",
-    "campaign_details": "Kampanya Detayları",
-    "no_active_survey": "Şu an aktif bir anket bulunmuyor.",
-    "past_surveys": "Geçmiş Anketler",
-    "survey_title": "Anket Başlığı",
-    "no_past_surveys": "Geçmiş anket bulunamadı.",
-    "active": "Aktif Anketler",
-    "completed": "Tamamlanan Anketler",
-    "new_survey": "Yeni Anket Oluştur",
+    "start_distribution": "Değerlendirme Başlat",
+    "campaign_details": "Dağıtım Detayları",
+    "no_active_survey": "Şu an aktif bir değerlendirme bulunmuyor.",
+    "past_surveys": "Geçmiş Değerlendirmeler",
+    "survey_title": "Değerlendirme Başlığı",
+    "no_past_surveys": "Geçmiş değerlendirme bulunamadı.",
+    "active": "Aktif Değerlendirmeler",
+    "completed": "Tamamlanan Değerlendirmeler",
+    "new_survey": "Yeni Değerlendirme Oluştur",
     "columns": {
       "title": "Başlık",
       "type": "Tip",
@@ -188,7 +197,7 @@
       "status": "Durum"
     },
     "results": {
-      "title": "Anket Sonuçları",
+      "title": "Değerlendirme Sonuçları",
       "participation_rate": "Katılım Oranı",
       "dimension_scores": "Boyut Skorları",
       "question_distribution": "Soru Dağılımı",
@@ -315,13 +324,13 @@
     "open_rate": "Açılma",
     "click_rate": "Tıklama",
     "completion_short": "Tamam.",
-    "remind_confirm": "Anketi tamamlamayanlara hatırlatma gönderilsin mi?",
+    "remind_confirm": "Değerlendirmeyi tamamlamayanlara hatırlatma gönderilsin mi?",
     "remind": "Hatırlat",
-    "no_campaigns": "Henüz kampanya yok",
-    "no_campaigns_desc": "Anketlerinizi çalışanlarınıza ulaştırmak için yeni bir dağıtım başlatın.",
+    "no_campaigns": "Henüz dağıtım yok",
+    "no_campaigns_desc": "Değerlendirmelerinizi çalışanlarınıza ulaştırmak için yeni bir dağıtım başlatın.",
     "create_first": "İlk Dağıtımı Oluştur",
-    "title": "Kampanya Yönetimi",
-    "subtitle": "Anket dağıtım kampanyalarını yönetin",
+    "title": "Dağıtım Yönetimi",
+    "subtitle": "Anket dağıtım süreçlerini yönetin",
     "new": "Yeni Dağıtım",
     "metrics": {
       "sent": "Gönderilen",
@@ -330,8 +339,8 @@
       "completion_rate": "Tamamlama Oranı"
     },
     "remind_success": "Hatırlatma gönderildi.",
-    "cancel": "Kampanyayı İptal Et",
-    "cancel_confirm": "Bu kampanyayı iptal etmek istiyor musunuz?",
+    "cancel": "Dağıtımı İptal Et",
+    "cancel_confirm": "Bu dağıtımı iptal etmek istiyor musunuz?",
     "wizard": {
       "step1": "Anket Seç",
       "step2": "Alıcılar",
@@ -345,10 +354,10 @@
       "schedule_date": "Gönderim Tarihi",
       "summary": "Özet",
       "submit": "Gönder / Zamanla",
-      "success": "Kampanya oluşturuldu."
+      "success": "Dağıtım süreci başlatıldı."
     },
     "detail": {
-      "title": "Kampanya Detayı",
+      "title": "Dağıtım Detayı",
       "time_chart": "Zaman İçinde Açılmalar",
       "trend_title": "Etkileşim Trendi",
       "trend_opened": "AÇILMA",
@@ -381,9 +390,75 @@
       },
       "actions": {
         "remind": "Hatırlatma Gönder",
-        "remind_success": "Hatırlatma kampanyası oluşturuldu.",
+        "remind_success": "Hatırlatma dağıtımı oluşturuldu.",
         "download_report": "Rapor İndir"
       }
+    }
+  },
+  "training": {
+    "title": "Eğitim Takibi",
+    "subtitle": "Danışman tarafından planlanan eğitimleri izleyin ve yönetin.",
+    "list": "Liste",
+    "calendar": "Takvim",
+    "no_plans": "Henüz yayınlanmış bir eğitim planı bulunmuyor.",
+    "today": "Bugün",
+    "columns": {
+      "date": "Tarih & Saat",
+      "event": "Etkinlik",
+      "scope": "Kapsam",
+      "status": "Durum",
+      "actions": "Aksiyonlar"
+    },
+    "status": {
+      "completed": "Tamamlandı",
+      "waiting": "Bekliyor"
+    },
+    "actions": {
+      "content": "İçerik",
+      "notify": "Bildir",
+      "done": "Bitti"
+    },
+    "notify_modal": {
+      "title": "Çalışanlara Bildirim Gönder",
+      "event_label": "Etkinlik",
+      "target_label": "Kime Gönderilecek?",
+      "target_company": "Tüm Şirket",
+      "target_company_desc": "Şirketteki tüm yöneticiler",
+      "target_dept": "Departman",
+      "target_dept_unknown": "Belli değil",
+      "subject_label": "E-posta Konusu",
+      "subject_prefix": "📅 Eğitim Hatırlatması",
+      "notes_label": "Özel Not (Opsiyonel)",
+      "notes_placeholder": "Mailin içine eklenecek notunuz...",
+      "extra_emails_label": "Ek E-postalar",
+      "extra_emails_placeholder": "Virgülle ayırın (örn: stajyer@sirket.com)",
+      "submit": "Bildirimi Gönder",
+      "success": "{{count}} kişiye mail gönderildi"
+    },
+    "errors": {
+      "load_failed": "Eğitim planları yüklenemedi",
+      "mark_complete_success": "Etkinlik tamamlandı olarak işaretlendi",
+      "generic_error": "Hata oluştu",
+      "notify_failed": "Gönderilemedi"
+    }
+  },
+  "content": {
+    "title": "Danışman İçerikleri",
+    "subtitle": "Danışmanınız tarafından firmanız için özel olarak paylaşılan esenlik kaynakları.",
+    "consultant": "Danışman",
+    "empty_title": "Henüz paylaşılmış içerik yok",
+    "empty_desc": "Danışmanınız sizinle içerik paylaştığında burada görünecektir.",
+    "errors": {
+      "load_failed": "İçerikler yüklenemedi"
+    },
+    "notify_btn": "Çalışanlara Duyur",
+    "already_notified": "Çalışanlara Duyuruldu",
+    "view_btn": "İçeriği İncele",
+    "watch_btn": "Videoyu İzle"
+  },
+  "dashboard": {
+    "actions": {
+      "description_placeholder": "Açıklama (opsiyonel)..."
     }
   }
 }

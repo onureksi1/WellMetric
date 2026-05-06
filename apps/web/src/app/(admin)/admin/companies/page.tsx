@@ -88,18 +88,18 @@ export default function CompaniesPage() {
 
   const handleExport = () => {
     if (!companies || companies.length === 0) {
-      alert(t('common:error'));
+      alert(t('common.error'));
       return;
     }
 
     const headers = [
-      "Firma Adı",
-      "Plan",
-      "İletişim E-postası",
-      "İK Yetkilisi",
-      "Sektör",
-      "Durum",
-      "Kayıt Tarihi",
+      t("companies.table.name"),
+      t("companies.table.plan"),
+      t("companies.table.contact"),
+      t("companies.create.hr_admin_email"),
+      t("companies.table.industry"),
+      t("companies.table.status"),
+      t("audit.columns.date"),
     ];
     const csvData = companies.map((c) => [
       c.name,
@@ -108,7 +108,7 @@ export default function CompaniesPage() {
       c.hr_admin_email,
       c.industry || "-",
       c.is_active ? t("companies.status_active") : t("companies.status_passive"),
-      new Date(c.created_at).toLocaleDateString("tr-TR"),
+      new Date(c.created_at).toLocaleDateString(),
     ]);
 
     // Use semicolon for better Excel compatibility in Turkey
@@ -123,7 +123,7 @@ export default function CompaniesPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "firmalar_listesi.csv";
+    link.download = `${t("companies.export_filename")}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -149,7 +149,7 @@ export default function CompaniesPage() {
       fetchCompanies(); // Refresh the list
     } catch (err: any) {
       setError(
-        err.response?.data?.message || t('common:error'),
+        err.response?.data?.message || t('common.error'),
       );
     } finally {
       setLoading(false);
@@ -171,7 +171,7 @@ export default function CompaniesPage() {
   const handleDelete = async (id: string, name: string) => {
     if (
       !window.confirm(
-        t('common:confirm_delete'),
+        t('common.confirm_delete'),
       )
     )
       return;
@@ -189,7 +189,7 @@ export default function CompaniesPage() {
           userCount: err.response.data.user_count,
         });
       } else {
-        alert(err.response?.data?.message || t('common:error'));
+        alert(err.response?.data?.message || t('common.error'));
       }
     } finally {
       setActionLoading(false);
@@ -228,7 +228,7 @@ export default function CompaniesPage() {
              </div>
              <div>
                 <p className="text-xs font-bold text-navy">{t("companies.filter_consultant_title")}</p>
-                <p className="text-sm text-primary font-black uppercase tracking-widest leading-none mt-1">{consultantName || t("common:loading")}</p>
+                <p className="text-sm text-primary font-black uppercase tracking-widest leading-none mt-1">{consultantName || t("common.loading")}</p>
              </div>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setConsultantId("")} className="text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
@@ -311,7 +311,7 @@ export default function CompaniesPage() {
               {fetchLoading ? (
                 <tr>
                   <td colSpan={6} className="text-center py-8 text-gray-500 italic">
-                    {t("common:loading")}
+                    {t("common.loading")}
                   </td>
                 </tr>
               ) : companies.length === 0 ? (
@@ -349,7 +349,7 @@ export default function CompaniesPage() {
                         <div className="flex gap-1 text-[9px] text-gray-400 mt-1 font-bold">
                           <span title="HR Admin">{company.hr_admin_count || 0} HR</span>
                           <span>•</span>
-                          <span title="Çalışan">{company.employee_count || 0} Çal.</span>
+                          <span title={t("companies.table.employee_count")}>{company.employee_count || 0} {t("companies.table.employee_count_abbr")}</span>
                         </div>
                       </div>
                     </td>
@@ -409,7 +409,7 @@ export default function CompaniesPage() {
           {/* Mobile Card View */}
           <div className="md:hidden divide-y divide-gray-100">
             {fetchLoading ? (
-              <div className="py-12 text-center text-gray-400 italic">{t('common:loading')}</div>
+              <div className="py-12 text-center text-gray-400 italic">{t('common.loading')}</div>
             ) : companies.length === 0 ? (
               <div className="py-12 text-center text-gray-400">{t("companies.empty")}</div>
             ) : (
@@ -627,10 +627,10 @@ export default function CompaniesPage() {
               type="button"
               onClick={() => setIsCreateModalOpen(false)}
             >
-              {t("common:cancel")}
+              {t("common.cancel")}
             </Button>
             <Button loading={loading} type="submit">
-              {t("common:save")}
+              {t("common.save")}
             </Button>
           </div>
         </form>

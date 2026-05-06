@@ -14,6 +14,9 @@ import { CreditService } from '../billing/services/credit.service';
 import { AppLogger } from '../../common/logger/app-logger.service';
 import { EmployeeSurveyService } from '../user/employee-survey.service';
 import { EmployeesService } from '../user/employees.service';
+import { SubscriptionRenewalService } from '../billing/services/subscription-renewal.service';
+import { CreditAlertService } from '../billing/services/credit-alert.service';
+import { TrainingService } from '../training/training.service';
 
 @Injectable()
 export class CronService {
@@ -32,6 +35,9 @@ export class CronService {
     @InjectQueue('report-queue') private readonly reportQueue: Queue,
     private readonly employeeSurveyService: EmployeeSurveyService,
     private readonly employeesService: EmployeesService,
+    private readonly subscriptionRenewalService: SubscriptionRenewalService,
+    private readonly creditAlertService: CreditAlertService,
+    private readonly trainingService: TrainingService,
     private readonly logger: AppLogger,
   ) {}
 
@@ -337,43 +343,15 @@ export class CronService {
   }
 
   @Cron('0 0 1 * *', { timeZone: 'Europe/Istanbul' })
-  async monthlyBillingReset() {
-    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.monthlyBillingReset } as any))) return;
-    const start = Date.now();
-    this.logger.info('CRON monthlyBillingReset başladı', { service: 'CronService' });
-
+  async monthlyBalanceReset() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.monthlyBalanceReset } as any))) return;
     try {
-      // 1. Reset all 'used_this_month' counters
-      await this.dataSource.query(`UPDATE credit_balances SET used_this_month = 0, last_reset_at = NOW()`);
-
-      // 2. Handle subscription renewals/credit refills
-      const activeSubs = await this.dataSource.query(
-        `SELECT s.*, p.credits FROM subscriptions s 
-         JOIN product_packages p ON s.package_key = p.key
-         WHERE s.status = 'active'`
-      );
-
-      for (const sub of activeSubs) {
-        for (const [typeKey, amount] of Object.entries(sub.credits)) {
-           await this.creditService.addCredits(
-             sub.consultant_id,
-             typeKey,
-             amount as number,
-             'reset',
-             `Aylık Abonelik Kredi Yenilemesi: ${sub.package_key}`
-           );
-        }
-      }
-
-      await this.auditService.logAction('system', null, 'cron.billing_reset', 'subscriptions', null, {
-        subscription_count: activeSubs.length
-      });
-      this.logger.info('CRON monthlyBillingReset tamamlandı', { service: 'CronService' },
-        { duration: Date.now() - start, sub_count: activeSubs.length });
+      this.logger.info('CRON monthlyBalanceReset (used_this_month) başladı', { service: 'CronService' });
+      await this.dataSource.query(`UPDATE credit_balances SET used_this_month = 0`);
     } catch (err) {
-      this.logger.fatal('CRON monthlyBillingReset CRASHED', { service: 'CronService' }, err);
+      this.logger.error('CRON monthlyBalanceReset HATA', { service: 'CronService' }, err);
     } finally {
-      await this.cronLockGuard.releaseLock('monthlyBillingReset');
+      await this.cronLockGuard.releaseLock('monthlyBalanceReset');
     }
   }
 
@@ -402,52 +380,41 @@ export class CronService {
   }
 
   @Cron('0 8 * * *', { timeZone: 'Europe/Istanbul' })
-  async checkSubscriptionExpiry() {
-    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.checkSubscriptionExpiry } as any))) return;
-    this.logger.log('Checking subscription expiries...');
-    const now = new Date();
+  async runSubscriptionRenewals() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.runSubscriptionRenewals } as any))) return;
+    const start = Date.now();
+    this.logger.info('CRON runSubscriptionRenewals başladı', { service: 'CronService' });
 
     try {
-      // 1. Find expired active subscriptions
-      const expired = await this.dataSource.query(
-        `SELECT s.id, s.consultant_id, s.package_key, u.email, u.full_name, u.language
-         FROM subscriptions s
-         JOIN users u ON s.consultant_id = u.id
-         WHERE s.status = 'active' AND s.current_period_end < NOW()`
-      );
-
-      for (const sub of expired) {
-        // 2. Update status to expired
-        await this.dataSource.query(`UPDATE subscriptions SET status = 'expired', updated_at = NOW() WHERE id = $1`, [sub.id]);
-
-        // 3. Deactivate consultant plan
-        await this.dataSource.query(`UPDATE consultant_plans SET is_active = false WHERE consultant_id = $1`, [sub.consultant_id]);
-
-        // 4. Send notification
-        await this.notificationService.sendSubscriptionExpired(sub.email, sub.full_name, sub.package_key, sub.language || 'tr');
-
-        // 5. Audit log
-        await this.auditService.logAction(sub.consultant_id, null, 'subscription.expired', 'subscriptions', sub.id, { expired_at: now });
-      }
-
-      // 6. Notify soon-to-expire (7 days)
-      const soonToExpire = await this.dataSource.query(
-        `SELECT s.id, s.consultant_id, s.package_key, s.current_period_end, u.email, u.full_name, c.name as company_name
-         FROM subscriptions s
-         JOIN users u ON s.consultant_id = u.id
-         LEFT JOIN companies c ON c.consultant_id = u.id
-         WHERE s.status = 'active' AND s.current_period_end > NOW() AND s.current_period_end <= NOW() + INTERVAL '7 days'`
-      );
-
-      for (const sub of soonToExpire) {
-        const daysLeft = Math.ceil((new Date(sub.current_period_end).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        await this.notificationService.sendPlanExpiry(sub.email, sub.company_name || 'Wellbeing Metric', daysLeft, sub.package_key);
-      }
-
-    } catch (e) {
-      this.logger.error('Error in checkSubscriptionExpiry', e);
+      const stats = await this.subscriptionRenewalService.processRenewals();
+      
+      await this.auditService.logAction('system', null, 'cron.subscription_renewal', 'subscriptions', null, stats);
+      
+      this.logger.info('CRON runSubscriptionRenewals tamamlandı', { service: 'CronService' }, {
+        duration: Date.now() - start,
+        ...stats
+      });
+    } catch (err) {
+      this.logger.fatal('CRON runSubscriptionRenewals CRASHED', { service: 'CronService' }, err);
     } finally {
-      await this.cronLockGuard.releaseLock('checkSubscriptionExpiry');
+      await this.cronLockGuard.releaseLock('runSubscriptionRenewals');
+    }
+  }
+
+  // Her gün 10:00 — düşük bakiye kontrolü
+  @Cron('0 10 * * *', { timeZone: 'Europe/Istanbul' })
+  async checkLowCreditBalances() {
+    const start = Date.now();
+    this.logger.info('CRON checkLowCreditBalances başladı', { service: 'CronService' });
+
+    try {
+      const result = await this.creditAlertService.checkLowBalances();
+      this.logger.info('CRON checkLowCreditBalances tamamlandı', { service: 'CronService' }, {
+        duration: Date.now() - start,
+        alerted:  result.alerted,
+      });
+    } catch (err) {
+      this.logger.fatal('CRON checkLowCreditBalances CRASHED', { service: 'CronService' }, err);
     }
   }
 
@@ -517,6 +484,56 @@ export class CronService {
 
     } catch (e) {
       this.logger.error('CRON notifyInactiveEmployees HATA', { service: 'CronService' }, { message: e?.message ?? String(e) });
+    }
+  }
+
+  // Her sabah 08:30 — 3 gün içindeki etkinlikleri kontrol
+  @Cron('30 8 * * *', { timeZone: 'Europe/Istanbul' })
+  async remindUpcomingTrainingEvents() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.remindUpcomingTrainingEvents } as any))) return;
+    const start = Date.now();
+    this.logger.info('CRON remindUpcomingTrainingEvents başladı', { service: 'CronService' });
+
+    try {
+      const events = await this.trainingService.getUpcomingEvents(3);
+
+      for (const event of events) {
+        // Sadece plan published ise
+        if (event.plan?.status !== 'published') continue;
+
+        const daysLeft = Math.ceil((new Date(event.scheduledAt).getTime() - Date.now()) / 86400000);
+
+        // HR adminlere otomatik hatırlatma
+        const hrAdmins = await this.dataSource.query(
+          `SELECT email, full_name FROM users WHERE company_id = $1 AND role = 'hr_admin' AND is_active = true`,
+          [event.plan.companyId]
+        );
+
+        for (const hr of hrAdmins) {
+          await this.notificationService.sendEmail(hr.email, 'training_event_auto_reminder', {
+            hr_name: hr.full_name,
+            event_title: event.title,
+            days_left: String(daysLeft),
+            event_date: new Date(event.scheduledAt).toLocaleDateString('tr-TR', {
+              weekday: 'long', day: 'numeric', month: 'long'
+            }),
+            event_time: new Date(event.scheduledAt).toLocaleTimeString('tr-TR', {
+              hour: '2-digit', minute: '2-digit'
+            }),
+            department: event.department?.name ?? 'Tüm firma',
+            plan_url: `${process.env.APP_URL || 'http://localhost:3000'}/dashboard/training?plan_id=${event.planId}`,
+          });
+        }
+      }
+
+      this.logger.info('CRON remindUpcomingTrainingEvents tamamlandı', { service: 'CronService' }, {
+        duration: Date.now() - start,
+        eventCount: events.length,
+      });
+    } catch (err) {
+      this.logger.fatal('CRON remindUpcomingTrainingEvents CRASHED', { service: 'CronService' }, err);
+    } finally {
+      await this.cronLockGuard.releaseLock('remindUpcomingTrainingEvents');
     }
   }
 }

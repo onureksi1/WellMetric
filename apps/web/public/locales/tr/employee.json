@@ -11,13 +11,13 @@
     "needs_attention": "Dikkat etmeni öneririz"
   },
   "pending_surveys": {
-    "title": "Bekleyen Anketler",
+    "title": "Bekleyen Değerlendirmeler",
     "due_date": "Son tarih: {{date}}",
     "duration": "~{{minutes}} dakika",
-    "start": "Anketi Doldur →",
-    "no_pending": "Şu an bekleyen anketin yok. ✓",
-    "throttled": "Bu ayki anketini tamamladın.",
-    "next_survey": "Sıradaki anket: {{date}}"
+    "start": "Değerlendirmeyi Doldur →",
+    "no_pending": "Şu an bekleyen değerlendirmen yok. ✓",
+    "throttled": "Bu ayki değerlendirmeni tamamladın.",
+    "next_survey": "Sıradaki değerlendirme: {{date}}"
   },
   "content": {
     "title": "Senin İçin Öneriler",
@@ -26,26 +26,26 @@
     "no_content": "Şu an öneri yok."
   },
   "history": {
-    "title": "Anket Geçmişim",
+    "title": "Değerlendirme Geçmişim",
     "columns": {
-      "survey": "Anket",
+      "survey": "Değerlendirme",
       "date": "Tarih",
       "score": "Skorun",
       "detail": "Detay"
     },
     "detail_modal": {
-      "title": "Anket Detayı",
+      "title": "Değerlendirme Detayı",
       "your_score": "Senin Skorun",
       "trend": "Trend"
     },
-    "no_history": "Henüz tamamlanmış anket yok."
+    "no_history": "Henüz tamamlanmış değerlendirme yok."
   },
   "profile": {
     "title": "Profil Ayarları",
     "full_name": "Ad Soyad",
     "language": "Arayüz Dili",
     "notifications": "Bildirim Tercihleri",
-    "notification_survey": "Anket davetleri",
+    "notification_survey": "Değerlendirme davetleri",
     "notification_reminder": "Hatırlatmalar",
     "save": "Kaydet",
     "success": "Profil güncellendi."

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: white; padding: 24px; text-align: center; border-bottom: 1px solid #eee; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #1D9E75; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+    .info-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; margin: 16px 0; }
+    .label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .value { font-size: 14px; font-weight: 600; color: #1e293b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{platform_url}}/images/logo.png" alt="Wellbeing Metric" style="height: 50px; object-fit: contain;">
+    </div>
+    <div class="body">
+      <h2>Yeni İçerik Paylaşıldı!</h2>
+      <p>Danışmanınız <b>{{consultant_name}}</b>, kurumunuz için yeni bir wellbeing içeriği paylaştı.</p>
+      
+      <div class="info-card">
+        <div class="label">İçerik Başlığı</div>
+        <div class="value">{{content_title}}</div>
+        
+        <div style="margin-top: 12px;">
+          <div class="label">Hedef Kitle</div>
+          <div class="value">{{department_name}}</div>
+        </div>
+
+        {{#if notes}}
+        <div style="margin-top: 12px;">
+          <div class="label">Danışman Notu</div>
+          <div style="font-style: italic; color: #475569;">"{{notes}}"</div>
+        </div>
+        {{/if}}
+      </div>
+
+      <p>Paylaşılan içeriği platform üzerinden incelemek ve çalışanlarınıza duyurmak için aşağıdaki butona tıklayabilirsiniz:</p>
+      
+      <div style={{ textAlign: 'center' }}>
+        <a href="{{dashboard_url}}" class="btn">Panelde Görüntüle →</a>
+      </div>
+      
+      <p style="font-size: 13px; color: #64748b;">Doğrudan içeriğe ulaşmak için: <a href="{{content_url}}" style="color: #1D9E75;">{{content_url}}</a></p>
+    </div>
+        <div class="footer" style="text-align:center;padding:20px 0 10px;">
+      {{#if brand_logo_url}}
+      <img
+        src="{{brand_logo_url}}"
+        alt="{{brand_name}}"
+        style="height:28px;width:auto;object-fit:contain;
+               margin-bottom:8px;display:block;margin-left:auto;
+               margin-right:auto;opacity:0.75;"
+      />
+      {{else}}
+      <p style="font-weight:500;font-size:13px;
+                 color:#666;margin-bottom:8px;">
+        {{brand_name}}
+      </p>
+      {{/if}}
+      <p style="font-size:11px;color:#999;margin:0;">
+        Bu maili almak istemiyorsanız yöneticinizle iletişime geçin.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

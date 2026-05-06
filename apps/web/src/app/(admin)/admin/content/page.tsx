@@ -50,16 +50,16 @@ export default function ContentPage() {
           </div>
           <div className="flex gap-3">
              <select className="flex-1 md:flex-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20">
-              <option value="">{t('content.all_types')}</option>
-              <option value="article">{t('content.types.article')}</option>
-              <option value="video">{t('content.types.video')}</option>
-              <option value="podcast">{t('content.types.podcast')}</option>
+              <option value="">{t('admin.content.all_types')}</option>
+              <option value="article">{t('admin.content.types.article')}</option>
+              <option value="video">{t('admin.content.types.video')}</option>
+              <option value="podcast">{t('admin.content.types.podcast')}</option>
             </select>
             <select className="flex-1 md:flex-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20">
-              <option value="">{t('content.all_sizes')}</option>
-              <option value="short">{t('content.sizes.short')}</option>
-              <option value="medium">{t('content.sizes.medium')}</option>
-              <option value="long">{t('content.sizes.long')}</option>
+              <option value="">{t('admin.content.all_sizes')}</option>
+              <option value="short">{t('admin.content.sizes.short')}</option>
+              <option value="medium">{t('admin.content.sizes.medium')}</option>
+              <option value="long">{t('admin.content.sizes.long')}</option>
             </select>
           </div>
         </div>

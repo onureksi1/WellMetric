@@ -13,7 +13,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  Sparkles,
+  Bot
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -35,6 +37,33 @@ export default function AdminBenchmarksPage() {
   useEffect(() => {
     fetchBenchmarks();
   }, [industry]);
+
+  const [generatingAi, setGeneratingAi] = useState(false);
+
+  const handleAiGenerate = async () => {
+    if (!industry) {
+      toast.error('Lütfen önce bir sektör seçin.');
+      return;
+    }
+    setGeneratingAi(true);
+    try {
+      const res = await client.post('/admin/benchmarks/ai-generate', { industry, region: 'turkey' });
+      const suggestions = res.data;
+      
+      // We could show a modal, but for now let's just toast and log
+      console.log('AI Suggestions:', suggestions);
+      toast.success('AI sektörel verileri analiz etti. Önerileri aşağıda görebilirsiniz.');
+      
+      // In a real scenario, we might want to show these in a preview
+      // For now, let's just alert the user
+      alert('AI Önerileri:\n' + suggestions.map((s: any) => `${s.dimension}: ${s.score} (${s.source})`).join('\n'));
+      
+    } catch (error) {
+      handleApiError(error, 'AI analizi başarısız oldu.');
+    } finally {
+      setGeneratingAi(false);
+    }
+  };
 
   const fetchBenchmarks = async () => {
     setLoading(true);
@@ -122,6 +151,15 @@ export default function AdminBenchmarksPage() {
         </div>
         
         <div className="flex gap-4">
+           <button 
+             onClick={handleAiGenerate}
+             disabled={generatingAi}
+             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl border border-indigo-400 shadow-lg shadow-indigo-200 text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+           >
+             {generatingAi ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
+             <span className="text-[10px] font-black uppercase tracking-wider">AI ANALİZ & ÖNERİ</span>
+           </button>
+
            <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-xl border border-purple-100">
               <div className="w-2 h-2 rounded-full bg-purple-500" />
               <span className="text-[10px] font-black text-purple-700 uppercase">SEED (ARAŞTIRMA)</span>

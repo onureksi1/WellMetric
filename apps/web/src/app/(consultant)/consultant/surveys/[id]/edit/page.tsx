@@ -354,21 +354,34 @@ export default function EditSurveyPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">Sektör</label>
-                <select id="ai-industry" className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold outline-none">
-                  {industries.map((ind) => (
-                    <option key={ind.id} value={ind.name}>{ind.name}</option>
-                  ))}
-                  <option value="Teknoloji">Teknoloji & Yazılım</option>
-                  <option value="Hizmet">Hizmet Sektörü</option>
-                </select>
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sektör</label>
+                <div className="relative">
+                  <select 
+                    id="ai-industry" 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-bold outline-none focus:ring-4 focus:ring-navy/5 transition-all appearance-none cursor-pointer text-navy"
+                  >
+                    {industries.map((ind) => (
+                      <option key={ind.id} value={ind.name}>{ind.name}</option>
+                    ))}
+                    <option value="Teknoloji">Teknoloji & Yazılım</option>
+                    <option value="Hizmet">Hizmet Sektörü</option>
+                  </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">Soru Sayısı</label>
-                <input id="ai-count" type="range" min="3" max="15" defaultValue="5" className="w-full accent-navy" />
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Soru Sayısı</label>
+                <div className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                  <input id="ai-count" type="range" min="3" max="15" defaultValue="5" className="flex-1 accent-navy" />
+                  <span className="w-12 text-center font-black text-navy text-sm">5</span>
+                </div>
               </div>
             </div>
 

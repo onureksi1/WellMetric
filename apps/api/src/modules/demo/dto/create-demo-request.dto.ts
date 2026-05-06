@@ -34,6 +34,10 @@ export class CreateDemoRequestDto {
 
   @IsOptional()
   @IsString()
+  user_type?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(1000)
   message?: string;
 }

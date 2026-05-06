@@ -2,6 +2,7 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import { AIService } from './ai.service';
+import { AIReportService } from './ai-report.service';
 import { NotificationService } from '../notification/notification.service';
 import { ScoreService } from '../score/score.service';
 import { DataSource } from 'typeorm';
@@ -12,6 +13,7 @@ export class AIProcessor {
 
   constructor(
     private readonly aiService: AIService,
+    private readonly aiReportService: AIReportService,
     private readonly notificationService: NotificationService,
     private readonly scoreService: ScoreService,
     private readonly dataSource: DataSource,
@@ -32,7 +34,7 @@ export class AIProcessor {
       );
 
       for (const admin of hrAdmins) {
-        await this.notificationService.sendEmail(admin.email, 'ai-analysis-ready', {
+        await this.notificationService.sendEmail(admin.email, 'ai_ready', {
           period,
           surveyId
         });
@@ -57,7 +59,7 @@ export class AIProcessor {
       );
 
       for (const admin of hrAdmins) {
-        await this.notificationService.sendEmail(admin.email, 'low-score-alert', {
+        await this.notificationService.sendEmail(admin.email, 'score_alert', {
           dimension,
           score,
           period
@@ -109,12 +111,30 @@ export class AIProcessor {
       );
 
       for (const admin of hrAdmins) {
-        await this.notificationService.sendEmail(admin.email, 'intelligence-report-ready', {
+        await this.notificationService.sendEmail(admin.email, 'ai_ready', {
           period
         });
       }
     } catch (error) {
       this.logger.error(`Error in intelligence_report job: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  @Process('generate_consultant_report')
+  async handleConsultantReport(job: Job) {
+    const { companyId, consultantId, period, language } = job.data;
+    this.logger.log(`Processing generate_consultant_report for consultant ${consultantId}, company ${companyId}, period ${period}`);
+
+    try {
+      await this.aiReportService.generateAndSaveComprehensiveReport({
+        companyId,
+        consultantId,
+        period,
+        language,
+      });
+    } catch (error) {
+      this.logger.error(`Error in generate_consultant_report job: ${error.message}`, error.stack);
       throw error;
     }
   }

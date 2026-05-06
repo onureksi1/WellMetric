@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationService } from './notification.service';
@@ -13,6 +13,7 @@ import { TemplateHelper } from './helpers/template.helper';
 import { SettingsModule } from '../settings/settings.module';
 import { AuditModule } from '../audit/audit.module';
 import { BillingModule } from '../billing/billing.module';
+import { WhiteLabelModule } from '../white-label/white-label.module';
 import { MailTemplate } from './entities/mail-template.entity';
 import { MailTemplateService } from './mail-template.service';
 import { MailTemplateController } from './mail-template.controller';
@@ -27,7 +28,8 @@ import { NotificationController } from './notification.controller';
     TypeOrmModule.forFeature([MailTemplate]),
     SettingsModule,
     AuditModule,
-    BillingModule,
+    forwardRef(() => BillingModule),
+    WhiteLabelModule,
   ],
   controllers: [MailTemplateController, NotificationController],
   providers: [

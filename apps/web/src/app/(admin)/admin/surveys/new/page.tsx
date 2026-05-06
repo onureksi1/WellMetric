@@ -21,13 +21,13 @@ export default function NewSurveyPage() {
 
   // Validation Schema (Inside component to use t)
   const schema = z.object({
-    title_tr: z.string().min(3, t('surveys.new.error_title_tr', 'Türkçe başlık zorunludur.')),
+    title_tr: z.string().min(3, t('admin.surveys.new.error_title_tr', 'Türkçe başlık zorunludur.')),
     title_en: z.string().optional(),
     type: z.enum(['global', 'company_specific', 'pulse']),
     frequency: z.enum(['once', 'monthly', 'quarterly', 'biannually', 'annually']),
     is_anonymous: z.boolean(),
     link_duration: z.string().default('7'),
-    questions: z.array(z.any()).min(1, t('surveys.new.error_min_questions', 'En az bir soru eklemelisiniz.'))
+    questions: z.array(z.any()).min(1, t('admin.surveys.new.error_min_questions', 'En az bir soru eklemelisiniz.'))
   });
 
   const [loading, setLoading] = useState(false);
@@ -141,7 +141,7 @@ export default function NewSurveyPage() {
       weight: 1.0,
       is_required: true,
     });
-    toast.success(t('surveys.new.template_loaded', 'Örnek sorular eklendi.'));
+    toast.success(t('admin.surveys.new.template_loaded', 'Örnek sorular eklendi.'));
   };
 
 
@@ -166,9 +166,9 @@ export default function NewSurveyPage() {
       formattedQuestions.forEach((q: any) => append(q));
       
       setIsAiModalOpen(false);
-      toast.success(t('surveys.new.ai_success', { count: formattedQuestions.length, defaultValue: `${formattedQuestions.length} soru AI tarafından oluşturuldu ve eklendi.` }));
+      toast.success(t('admin.surveys.new.ai_success', { count: formattedQuestions.length, defaultValue: `${formattedQuestions.length} soru AI tarafından oluşturuldu ve eklendi.` }));
     } catch (err: any) {
-      toast.error(t('surveys.new.ai_error', 'AI soruları oluştururken bir hata oluştu.'));
+      toast.error(t('admin.surveys.new.ai_error', 'AI soruları oluştururken bir hata oluştu.'));
     } finally {
       setAiLoading(false);
     }
@@ -194,11 +194,11 @@ export default function NewSurveyPage() {
       await client.post('/admin/surveys', cleanedData);
       await client.delete('/admin/surveys/draft'); // Delete draft on success
       
-      toast.success(t('surveys.new.success', 'Anket başarıyla oluşturuldu!'));
+      toast.success(t('admin.surveys.new.success', 'Anket başarıyla oluşturuldu!'));
       router.push('/admin/surveys');
     } catch (err: any) {
       console.error(err);
-      toast.error(err.response?.data?.message || t('surveys.new.error', 'Anket oluşturulurken hata oluştu.'));
+      toast.error(err.response?.data?.message || t('admin.surveys.new.error', 'Anket oluşturulurken hata oluştu.'));
     } finally {
       setLoading(false);
     }
@@ -215,8 +215,8 @@ export default function NewSurveyPage() {
                 <Clock size={20} className="text-yellow-400" />
               </div>
               <div>
-                <p className="text-sm font-bold">{t('surveys.new.draft_found', 'Kaydedilmemiş bir taslağınız var.')}</p>
-                <p className="text-[10px] text-gray-400">{t('surveys.new.draft_continue', 'Devam etmek ister misiniz?')}</p>
+                <p className="text-sm font-bold">{t('admin.surveys.new.draft_found', 'Kaydedilmemiş bir taslağınız var.')}</p>
+                <p className="text-[10px] text-gray-400">{t('admin.surveys.new.draft_continue', 'Devam etmek ister misiniz?')}</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -256,13 +256,13 @@ export default function NewSurveyPage() {
               <ArrowLeft size={20} />
             </Link>
             <div>
-              <h1 className="text-2xl font-black text-navy">{t('surveys.new.title', 'Anket Sihirbazı')}</h1>
+              <h1 className="text-2xl font-black text-navy">{t('admin.surveys.new.title', 'Anket Sihirbazı')}</h1>
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-sm text-gray-500 font-medium italic">{t('surveys.new.standard', 'v2.8 Mimari Standartları')}</p>
+                <p className="text-sm text-gray-500 font-medium italic">{t('admin.surveys.new.standard', 'v2.8 Mimari Standartları')}</p>
                 {lastSaved && (
                   <div className="flex items-center gap-1 text-[10px] text-green-500 font-bold bg-green-50 px-2 py-0.5 rounded-full animate-in fade-in">
                     <Save size={10} />
-                    💾 {t('surveys.new.auto_saved', { time: lastSaved.toLocaleTimeString('tr-TR'), defaultValue: `Otomatik kaydedildi ${lastSaved.toLocaleTimeString('tr-TR')}` })}
+                    💾 {t('admin.surveys.new.auto_saved', { time: lastSaved.toLocaleTimeString('tr-TR'), defaultValue: `Otomatik kaydedildi ${lastSaved.toLocaleTimeString('tr-TR')}` })}
                   </div>
                 )}
               </div>
@@ -275,7 +275,7 @@ export default function NewSurveyPage() {
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold bg-navy text-white hover:bg-navy/90 transition-all shadow-lg shadow-navy/10"
             >
               <Sparkles size={18} className="text-yellow-400" />
-              {t('admin:ai_generate', 'AI ile Oluştur')}
+              {t('admin.ai_generate', 'AI ile Oluştur')}
             </button>
             <button 
               type="submit" 
@@ -283,7 +283,7 @@ export default function NewSurveyPage() {
               className="flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl font-bold bg-primary text-white hover:bg-primary/90 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
             >
               <Save size={18} />
-              {loading ? t('surveys.new.publishing', 'Yayınlanıyor...') : t('surveys.new.publish', 'Yayına Al')}
+              {loading ? t('admin.surveys.new.publishing', 'Yayınlanıyor...') : t('admin.surveys.new.publish', 'Yayına Al')}
             </button>
           </div>
         </div>
@@ -461,33 +461,43 @@ export default function NewSurveyPage() {
                 <Wand2 size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-navy">{t('admin:ai_generate', 'AI Soru Asistanı')}</h2>
-                <p className="text-sm text-gray-400 font-medium">{t('surveys.new.ai_assistant_subtitle', 'Sektörünüze özel sorular oluşturun.')}</p>
+                <h2 className="text-xl font-black text-navy">{t('admin.ai_generate', 'AI Soru Asistanı')}</h2>
+                <p className="text-sm text-gray-400 font-medium">{t('admin.surveys.new.ai_assistant_subtitle', 'Sektörünüze özel sorular oluşturun.')}</p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">{t('common.industry', 'Sektör')}</label>
-                <select id="ai-industry" className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-navy/10 transition-all">
-                  {industries.map((ind) => (
-                    <option key={ind.id} value={ind.name}>{ind.name}</option>
-                  ))}
-                  {industries.length === 0 && (
-                    <>
-                      <option value="Teknoloji">{t('common.industries.technology', 'Teknoloji & Yazılım')}</option>
-                      <option value="Üretim">{t('common.industries.manufacturing', 'Üretim & Sanayi')}</option>
-                      <option value="Hizmet">{t('common.industries.service', 'Hizmet Sektörü')}</option>
-                      <option value="Sağlık">{t('common.industries.health', 'Sağlık & İlaç')}</option>
-                      <option value="Finans">{t('common.industries.finance', 'Finans & Bankacılık')}</option>
-                    </>
-                  )}
-                </select>
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.industry', 'Sektör')}</label>
+                <div className="relative">
+                  <select 
+                    id="ai-industry" 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-bold outline-none focus:ring-4 focus:ring-navy/5 transition-all appearance-none cursor-pointer text-navy"
+                  >
+                    {industries.map((ind) => (
+                      <option key={ind.id} value={ind.name}>{ind.name}</option>
+                    ))}
+                    {industries.length === 0 && (
+                      <>
+                        <option value="Teknoloji">{t('common.industries.technology', 'Teknoloji & Yazılım')}</option>
+                        <option value="Üretim">{t('common.industries.manufacturing', 'Üretim & Sanayi')}</option>
+                        <option value="Hizmet">{t('common.industries.service', 'Hizmet Sektörü')}</option>
+                        <option value="Sağlık">{t('common.industries.health', 'Sağlık & İlaç')}</option>
+                        <option value="Finans">{t('common.industries.finance', 'Finans & Bankacılık')}</option>
+                      </>
+                    )}
+                  </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('surveys.new.dimensions_to_measure', 'Ölçülecek Boyutlar')}</label>
-                <div className="grid grid-cols-2 gap-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('admin.surveys.new.dimensions_to_measure', 'Ölçülecek Boyutlar')}</label>
+                <div className="grid grid-cols-2 gap-3">
                   {[
                     { key: 'physical', label: 'Fiziksel' },
                     { key: 'mental', label: 'Zihinsel' },
@@ -495,23 +505,26 @@ export default function NewSurveyPage() {
                     { key: 'financial', label: 'Finansal' },
                     { key: 'occupational', label: 'İş & Anlam' }
                   ].map((dim) => (
-                    <label key={dim.key} className="flex items-center gap-2 p-2 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
-                      <input type="checkbox" className="w-4 h-4 accent-navy ai-dim" value={dim.key} defaultChecked={['physical', 'mental', 'social'].includes(dim.key)} />
-                      <span className="text-xs font-bold text-gray-600">{dim.label}</span>
+                    <label key={dim.key} className="flex items-center gap-3 p-3 bg-gray-50/50 border border-transparent rounded-2xl cursor-pointer hover:bg-gray-50 hover:border-gray-100 transition-all group">
+                      <div className="relative flex items-center justify-center">
+                        <input type="checkbox" className="peer appearance-none w-5 h-5 border-2 border-gray-200 rounded-lg checked:bg-navy checked:border-navy transition-all ai-dim" value={dim.key} defaultChecked={['physical', 'mental', 'social'].includes(dim.key)} />
+                        <CheckCircle2 size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+                      </div>
+                      <span className="text-xs font-bold text-gray-600 group-hover:text-navy transition-colors">{dim.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">{t('surveys.new.question_count', 'Soru Sayısı')}</label>
+                <label className="text-xs font-bold text-gray-500 uppercase">{t('admin.surveys.new.question_count', 'Soru Sayısı')}</label>
                 <div className="flex items-center gap-4">
                   <input id="ai-count" type="range" min="5" max="30" defaultValue="10" className="flex-1 accent-navy" />
                   <span className="text-sm font-black text-navy w-12">10</span>
                 </div>
                 <div className="flex justify-between text-[10px] font-bold text-gray-400">
-                  <span>5 {t('surveys.new.questions_unit', 'SORU')}</span>
-                  <span>30 {t('surveys.new.questions_unit', 'SORU')}</span>
+                  <span>5 {t('admin.surveys.new.questions_unit', 'SORU')}</span>
+                  <span>30 {t('admin.surveys.new.questions_unit', 'SORU')}</span>
                 </div>
               </div>
 
@@ -551,7 +564,7 @@ export default function NewSurveyPage() {
                 className="flex-1 py-3 rounded-xl font-bold bg-navy text-white hover:bg-navy/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {aiLoading ? (
-                  <>{t('admin:ai_generating', 'AI Oluşturuyor...')}</>
+                  <>{t('admin.ai_generating', 'AI Oluşturuyor...')}</>
                 ) : (
                   <>{t('common.generate', 'Oluştur')}</>
                 )}

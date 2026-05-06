@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 import { DebugOverlay } from "@/components/ui/DebugOverlay";
@@ -9,7 +9,7 @@ import { headers } from 'next/headers';
 import { WhiteLabelProvider } from '@/contexts/WhiteLabelContext';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Wellbeing Metric | Kurumsal Esenlik Platformu",
@@ -40,7 +40,7 @@ export default function RootLayout({
         )}
         <title>{wlConfig?.brandName ?? 'WellBeing Metric'}</title>
       </head>
-      <body className={`${inter.className} bg-slate-50 text-navy antialiased`}>
+      <body className={`${outfit.className} bg-slate-50 text-navy antialiased`}>
         <WhiteLabelProvider serverConfig={wlConfig}>
           <ErrorBoundary>
             <AppProviders>

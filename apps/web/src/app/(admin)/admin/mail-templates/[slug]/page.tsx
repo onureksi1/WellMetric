@@ -72,7 +72,7 @@ export default function MailTemplateEditPage() {
     setSaveLoading(true);
     try {
       await api.put(`/admin/mail-templates/${slug}`, formData);
-      toast.success(t('mail_templates.edit.success'));
+      toast.success(t('admin.mail_templates.edit.success'));
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Kaydedilemedi');
     } finally {
@@ -81,10 +81,10 @@ export default function MailTemplateEditPage() {
   };
 
   const handleReset = async () => {
-    if (!confirm(t('mail_templates.edit.reset_confirm'))) return;
+    if (!confirm(t('admin.mail_templates.edit.reset_confirm'))) return;
     try {
       await api.post(`/admin/mail-templates/${slug}/reset`);
-      toast.success(t('mail_templates.edit.reset_success'));
+      toast.success(t('admin.mail_templates.edit.reset_success'));
       fetchTemplate();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Sıfırlanamadı');
@@ -99,7 +99,7 @@ export default function MailTemplateEditPage() {
         to: testEmail,
         language: activeTab
       });
-      toast.success(t('mail_templates.test.success'));
+      toast.success(t('admin.mail_templates.test.success'));
       setShowTest(false);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Gönderilemedi');
@@ -167,7 +167,7 @@ export default function MailTemplateEditPage() {
             className="h-12 px-6 rounded-xl flex gap-2 items-center"
           >
             <Eye size={18} />
-            {t('mail_templates.edit.preview')}
+            {t('admin.mail_templates.edit.preview')}
           </Button>
           <Button
             variant="outline"
@@ -175,7 +175,7 @@ export default function MailTemplateEditPage() {
             className="h-12 px-6 rounded-xl flex gap-2 items-center"
           >
             <Send size={18} />
-            {t('mail_templates.test.send')}
+            {t('admin.mail_templates.test.send')}
           </Button>
           <Button
             variant="primary"
@@ -184,7 +184,7 @@ export default function MailTemplateEditPage() {
             className="h-12 px-8 rounded-xl premium-gradient text-white font-bold shadow-lg shadow-primary/20 flex gap-2 items-center"
           >
             {saveLoading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-            {t('mail_templates.edit.save')}
+            {t('admin.mail_templates.edit.save')}
           </Button>
         </div>
       </div>
@@ -198,20 +198,20 @@ export default function MailTemplateEditPage() {
               onClick={() => setActiveTab('tr')}
               className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'tr' ? 'bg-white text-navy shadow-sm' : 'text-gray-500 hover:text-navy'}`}
             >
-              {t('mail_templates.edit.tabs.turkish')}
+              {t('admin.mail_templates.edit.tabs.turkish')}
             </button>
             <button
               onClick={() => setActiveTab('en')}
               className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'en' ? 'bg-white text-navy shadow-sm' : 'text-gray-500 hover:text-navy'}`}
             >
-              {t('mail_templates.edit.tabs.english')}
+              {t('admin.mail_templates.edit.tabs.english')}
             </button>
           </div>
 
           <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm flex flex-col h-[700px]">
             <div className="p-6 border-bottom border-slate-100 bg-slate-50/50">
               <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                {t('mail_templates.edit.subject')}
+                {t('admin.mail_templates.edit.subject')}
               </label>
               <input
                 type="text"
@@ -220,7 +220,7 @@ export default function MailTemplateEditPage() {
                   ...formData,
                   [activeTab === 'tr' ? 'subject_tr' : 'subject_en']: e.target.value
                 })}
-                placeholder="E-posta konusu..."
+                placeholder={t('mail_templates.subject_placeholder', 'E-posta konusu...')}
                 className="w-full bg-transparent text-xl font-bold text-navy outline-none placeholder:text-slate-300"
               />
             </div>
@@ -249,7 +249,7 @@ export default function MailTemplateEditPage() {
               className="text-gray-400 hover:text-danger text-sm font-bold flex items-center gap-2 transition-colors px-4 py-2"
             >
               <RefreshCw size={14} />
-              {t('mail_templates.edit.reset')}
+              {t('admin.mail_templates.edit.reset')}
             </button>
           </div>
         </div>
@@ -261,11 +261,11 @@ export default function MailTemplateEditPage() {
               <div className="h-10 w-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center">
                 <Info size={20} />
               </div>
-              <h3 className="font-bold text-navy">{t('mail_templates.edit.variables')}</h3>
+              <h3 className="font-bold text-navy">{t('admin.mail_templates.edit.variables')}</h3>
             </div>
             
             <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-              {t('mail_templates.edit.variables_hint')}
+              {t('admin.mail_templates.edit.variables_hint')}
             </p>
 
             <div className="space-y-2">
@@ -317,7 +317,7 @@ export default function MailTemplateEditPage() {
                     <Eye size={20} />
                   </div>
                   <div>
-                    <h3 className="font-black text-navy uppercase tracking-widest">{t('mail_templates.edit.preview')}</h3>
+                    <h3 className="font-black text-navy uppercase tracking-widest">{t('admin.mail_templates.edit.preview')}</h3>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                       {activeTab === 'tr' ? 'TURKISH VERSION' : 'ENGLISH VERSION'}
                     </p>
@@ -362,7 +362,7 @@ export default function MailTemplateEditPage() {
                 <div className="h-20 w-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6">
                   <Send size={40} />
                 </div>
-                <h3 className="text-2xl font-black text-navy mb-2 uppercase tracking-tighter">{t('mail_templates.test.title')}</h3>
+                <h3 className="text-2xl font-black text-navy mb-2 uppercase tracking-tighter">{t('admin.mail_templates.test.title')}</h3>
                 <p className="text-slate-500 mb-8 px-4">
                   Şablonun görünümünü doğrulamak için bir test e-postası gönderin.
                 </p>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Inter', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+        .header { margin-bottom: 32px; }
+        .logo { font-size: 24px; fontWeight: 800; color: #2563eb; text-decoration: none; }
+        .content { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        h1 { font-size: 20px; font-weight: 800; margin-top: 0; color: #0f172a; }
+        p { margin-bottom: 20px; }
+        .details { background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+        .detail-item { font-size: 14px; margin-bottom: 8px; }
+        .detail-label { font-weight: 700; color: #64748b; width: 100px; display: inline-block; }
+        .button { display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 15px; }
+        .footer { margin-top: 32px; font-size: 12px; color: #94a3b8; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="#" class="logo">WellMetric</a>
+        </div>
+        <div class="content">
+            <h1>Raporunuz Hazır!</h1>
+            <p>Sayın {{consultant_name}},</p>
+            <p>Talebiniz üzerine yapay zeka tarafından hazırlanan wellbeing analiz raporu tamamlanmıştır.</p>
+            
+            <div class="details">
+                <div class="detail-item"><span class="detail-label">Firma:</span> {{company_name}}</div>
+                <div class="detail-item"><span class="detail-label">Dönem:</span> {{period}}</div>
+                <div class="detail-item"><span class="detail-label">Durum:</span> Taslak</div>
+            </div>
+
+            <p>Raporu incelemek, üzerinde düzenlemeler yapmak veya yayınlamak için aşağıdaki bağlantıyı kullanabilirsiniz:</p>
+            
+            <a href="{{report_url}}" class="button">Raporu Görüntüle</a>
+            
+            <p style="margin-top: 24px; font-size: 14px; color: #64748b;">
+                Not: Rapor şu an taslak durumundadır. HR yöneticileriyle paylaşmak için "Yayınla" butonuna basmanız gerekmektedir.
+            </p>
+        </div>
+            <div class="footer" style="text-align:center;padding:20px 0 10px;">
+      {{#if brand_logo_url}}
+      <img
+        src="{{brand_logo_url}}"
+        alt="{{brand_name}}"
+        style="height:28px;width:auto;object-fit:contain;
+               margin-bottom:8px;display:block;margin-left:auto;
+               margin-right:auto;opacity:0.75;"
+      />
+      {{else}}
+      <p style="font-weight:500;font-size:13px;
+                 color:#666;margin-bottom:8px;">
+        {{brand_name}}
+      </p>
+      {{/if}}
+      <p style="font-size:11px;color:#999;margin:0;">
+        Bu maili almak istemiyorsanız yöneticinizle iletişime geçin.
+      </p>
+    </div>
+    </div>
+</body>
+</html>

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { toast } from 'react-hot-toast';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface Props {
   token: string;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function SurveyForm({ token, survey, employee }: Props) {
+  const { settings } = useSettings();
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [current, setCurrent] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -63,16 +65,26 @@ export function SurveyForm({ token, survey, employee }: Props) {
 
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-white">
-        <div className="text-center max-w-md animate-in fade-in zoom-in duration-500">
-          <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+      <div style={{
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem 1.5rem',
+        textAlign: 'center',
+        background: 'var(--color-background-primary)',
+      }}>
+        <img src={settings?.platform_logo_url || "/images/logo.png"} alt="Wellbeing Metric" style={{ height: 48, marginBottom: 40, objectFit: 'contain' }} />
+        <div style={{ maxWidth: 360 }}>
+          <div style={{ fontSize: 'clamp(40px, 12vw, 56px)', marginBottom: 16 }}>✓</div>
+          <div style={{ fontSize: 'clamp(18px, 5vw, 22px)', fontWeight:500, marginBottom:8 }}>
+            Teşekkürler, {employee.full_name}!
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Teşekkürler, {employee.full_name}!</h2>
-          <p className="text-gray-600 mb-8">Yanıtlarınız başarıyla kaydedildi. Katılımınız bizim için çok değerli.</p>
-          <p className="text-sm text-gray-400 italic">Bu sayfayı güvenle kapatabilirsiniz.</p>
+          <div style={{ fontSize: 'clamp(13px, 3.5vw, 15px)',
+            color:'var(--color-text-secondary)', lineHeight:1.6 }}>
+            Yanıtlarınız kaydedildi.<br/>Bu sayfayı kapatabilirsiniz.
+          </div>
         </div>
       </div>
     );
@@ -81,89 +93,183 @@ export function SurveyForm({ token, survey, employee }: Props) {
   if (!question) return <div>Anket yüklenemedi...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50/30 py-12 px-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
-        {/* Progress bar */}
-        <div className="mb-12">
-          <div className="flex justify-between items-end mb-2">
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">İlerleme</span>
-            <span className="text-xs font-medium text-gray-400">{current + 1} / {questions.length}</span>
-          </div>
-          <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-primary transition-all duration-500 ease-out" 
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+    <div style={{
+      maxWidth: 640,
+      margin: '0 auto',
+      padding: 'clamp(1rem, 4vw, 2rem) clamp(0.75rem, 3vw, 1.5rem)',
+      minHeight: '100dvh',
+      background: 'var(--color-background-primary)',
+    }}>
+      {/* Logo Header */}
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <img src={settings?.platform_logo_url || "/images/logo.png"} alt="Wellbeing Metric" style={{ height: 32, objectFit: 'contain' }} />
+      </div>
+
+      {/* Progress bar — sticky */}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        background: 'var(--color-background-primary)',
+        padding: '12px 0 8px',
+        marginBottom: 16,
+      }}>
+        <div style={{ height:4, background:'var(--color-background-tertiary)',
+          borderRadius:2 }}>
+          <div style={{
+            width: `${progress}%`,
+            height: '100%',
+            background: '#1D9E75',
+            borderRadius: 2,
+            transition: 'width .3s',
+          }} />
         </div>
-
-        {/* Question */}
-        <div className="mb-10">
-          <h3 className="text-xl md:text-2xl font-semibold text-gray-900 leading-tight mb-8">
-            {question.question_text_tr}
-          </h3>
-
-          {/* Options - Simplified for now, assuming 1-5 scale or radio */}
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((val) => (
-              <button
-                key={val}
-                onClick={() => handleAnswer(question.id, val)}
-                className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ${
-                  answers[question.id] === val 
-                    ? 'border-primary bg-primary/5 text-primary font-medium' 
-                    : 'border-gray-50 hover:border-gray-200 bg-gray-50/50 text-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    answers[question.id] === val ? 'border-primary' : 'border-gray-300'
-                  }`}>
-                    {answers[question.id] === val && <div className="w-2.5 h-2.5 bg-primary rounded-full" />}
-                  </div>
-                  <span>{val} - {val === 1 ? 'Kesinlikle Katılmıyorum' : val === 5 ? 'Kesinlikle Katılıyorum' : 'Fikrim Yok'}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between pt-8 border-t border-gray-100 gap-4">
-          <Button
-            variant="outline"
-            onClick={() => setCurrent(c => Math.max(0, c - 1))}
-            disabled={current === 0}
-            className="px-8 rounded-xl h-12"
-          >
-            ← Geri
-          </Button>
-          
-          <div className="flex-1" />
-
-          {current < questions.length - 1 ? (
-            <Button
-              onClick={handleNext}
-              disabled={answers[question.id] === undefined}
-              className="px-10 rounded-xl h-12"
-            >
-              İleri →
-            </Button>
-          ) : (
-            <Button
-              onClick={handleSubmit}
-              loading={submitting}
-              disabled={answers[question.id] === undefined}
-              className="px-10 rounded-xl h-12"
-            >
-              Tamamla ✓
-            </Button>
-          )}
+        <div style={{ display:'flex', justifyContent:'space-between',
+          fontSize:11, color:'var(--color-text-tertiary)', marginTop:6 }}>
+          <span>{current + 1} / {questions.length}</span>
+          <span>%{Math.round(progress)} tamamlandı</span>
         </div>
       </div>
 
-      <div className="mt-8 text-center">
-        <p className="text-xs text-gray-400">© 2026 WellAnalytics Wellbeing System. Tüm hakları saklıdır.</p>
+      {/* Question */}
+      <div className="mb-10">
+        <h3 style={{
+          fontSize: 'clamp(15px, 4vw, 18px)',
+          fontWeight: 500,
+          marginBottom: 24,
+          lineHeight: 1.5,
+          color: 'var(--color-text-primary)',
+        }}>
+          {question.question_text_tr}
+        </h3>
+
+        {/* Options */}
+        {question.question_type === 'yes_no' ? (
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            {['Evet','Hayır'].map((label, idx) => (
+              <button key={idx}
+                onClick={() => handleAnswer(question.id, idx === 0 ? 1 : 0)}
+                style={{
+                  padding: '14px',
+                  border: answers[question.id] === (idx === 0 ? 1 : 0)
+                    ? '2px solid #1D9E75'
+                    : '0.5px solid var(--color-border-secondary)',
+                  borderRadius: '12px',
+                  background: 'var(--color-background-primary)',
+                  cursor: 'pointer',
+                  fontSize: 14, fontWeight: 500,
+                  touchAction: 'manipulation',
+                }}>
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : question.question_type === 'open_text' ? (
+          <textarea
+            rows={4}
+            value={answers[question.id] || ''}
+            onChange={e => handleAnswer(question.id, e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px',
+              fontSize: 16,
+              border: '0.5px solid var(--color-border-secondary)',
+              borderRadius: '12px',
+              resize: 'vertical',
+              lineHeight: 1.5,
+              touchAction: 'manipulation',
+            }}
+          />
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+            {[1,2,3,4,5].map(val => (
+              <button key={val}
+                onClick={() => handleAnswer(question.id, val)}
+                style={{
+                  minWidth:  'clamp(44px, 15vw, 56px)',
+                  height:    'clamp(44px, 15vw, 56px)',
+                  borderRadius: '50%',
+                  border: answers[question.id] === val
+                    ? '2px solid #1D9E75'
+                    : '0.5px solid var(--color-border-secondary)',
+                  background: answers[question.id] === val
+                    ? '#1D9E7510'
+                    : 'var(--color-background-primary)',
+                  color: answers[question.id] === val ? '#1D9E75' : 'inherit',
+                  cursor: 'pointer',
+                  fontSize: 'clamp(13px, 3.5vw, 16px)',
+                  fontWeight: answers[question.id] === val ? 500 : 400,
+                  touchAction: 'manipulation',
+                }}>
+                {val}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop: 32, borderTop: '0.5px solid var(--color-border-tertiary)', gap: 16 }}>
+        <button
+          onClick={() => setCurrent(c => Math.max(0, c - 1))}
+          disabled={current === 0}
+          style={{
+            padding: 'clamp(10px, 3vw, 14px) clamp(16px, 5vw, 24px)',
+            fontSize: 'clamp(13px, 3.5vw, 15px)',
+            minHeight: 44,
+            borderRadius: '12px',
+            border: '0.5px solid var(--color-border-secondary)',
+            background: 'white',
+            opacity: current === 0 ? 0.3 : 1,
+            touchAction: 'manipulation',
+          }}
+        >
+          ← Geri
+        </button>
+        
+        {current < questions.length - 1 ? (
+          <button
+            onClick={handleNext}
+            disabled={answers[question.id] === undefined}
+            style={{
+              padding: 'clamp(10px, 3vw, 14px) clamp(16px, 5vw, 24px)',
+              fontSize: 'clamp(13px, 3.5vw, 15px)',
+              minHeight: 44,
+              borderRadius: '12px',
+              background: '#1D9E75',
+              color: 'white',
+              border: 'none',
+              fontWeight: 500,
+              opacity: answers[question.id] === undefined ? 0.5 : 1,
+              touchAction: 'manipulation',
+            }}
+          >
+            İleri →
+          </button>
+        ) : (
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || answers[question.id] === undefined}
+            style={{
+              padding: 'clamp(10px, 3vw, 14px) clamp(16px, 5vw, 24px)',
+              fontSize: 'clamp(13px, 3.5vw, 15px)',
+              minHeight: 44,
+              borderRadius: '12px',
+              background: '#1D9E75',
+              color: 'white',
+              border: 'none',
+              fontWeight: 600,
+              opacity: submitting || answers[question.id] === undefined ? 0.5 : 1,
+              touchAction: 'manipulation',
+            }}
+          >
+            {submitting ? 'Gönderiliyor...' : 'Tamamla ✓'}
+          </button>
+        )}
+      </div>
+
+      <div style={{ marginTop: 40, textAlign: 'center' }}>
+        <p style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>© 2026 WellAnalytics Wellbeing System. Tüm hakları saklıdır.</p>
       </div>
     </div>
   );

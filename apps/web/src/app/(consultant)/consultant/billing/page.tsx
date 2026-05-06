@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
+import { useT } from '@/hooks/useT';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   CreditCard, 
@@ -45,14 +45,55 @@ const TABS = [
   { key: 'usage', icon: BarChart3 },
 ];
 
+const formatPrice = (amount: number | string | null, currency: string) => {
+  if (amount === null || amount === '') return '-';
+  const val = Number(amount);
+  if (currency === 'USD') return `$${val}`;
+  if (currency === 'TRY') return `${val} ₺`;
+  return `${val} ${currency}`;
+};
+
+const safeFormatDate = (dateStr: string | Date | null | undefined, formatStr: string, locale?: any) => {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '-';
+    return format(d, formatStr, { locale });
+  } catch (e) {
+    return '-';
+  }
+};
+
 import { Suspense } from 'react';
 
 function BillingContent() {
-  const { t } = useTranslation('consultant');
+  const { t } = useT('consultant');
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
   const activeTab = searchParams.get('tab') || 'subscription';
+  
+  const [selectedPkg, setSelectedPkg] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  // --- Auto Checkout Logic ---
+  const action = searchParams.get('action');
+  const pkgKey = searchParams.get('package');
+
+  const { data: allPackages } = useQuery({
+    queryKey: ['billing-packages-all'],
+    queryFn: () => client.get('/consultant/billing/packages').then(res => res.data)
+  });
+
+  React.useEffect(() => {
+    if (action === 'checkout' && pkgKey && allPackages?.packages) {
+      const pkg = allPackages.packages.find((p: any) => p.key === pkgKey);
+      if (pkg) {
+        setSelectedPkg(pkg);
+        setShowModal(true);
+      }
+    }
+  }, [action, pkgKey, allPackages]);
 
   const setTab = (key: string) => {
     router.push(`/consultant/billing?tab=${key}`);
@@ -60,6 +101,19 @@ function BillingContent() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {showModal && selectedPkg && (
+        <PaymentModal 
+          pkg={selectedPkg} 
+          onClose={() => {
+            setShowModal(false);
+            setSelectedPkg(null);
+            router.push('/consultant/billing'); // Clear params
+            queryClient.invalidateQueries({ queryKey: ['billing-subscription'] });
+            queryClient.invalidateQueries({ queryKey: ['billing-credits'] });
+          }} 
+        />
+      )}
+      
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">{t('billing.title')}</h1>
         <p className="text-slate-500 font-medium">{t('billing.subtitle')}</p>
@@ -110,7 +164,7 @@ export default function BillingPage() {
 // --- TAB COMPONENTS ---
 
 function SubscriptionTab() {
-  const { t } = useTranslation('consultant');
+  const { t } = useT('consultant');
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -152,11 +206,13 @@ function SubscriptionTab() {
            <div className="relative z-10 space-y-8">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                   <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${sub ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                     {sub ? t('billing.subscription.active_plan') : t('billing.subscription.free_plan')}
+                   <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${sub ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                     {sub ? t('billing.subscription.active_plan') : t('billing.subscription.no_subscription_found')}
                    </span>
                    <h2 className="text-sm font-bold text-slate-400 uppercase tracking-tighter mt-4">{t('billing.subscription.current_status')}</h2>
-                   <p className="text-4xl font-black text-slate-900">{sub ? sub.package_label : t('billing.subscription.no_subscription')}</p>
+                   <p className="text-4xl font-black text-slate-900">
+                     {sub ? (sub.package_label || sub.package_key?.toUpperCase()) : t('billing.subscription.no_active_plan')}
+                   </p>
                 </div>
                 <div className="p-4 bg-blue-50 rounded-[32px]">
                    <Zap className="text-blue-600" size={32} />
@@ -166,11 +222,11 @@ function SubscriptionTab() {
               <div className="grid grid-cols-2 gap-4">
                  <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('billing.subscription.expiry_date')}</p>
-                    <p className="text-lg font-black text-slate-900">{sub ? format(new Date(sub.current_period_end), 'dd MMMM yyyy', { locale: tr }) : '-'}</p>
+                    <p className="text-lg font-black text-slate-900">{safeFormatDate(sub?.current_period_end, 'dd MMMM yyyy', tr)}</p>
                  </div>
                  <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('billing.subscription.monthly_price')}</p>
-                    <p className="text-lg font-black text-slate-900">{sub ? `${sub.price}₺` : t('billing.subscription.upgrade')}</p>
+                    <p className="text-lg font-black text-slate-900">{sub?.price ? formatPrice(sub.price, sub.currency || 'TRY') : (sub ? '-' : t('billing.subscription.upgrade'))}</p>
                  </div>
               </div>
 
@@ -205,11 +261,11 @@ function SubscriptionTab() {
            
            <div className="space-y-3">
               {pkgsLoading ? [1,2,3].map(i => <div key={i} className="h-16 bg-slate-50 rounded-2xl animate-pulse" />) : 
-               packages?.slice(0, 3).map((pkg: any) => (
+               (packages?.packages || packages)?.slice(0, 3).map((pkg: any) => (
                 <div key={pkg.key} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors cursor-pointer group" onClick={() => router.push('/consultant/billing/upgrade')}>
                    <div>
                       <p className="text-sm font-black text-slate-900">{pkg.label_tr}</p>
-                      <p className="text-xs font-bold text-blue-600">{pkg.price_monthly}₺</p>
+                      <p className="text-xs font-bold text-blue-600">{formatPrice(pkg.price_monthly, pkg.currency)}</p>
                    </div>
                    <ChevronRight size={16} className="text-slate-300 group-hover:text-slate-900 transition-all" />
                 </div>
@@ -248,7 +304,7 @@ function SubscriptionTab() {
 }
 
 function CreditsTab() {
-  const { t } = useTranslation('consultant');
+  const { t } = useT('consultant');
   const router = useRouter();
   const { data: credits, isLoading } = useQuery({
     queryKey: ['billing-credits'],
@@ -273,7 +329,7 @@ function CreditsTab() {
                   </div>
                   <div>
                      <h3 className="text-xl font-black text-slate-900">{c.label_tr}</h3>
-                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('billing.credits.renewal')}: {format(new Date(c.reset_date), 'dd MMM', { locale: tr })}</p>
+                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('billing.credits.renewal')}: {safeFormatDate(c.last_reset_at, 'dd MMM', tr)}</p>
                   </div>
                </div>
                {c.balance === -1 ? (
@@ -323,7 +379,8 @@ function CreditsTab() {
 }
 
 function PurchaseTab() {
-  const { t } = useTranslation('consultant');
+  const { t } = useT('consultant');
+  const queryClient = useQueryClient();
   const [selectedPkg, setSelectedPkg] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -342,26 +399,12 @@ function PurchaseTab() {
     setShowModal(true);
   };
 
-  const handlePayment = async (providerKey: string) => {
-    try {
-      const res = await client.post('/billing/consultant/subscribe', {
-        package_key: selectedPkg.key,
-        provider: providerKey,
-        interval: 'once'
-      });
-      toast.success("Ödeme işlemi başlatıldı");
-      setShowModal(false);
-    } catch (e) {
-      toast.error("Hata oluştu");
-    }
-  };
-
   if (isLoading) return <TabSkeleton />;
 
   return (
     <div className="space-y-12">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {creditPackages?.map((pkg: any) => (
+        {(creditPackages?.packages || creditPackages)?.map((pkg: any) => (
           <div key={pkg.key} className="bg-white rounded-[40px] border-2 border-slate-100 p-8 shadow-xl shadow-slate-200/50 flex flex-col items-center text-center space-y-6 transition-all hover:translate-y-[-4px]">
              <div className="p-6 bg-blue-50 rounded-[32px] text-blue-600">
                 <Zap size={32} />
@@ -371,7 +414,7 @@ function PurchaseTab() {
                 <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mt-1">Kredi Paketi</p>
              </div>
              <div className="text-4xl font-black text-slate-900">
-                {pkg.price_monthly}₺
+                {formatPrice(pkg.price_monthly, pkg.currency)}
              </div>
              <button 
               onClick={() => handlePurchase(pkg)}
@@ -398,7 +441,7 @@ function PurchaseTab() {
 }
 
 function InvoicesTab() {
-  const { t } = useTranslation('consultant');
+  const { t } = useT('consultant');
   const { data: invoices, isLoading } = useQuery({
     queryKey: ['billing-invoices'],
     queryFn: () => client.get('/consultant/billing/invoices').then(res => res.data)
@@ -428,7 +471,7 @@ function InvoicesTab() {
              ) : invoices?.map((inv: any) => (
                <tr key={inv.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-8 py-6 font-black text-slate-900">{inv.invoice_number || `#${inv.id.slice(0,8)}`}</td>
-                  <td className="px-8 py-6 text-slate-500 font-medium">{format(new Date(inv.created_at), 'dd MMM yyyy', { locale: tr })}</td>
+                  <td className="px-8 py-6 text-slate-500 font-medium">{safeFormatDate(inv.created_at, 'dd MMM yyyy', tr)}</td>
                   <td className="px-8 py-6 font-black text-slate-900">{inv.amount} {inv.currency}</td>
                   <td className="px-8 py-6">
                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
@@ -440,11 +483,13 @@ function InvoicesTab() {
                      </span>
                   </td>
                   <td className="px-8 py-6 text-right">
-                     {inv.invoice_url ? (
-                       <a href={inv.invoice_url} target="_blank" className="flex items-center gap-2 text-blue-600 font-black text-xs hover:underline justify-end">
+                       <a 
+                         href={`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/consultant/billing/invoices/${inv.id}/download`} 
+                         target="_blank" 
+                         className="flex items-center gap-2 text-blue-600 font-black text-xs hover:underline justify-end"
+                       >
                           <Download size={14} /> {t('billing.invoices.download_pdf')}
                        </a>
-                     ) : '-'}
                   </td>
                </tr>
              ))}
@@ -455,7 +500,7 @@ function InvoicesTab() {
 }
 
 function UsageTab() {
-  const { t } = useTranslation('consultant');
+  const { t } = useT('consultant');
   const { data: usage, isLoading } = useQuery({
     queryKey: ['billing-usage'],
     queryFn: () => client.get('/consultant/billing/usage').then(res => res.data)
@@ -508,7 +553,7 @@ function UsageTab() {
                     axisLine={false} 
                     tickLine={false} 
                     tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}}
-                    tickFormatter={(val) => format(new Date(val), 'dd MMM', { locale: tr })}
+                    tickFormatter={(val) => safeFormatDate(val, 'dd MMM', tr)}
                    />
                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />
                    <Tooltip 
@@ -563,7 +608,7 @@ function UsageTab() {
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
                            <td className="px-6 py-4">
                               <p className="text-xs font-bold text-slate-900 leading-tight">{t.description}</p>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase">{format(new Date(t.date), 'dd MMM HH:mm', { locale: tr })}</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase">{safeFormatDate(t.date, 'dd MMM HH:mm', tr)}</p>
                            </td>
                            <td className="px-6 py-4 text-right">
                               <span className={`font-black text-sm ${t.amount < 0 ? 'text-red-500' : 'text-emerald-500'}`}>

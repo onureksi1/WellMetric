@@ -8,45 +8,54 @@
     "segments": "Segmentation",
     "reports": "Reports",
     "ai": "AI Assistant",
-    "campaigns": "Campaigns"
+    "campaigns": "Campaigns",
+    "consultant_content": "Consultant Content",
+    "training": "Training Plans",
+    "consultant_reports": "Consultant Reports",
+    "logout": "Log Out"
   },
   "overview": {
-    "title": "Overview",
-    "subtitle": "{{company_name}} wellbeing status",
+    "title": "Dashboard",
+    "subtitle": "Overview for {{company_name}}",
     "score_card": {
-      "this_month": "This Month",
-      "last_month": "Last Month",
-      "sector_avg": "Sector Avg.",
-      "above_sector": "Above sector average",
-      "below_sector": "Below sector average",
-      "no_benchmark": "Not enough sector data for comparison"
+      "this_month": "THIS MONTH SCORE",
+      "last_month": "LAST MONTH",
+      "first_month": "First Month",
+      "no_prev_data": "No comparison data yet",
+      "points": "Points",
+      "above": "above",
+      "below": "below",
+      "overall_change": "Overall score change",
+      "comparison_prefix": "VS LAST MONTH"
     },
     "participation": {
-      "title": "Participation Rate",
-      "responded": "{{count}} employees responded",
-      "of_total": "out of {{total}} people"
+      "title": "PARTICIPATION RATE",
+      "responded": "{{count}} employees responded"
     },
     "risk_alerts": {
-      "title": "Risk Alerts",
-      "no_alerts": "All dimensions are at normal levels",
-      "critical": "{{dimension}} dimension is at critical level ({{score}})"
-    },
-    "ai_insight": {
-      "title": "AI Analysis",
-      "no_insight": "No analysis performed for this period yet.",
-      "generated": "Generated on {{date}}"
+      "title": "RISK ALERTS",
+      "critical": "{{dimension}} dimension is at critical level: {{score}}",
+      "no_alerts": "No risky dimensions at the moment."
     },
     "trend": {
-      "title": "Last 6 Months Trend",
-      "select_dimension": "Select dimension"
+      "title": "Score Trend",
+      "select_dimension": "Dimension Analysis"
     },
     "benchmark": {
-      "title": "Industry Comparison",
-      "your_score": "Your Score",
-      "sector_avg": "Sector Average",
-      "difference": "Difference",
-      "avg_suffix": "average",
-      "unavailable": "Not enough company data from your industry yet."
+      "title": "Benchmark Comparison",
+      "subtitle": "Based on {{industry}} industry.",
+      "general": "General",
+      "your_company": "Your Company",
+      "turkey": "Turkey",
+      "world": "World",
+      "turkey_avg": "Turkey Avg.",
+      "world_avg": "World Avg.",
+      "comparison_result": "{{points}} points {{direction}} TR",
+      "enflation_effect": "TR INFLATION EFFECT ↓",
+      "research_disclaimer": "Research-based estimation. Sources: Gallup, Intellect, Better Being, Mercer, McKinsey, ILO, OECD, WTW Turkey, Moodivation, İŞKUR, SGK, DİSK-AR, TÜİK.",
+      "enflation_note": "Turkey financial dimension adjusted by -8 points from global average (WTW 2024 inflation effect).",
+      "platform_data_note": "Will be automatically updated with real data when min. 3 companies + 30 responses accumulate for this sector.",
+      "unavailable": "Not enough data from your industry yet."
     }
   },
   "departments": {
@@ -345,6 +354,68 @@
         "completed": "Completed",
         "bounce_reason": "Bounce Reason"
       }
+    }
+  },
+  "training": {
+    "title": "Training Tracking",
+    "subtitle": "Track and manage trainings planned by the consultant.",
+    "list": "List",
+    "calendar": "Calendar",
+    "no_plans": "There is no published training plan yet.",
+    "today": "Today",
+    "columns": {
+      "date": "Date & Time",
+      "event": "Event",
+      "scope": "Scope",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "completed": "Completed",
+      "waiting": "Pending"
+    },
+    "actions": {
+      "content": "Content",
+      "notify": "Notify",
+      "done": "Done"
+    },
+    "notify_modal": {
+      "title": "Send Notification to Employees",
+      "event_label": "Event",
+      "target_label": "Who to Send to?",
+      "target_company": "Entire Company",
+      "target_company_desc": "All managers in the company",
+      "target_dept": "Department",
+      "target_dept_unknown": "Unknown",
+      "subject_label": "Email Subject",
+      "subject_prefix": "📅 Training Reminder",
+      "notes_label": "Special Note (Optional)",
+      "notes_placeholder": "Your note to be included in the email...",
+      "extra_emails_label": "Extra Emails",
+      "extra_emails_placeholder": "Separate with commas (e.g., intern@company.com)",
+      "submit": "Send Notification",
+      "success": "Email sent to {{count}} people"
+    },
+    "errors": {
+      "load_failed": "Failed to load training plans",
+      "mark_complete_success": "Event marked as completed",
+      "generic_error": "An error occurred",
+      "notify_failed": "Failed to send"
+    }
+  },
+  "content": {
+    "title": "Consultant Content",
+    "subtitle": "Wellbeing resources shared specifically for your company by your consultant.",
+    "consultant": "Consultant",
+    "empty_title": "No content shared yet",
+    "empty_desc": "When your consultant shares content with you, it will appear here.",
+    "errors": {
+      "load_failed": "Failed to load content"
+    }
+  },
+  "dashboard": {
+    "actions": {
+      "description_placeholder": "Description (optional)..."
     }
   }
 }

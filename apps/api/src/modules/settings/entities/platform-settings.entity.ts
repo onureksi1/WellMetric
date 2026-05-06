@@ -70,8 +70,14 @@ export class PlatformSettings {
   @Column({ type: 'varchar', length: 200, nullable: true })
   platform_url: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  platform_logo_url: string | null;
+
   @Column({ type: 'varchar', length: 200, nullable: true })
   admin_email: string | null;
+
+  @Column({ type: 'boolean', default: true })
+  debug_mode: boolean;
 
   @Column({ type: 'jsonb', default: () => "'[\"tr\",\"en\"]'" })
   supported_languages: string[];
@@ -90,6 +96,31 @@ export class PlatformSettings {
   
   @Column({ type: 'jsonb', default: () => "'{}'" })
   consultant_packages: any;
+
+  // Legal Documents
+  @Column({ type: 'text', nullable: true })
+  terms_of_use_tr: string;
+
+  @Column({ type: 'text', nullable: true })
+  terms_of_use_en: string;
+
+  @Column({ type: 'text', nullable: true })
+  privacy_policy_tr: string;
+
+  @Column({ type: 'text', nullable: true })
+  privacy_policy_en: string;
+
+  @Column({ type: 'text', nullable: true })
+  kvkk_text_tr: string;
+
+  @Column({ type: 'text', nullable: true })
+  gdpr_text_en: string;
+
+  @Column({ type: 'int', default: 3000 })
+  mail_quota_capacity: number;
+
+  @Column({ type: 'int', default: 0 })
+  mail_quota_used: number;
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useT } from '@/hooks/useT';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -36,7 +36,7 @@ const companySchema = z.object({
 type CompanyForm = z.infer<typeof companySchema>;
 
 export default function NewCompanyPage() {
-  const { t, i18n } = useTranslation();
+  const { t, tc, i18n } = useT('consultant');
   const router = useRouter();
   const language = (i18n.language as any) || 'tr';
   const { user } = useAuthStore();
@@ -64,11 +64,11 @@ export default function NewCompanyPage() {
         ...data,
         consultant_id: user?.id
       });
-      toast.success(t('consultant.companies.create_success', 'Firma başarıyla oluşturuldu ve HR davet edildi.'));
+      toast.success(t('companies.create.success'));
       router.push('/consultant/companies');
     } catch (err: any) {
       console.error('Error creating company:', err);
-      toast.error(err.response?.data?.message || 'Firma oluşturulurken bir hata oluştu.');
+      toast.error(err.response?.data?.message || tc('error'));
     }
   };
 
@@ -82,15 +82,15 @@ export default function NewCompanyPage() {
         <div className="p-1.5 rounded-lg bg-white border border-slate-200 group-hover:border-slate-300 transition-colors">
           <ArrowLeft size={16} />
         </div>
-        <span className="text-sm font-medium">Firmalarım'a Geri Dön</span>
+        <span className="text-sm font-medium">{tc('cancel')}</span>
       </Link>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
         {/* Form Header */}
         <div className="p-8 bg-slate-900 text-white relative overflow-hidden">
           <div className="relative z-10">
-            <h1 className="text-2xl font-bold">{t('consultant.companies.new')}</h1>
-            <p className="text-slate-400 mt-1">Yeni bir firma oluşturun ve HR yöneticisini sisteme davet edin.</p>
+            <h1 className="text-2xl font-bold">{t('companies.new')}</h1>
+            <p className="text-slate-400 mt-1">{t('companies.subtitle')}</p>
           </div>
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Building2 size={120} />
@@ -104,12 +104,12 @@ export default function NewCompanyPage() {
               <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                 <Building2 size={18} />
               </div>
-              <h2 className="font-bold text-slate-900 text-lg">Firma Bilgileri</h2>
+              <h2 className="font-bold text-slate-900 text-lg">{t('companies.create.title')}</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Firma Adı*</label>
+                <label className="text-sm font-bold text-slate-700">{t('companies.create.company_name')}*</label>
                 <div className="relative">
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input 
@@ -122,7 +122,7 @@ export default function NewCompanyPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Sektör*</label>
+                <label className="text-sm font-bold text-slate-700">{t('companies.create.industry')}*</label>
                 <IndustrySelect 
                   value={selectedIndustry}
                   onChange={(val) => setValue('industry', val || '')}
@@ -132,7 +132,7 @@ export default function NewCompanyPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">İletişim E-postası*</label>
+                <label className="text-sm font-bold text-slate-700">{t('companies.create.contact_email')}*</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input 
@@ -145,7 +145,7 @@ export default function NewCompanyPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Çalışan Sayısı Aralığı*</label>
+                <label className="text-sm font-bold text-slate-700">{t('companies.create.size_band')}*</label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <select 
@@ -170,25 +170,25 @@ export default function NewCompanyPage() {
               <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
                 <User size={18} />
               </div>
-              <h2 className="font-bold text-slate-900 text-lg">HR Yönetici Bilgileri</h2>
+              <h2 className="font-bold text-slate-900 text-lg">{t('companies.create.hr_admin_name')}</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">HR Yetkili Ad Soyad*</label>
+                <label className="text-sm font-bold text-slate-700">{t('companies.create.hr_admin_name')}*</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input 
                     {...register('hr_admin_full_name')}
                     className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 border ${errors.hr_admin_full_name ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm`}
-                    placeholder="Ad Soyad"
+                    placeholder={t('companies.create.contact_name_placeholder', 'Ad Soyad')}
                   />
                 </div>
                 {errors.hr_admin_full_name && <p className="text-xs text-red-500 font-medium">{errors.hr_admin_full_name.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">HR Yetkili E-postası*</label>
+                <label className="text-sm font-bold text-slate-700">{t('companies.create.hr_admin_email')}*</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input 
@@ -204,9 +204,9 @@ export default function NewCompanyPage() {
             <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex gap-4">
               <CheckCircle2 className="text-indigo-600 shrink-0 mt-0.5" size={20} />
               <div className="space-y-1">
-                <p className="text-sm font-bold text-indigo-900">E-posta Daveti Gönderilecek</p>
+                <p className="text-sm font-bold text-indigo-900">{t('companies.create.email_invite_title', { defaultValue: 'E-posta Daveti Gönderilecek' })}</p>
                 <p className="text-xs text-indigo-700/80 leading-relaxed">
-                  Firma oluşturulduğunda HR yöneticisine sisteme giriş yapabilmesi ve şifresini belirleyebilmesi için otomatik bir davet maili gönderilecektir.
+                  {t('companies.create.email_invite_desc', { defaultValue: 'Firma oluşturulduğunda HR yöneticisine sisteme giriş yapabilmesi ve şifresini belirleyebilmesi için otomatik bir davet maili gönderilecektir.' })}
                 </p>
               </div>
             </div>
@@ -216,7 +216,7 @@ export default function NewCompanyPage() {
           <div className="pt-6 border-t border-slate-100 flex items-center justify-between gap-4">
             <div className="text-xs text-slate-400 flex items-center gap-1.5">
               <AlertCircle size={14} />
-              * işaretli alanların doldurulması zorunludur.
+              {tc('required_fields', '* işaretli alanların doldurulması zorunludur.')}
             </div>
             
             <div className="flex gap-3">
@@ -224,7 +224,7 @@ export default function NewCompanyPage() {
                 href="/consultant/companies"
                 className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all text-sm"
               >
-                İptal
+                {tc('cancel')}
               </Link>
               <button 
                 type="submit"
@@ -237,7 +237,7 @@ export default function NewCompanyPage() {
                     Oluşturuluyor...
                   </>
                 ) : (
-                  'Firma Oluştur ve HR Davet Et'
+                  t('companies.create.submit')
                 )}
               </button>
             </div>

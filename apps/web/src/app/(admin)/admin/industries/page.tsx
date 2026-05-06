@@ -98,7 +98,7 @@ function SortableIndustryRow({
       </td>
       <td className="py-4 px-4">
         <Badge variant={industry.is_default ? 'gray' : 'blue'}>
-          {industry.is_default ? t('industries.default') : t('industries.custom')}
+          {industry.is_default ? t('admin.industries.default') : t('admin.industries.custom')}
         </Badge>
 
       </td>
@@ -128,7 +128,7 @@ function SortableIndustryRow({
             onClick={() => onToggleStatus(industry.slug, !industry.is_active)}
             disabled={industry.is_default}
             className={`p-2 ${industry.is_default ? 'text-gray-200' : 'text-gray-400 hover:text-danger'}`}
-            title={industry.is_default ? t('industries.default_readonly') : ''}
+            title={industry.is_default ? t('admin.industries.default_readonly') : ''}
           >
             {industry.is_active ? <Pause size={16} /> : <Play size={16} />}
           </Button>
@@ -173,7 +173,7 @@ export default function IndustryManagementPage() {
       setIsModalOpen(false);
       setEditingIndustry(null);
       setFormData({ label_tr: '', label_en: '', order_index: 0 });
-      toast.success(editingIndustry ? t('industries.updated') : t('industries.created'));
+      toast.success(editingIndustry ? t('admin.industries.updated') : t('admin.industries.created'));
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || t('common.error'));
@@ -187,7 +187,7 @@ export default function IndustryManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-industries'] });
-      toast.success(t('industries.status_updated'));
+      toast.success(t('admin.industries.status_updated'));
     }
 
   });
@@ -234,12 +234,12 @@ export default function IndustryManagementPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-navy">{t('industries.title', 'Sektör Yönetimi')}</h1>
-          <p className="text-gray-500">{t('industries.subtitle', 'Firma sektörlerini yönetin. Varsayılan sektörler pasif yapılamaz.')}</p>
+          <h1 className="text-2xl font-bold text-navy">{t('admin.industries.title', 'Sektör Yönetimi')}</h1>
+          <p className="text-gray-500">{t('admin.industries.subtitle', 'Firma sektörlerini yönetin. Varsayılan sektörler pasif yapılamaz.')}</p>
         </div>
         <Button className="flex gap-2" onClick={() => openModal()}>
           <Plus size={18} />
-          {t('industries.new')}
+          {t('admin.industries.new')}
         </Button>
       </div>
 
@@ -263,8 +263,8 @@ export default function IndustryManagementPage() {
                   <thead className="bg-gray-50 text-gray-500 font-semibold uppercase tracking-wider text-[10px]">
                     <tr>
                       <th className="py-4 px-4 w-10"></th>
-                      <th className="py-4 px-4">{t('industries.label_tr')}</th>
-                      <th className="py-4 px-4">{t('industries.label_en')}</th>
+                      <th className="py-4 px-4">{t('admin.industries.label_tr')}</th>
+                      <th className="py-4 px-4">{t('admin.industries.label_en')}</th>
                       <th className="py-4 px-4">{t('common.type')}</th>
                       <th className="py-4 px-4">{t('common.status')}</th>
                       <th className="py-4 px-4 text-right">{t('common.actions')}</th>
@@ -292,31 +292,31 @@ export default function IndustryManagementPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingIndustry ? t('industries.edit_title') : t('industries.new_title')}
+        title={editingIndustry ? t('admin.industries.edit_title') : t('admin.industries.new_title')}
         maxWidth="sm"
       >
 
         <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(formData); }} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-500">{t('industries.form_label_tr', 'Türkçe Etiket')} <span className="text-red-500">*</span></label>
+            <label className="text-xs font-bold text-gray-500">{t('admin.industries.form_label_tr', 'Türkçe Etiket')} <span className="text-red-500">*</span></label>
             <input 
               type="text" 
               required
               value={formData.label_tr}
               onChange={e => setFormData({...formData, label_tr: e.target.value})}
-              placeholder={t('industries.placeholder_tr')}
+              placeholder={t('admin.industries.placeholder_tr')}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
             />
           </div>
 
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-500">{t('industries.form_label_en', 'İngilizce Etiket')}</label>
+            <label className="text-xs font-bold text-gray-500">{t('admin.industries.form_label_en', 'İngilizce Etiket')}</label>
             <input 
               type="text"
               value={formData.label_en}
               onChange={e => setFormData({...formData, label_en: e.target.value})}
-              placeholder={t('industries.placeholder_en')}
+              placeholder={t('admin.industries.placeholder_en')}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
             />
           </div>
@@ -325,7 +325,7 @@ export default function IndustryManagementPage() {
           {editingIndustry && (
             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg text-[11px] flex gap-2">
               <AlertCircle size={14} className="shrink-0" />
-              {t('industries.slug_info', { slug: editingIndustry.slug })}
+              {t('admin.industries.slug_info', { slug: editingIndustry.slug })}
             </div>
           )}
 

@@ -1,10 +1,14 @@
-import { IsOptional, IsEnum, IsInt, IsDateString, Min } from 'class-validator';
+import { IsOptional, IsEnum, IsInt, IsDateString, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class DemoFilterDto {
   @IsOptional()
-  @IsEnum(['pending', 'contacted', 'demo_done', 'converted', 'rejected'])
+  @IsEnum(['pending', 'contacted', 'done', 'converted', 'rejected'])
   status?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 
   @IsOptional()
   @IsDateString()

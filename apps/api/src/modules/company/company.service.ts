@@ -292,7 +292,9 @@ export class CompanyService {
             dto.hr_admin_full_name || 'HR Yetkilisi',
             dto.name,
             inviteLink,
-            dto.default_language || 'tr'
+            dto.default_language || 'tr',
+            companyId,
+            dto.consultant_id || undefined
           );
           console.log('[Company.create] Notification service call completed.');
         }
@@ -562,16 +564,17 @@ export class CompanyService {
       `, [userId, id, inviteToken, dto.role === 'hr_admin' ? 'hr_invite' : 'employee_invite', expiresAt]);
 
       // Send email
-      const company = await manager.query(`SELECT name FROM companies WHERE id = $1`, [id]);
+      const company = await manager.query(`SELECT name, consultant_id FROM companies WHERE id = $1`, [id]);
       const companyName = company[0]?.name || 'Wellbeing Metric';
-      
+      const consultantId: string | undefined = company[0]?.consultant_id || undefined;
+
       const platformUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
       const inviteLink = `${platformUrl}/invite?token=${inviteToken}`;
 
       if (dto.role === 'hr_admin') {
-        await this.notificationService.sendWelcomeHr(dto.email, dto.full_name, companyName, inviteLink, dto.language || 'tr');
+        await this.notificationService.sendWelcomeHr(dto.email, dto.full_name, companyName, inviteLink, dto.language || 'tr', id, consultantId);
       } else {
-        await this.notificationService.sendEmployeeInvite(dto.email, dto.full_name, companyName, inviteLink, dto.language || 'tr');
+        await this.notificationService.sendEmployeeInvite(dto.email, dto.full_name, companyName, inviteLink, dto.language || 'tr', id, consultantId);
       }
 
       await this.auditService.logAction(user?.id || null, id, 'user.create', 'user', userId, { email: dto.email, role: dto.role });

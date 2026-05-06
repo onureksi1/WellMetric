@@ -22,7 +22,7 @@ export class UploadController {
     console.log('[UploadController] getPresignedUrl called', { dto, user: req.user?.id });
     try {
       // 1. file_type whitelist check
-      const allowedFileTypes = ['logo', 'csv', 'pdf'];
+      const allowedFileTypes = ['logo', 'csv', 'pdf', 'platform_logo'];
       if (!allowedFileTypes.includes(dto.file_type)) {
         throw new BadRequestException('Geçersiz file_type');
       }
@@ -30,6 +30,7 @@ export class UploadController {
       // 2. mime_type whitelist check
       const allowedMimeTypes = {
         logo: ['image/jpeg', 'image/png', 'image/webp'],
+        platform_logo: ['image/jpeg', 'image/png', 'image/webp'],
         csv:  ['text/csv', 'application/vnd.ms-excel', 'text/plain'],
         pdf:  ['application/pdf'],
       };
@@ -40,6 +41,7 @@ export class UploadController {
       // 3. file_size limit check
       const maxSizes = { 
         logo: 2 * 1024 * 1024,   // 2MB
+        platform_logo: 2 * 1024 * 1024, // 2MB
         csv:  10 * 1024 * 1024,  // 10MB
         pdf:  20 * 1024 * 1024,  // 20MB
       };

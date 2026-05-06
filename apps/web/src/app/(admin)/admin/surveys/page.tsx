@@ -20,17 +20,17 @@ import { useApi } from '@/hooks/useApi';
 import { AssignSurveyModal } from '@/components/surveys/AssignSurveyModal';
 
 const getQuestionTypes = (t: any) => [
-  { value: 'likert5', label: t('surveys.question.types.likert5', '📊 Likert 5 (1-5 Emoji Skala)') },
-  { value: 'likert10', label: t('surveys.question.types.likert10', '📊 Likert 10 (1-10 Sayısal)') },
-  { value: 'star_rating', label: t('surveys.question.types.star_rating', '⭐ Yıldız Derecelendirme (1-5)') },
-  { value: 'yes_no', label: t('surveys.question.types.yes_no', '✅ Evet / Hayır') },
-  { value: 'nps', label: t('surveys.question.types.nps', '📈 NPS (0-10)') },
-  { value: 'number_input', label: t('surveys.question.types.number_input', '🔢 Sayısal Giriş') },
-  { value: 'single_choice', label: t('surveys.question.types.single_choice', '🔘 Tek Seçim (Radio)') },
-  { value: 'multi_choice', label: t('surveys.question.types.multi_choice', '☑️ Çoklu Seçim (Checkbox)') },
-  { value: 'ranking', label: t('surveys.question.types.ranking', '🔀 Sıralama (Ranking)') },
-  { value: 'matrix', label: t('surveys.question.types.matrix', '📋 Tablo (Matrix)') },
-  { value: 'open_text', label: t('surveys.question.types.open_text', '📝 Açık Metin') },
+  { value: 'likert5', label: t('admin.surveys.question.types.likert5', '📊 Likert 5 (1-5 Emoji Skala)') },
+  { value: 'likert10', label: t('admin.surveys.question.types.likert10', '📊 Likert 10 (1-10 Sayısal)') },
+  { value: 'star_rating', label: t('admin.surveys.question.types.star_rating', '⭐ Yıldız Derecelendirme (1-5)') },
+  { value: 'yes_no', label: t('admin.surveys.question.types.yes_no', '✅ Evet / Hayır') },
+  { value: 'nps', label: t('admin.surveys.question.types.nps', '📈 NPS (0-10)') },
+  { value: 'number_input', label: t('admin.surveys.question.types.number_input', '🔢 Sayısal Giriş') },
+  { value: 'single_choice', label: t('admin.surveys.question.types.single_choice', '🔘 Tek Seçim (Radio)') },
+  { value: 'multi_choice', label: t('admin.surveys.question.types.multi_choice', '☑️ Çoklu Seçim (Checkbox)') },
+  { value: 'ranking', label: t('admin.surveys.question.types.ranking', '🔀 Sıralama (Ranking)') },
+  { value: 'matrix', label: t('admin.surveys.question.types.matrix', '📋 Tablo (Matrix)') },
+  { value: 'open_text', label: t('admin.surveys.question.types.open_text', '📝 Açık Metin') },
 ];
 
 const getDimensions = (t: any) => [
@@ -56,13 +56,13 @@ export default function SurveysPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-navy">{t('surveys.title', 'Anketler')}</h1>
-          <p className="text-sm text-gray-500">{t('surveys.subtitle', 'Global ve kuruma özel anket taslaklarının yönetimi.')}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-navy">{t('admin.surveys.title', 'Anketler')}</h1>
+          <p className="text-sm text-gray-500">{t('admin.surveys.subtitle', 'Global ve kuruma özel anket taslaklarının yönetimi.')}</p>
         </div>
         <Link href="/admin/surveys/new" className="w-full sm:w-auto">
           <Button className="w-full sm:w-auto flex gap-2 shadow-lg shadow-primary/20">
             <Plus size={18} />
-            {t('surveys.new', 'Yeni Anket')}
+            {t('admin.surveys.new', 'Yeni Anket')}
           </Button>
         </Link>
       </div>
@@ -74,18 +74,18 @@ export default function SurveysPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder={t('surveys.search_placeholder')}
+              placeholder={t('admin.surveys.search_placeholder')}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
             />
           </div>
 
           <div className="flex gap-2">
             <select className="flex-1 md:flex-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20">
-              <option value="">{t('surveys.filter_type')}</option>
-              <option value="global">{t('surveys.types.global')}</option>
-              <option value="company_specific">{t('surveys.types.company_specific')}</option>
-              <option value="onboarding">{t('surveys.types.onboarding')}</option>
-              <option value="pulse">{t('surveys.types.pulse')}</option>
+              <option value="">{t('admin.surveys.filter_type')}</option>
+              <option value="global">{t('admin.surveys.types.global')}</option>
+              <option value="company_specific">{t('admin.surveys.types.company_specific')}</option>
+              <option value="onboarding">{t('admin.surveys.types.onboarding')}</option>
+              <option value="pulse">{t('admin.surveys.types.pulse')}</option>
             </select>
           </div>
         </div>
@@ -95,17 +95,17 @@ export default function SurveysPage() {
           <table className="hidden md:table w-full text-left text-sm">
             <thead className="bg-gray-50 text-gray-500 font-black uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="py-4 px-4">{t('surveys.columns.title')}</th>
-                <th className="py-4 px-4 text-center">{t('surveys.columns.questions')}</th>
-                <th className="py-4 px-4">{t('surveys.columns.companies')}</th>
-                <th className="py-4 px-4">{t('surveys.columns.status')}</th>
-                <th className="py-4 px-4 text-right">{t('surveys.columns.actions')}</th>
+                <th className="py-4 px-4">{t('admin.surveys.columns.title')}</th>
+                <th className="py-4 px-4 text-center">{t('admin.surveys.columns.questions')}</th>
+                <th className="py-4 px-4">{t('admin.surveys.columns.companies')}</th>
+                <th className="py-4 px-4">{t('admin.surveys.columns.status')}</th>
+                <th className="py-4 px-4 text-right">{t('admin.surveys.columns.actions')}</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={7} className="py-8 text-center text-gray-400 italic">{t('common:loading')}</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-gray-400 italic">{t('common.loading')}</td></tr>
               ) : surveysData?.data?.map((survey: any) => (
                 <tr key={survey.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="py-4 px-4">
@@ -119,21 +119,21 @@ export default function SurveysPage() {
                           <p className="font-bold text-navy group-hover:text-primary transition-colors">{survey.title_tr}</p>
                           <div className="flex items-center gap-2">
                              <Badge variant={survey.type === 'global' ? 'blue' : 'purple'} className="text-[8px] px-1 py-0 uppercase">
-                                {survey.type === 'global' ? t('surveys.types.global_caps') : t('surveys.types.company_specific_caps')}
+                                {survey.type === 'global' ? t('admin.surveys.types.global_caps') : t('admin.surveys.types.company_specific_caps')}
                              </Badge>
-                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{survey.frequency || t('surveys.frequency_single')}</span>
+                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{survey.frequency || t('admin.surveys.frequency_single')}</span>
                           </div>
                         </div>
                     </div>
                   </td>
                   <td className="py-4 px-4 text-center font-black text-navy">{survey.question_count}</td>
                   <td className="py-4 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    {survey.type === 'global' ? t('surveys.platform_wide') : `${survey.assigned_company_count} ${t('surveys.companies_count')}`}
+                    {survey.type === 'global' ? t('admin.surveys.platform_wide') : `${survey.assigned_company_count} ${t('admin.surveys.companies_count')}`}
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-1.5">
                       <div className={`h-2 w-2 rounded-full ${survey.is_active ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-gray-300'}`} />
-                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{survey.is_active ? t('common:active') : t('common:passive')}</span>
+                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{survey.is_active ? t('common.active') : t('common.passive')}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4 text-right">
@@ -144,7 +144,7 @@ export default function SurveysPage() {
                             size="sm" 
                             className="p-2 text-primary hover:bg-primary/5 rounded-lg transition-all"
                             onClick={() => handleAssignClick(survey.id, survey.title_tr)}
-                            title={t('surveys.actions.assign')}
+                            title={t('admin.surveys.actions.assign')}
                           >
                             <Share2 size={16} />
                           </Button>
@@ -164,7 +164,7 @@ export default function SurveysPage() {
           {/* Mobile Card View */}
           <div className="md:hidden divide-y divide-gray-100">
             {loading ? (
-              <div className="py-12 text-center text-gray-400 italic">{t('common:loading')}</div>
+              <div className="py-12 text-center text-gray-400 italic">{t('common.loading')}</div>
             ) : surveysData?.data?.map((survey: any) => (
               <div key={survey.id} className="p-4 space-y-4 active:bg-gray-50 transition-colors" onClick={() => window.location.href=`/admin/surveys/${survey.id}`}>
                 <div className="flex justify-between items-start">
@@ -177,29 +177,29 @@ export default function SurveysPage() {
                     <div>
                       <p className="font-bold text-navy">{survey.title_tr}</p>
                       <Badge variant={survey.type === 'global' ? 'blue' : 'purple'} className="text-[8px] px-1 py-0 uppercase">
-                        {survey.type === 'global' ? t('surveys.types.global_caps') : t('surveys.types.company_specific_caps')}
+                        {survey.type === 'global' ? t('admin.surveys.types.global_caps') : t('admin.surveys.types.company_specific_caps')}
                       </Badge>
                     </div>
                   </div>
                   <Badge variant={survey.is_active ? "green" : "gray"} className="text-[8px] px-1 py-0 uppercase">
-                    {survey.is_active ? t('common:active') : t('common:passive')}
+                    {survey.is_active ? t('common.active') : t('common.passive')}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
                    <div className="space-y-1">
-                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{t('surveys.columns.questions')}</p>
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{t('admin.surveys.columns.questions')}</p>
                       <p className="text-sm font-black text-navy">{survey.question_count}</p>
                    </div>
                    <div className="space-y-1">
-                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{t('surveys.frequency')}</p>
-                      <p className="text-xs font-bold text-gray-600 truncate">{survey.frequency || t('surveys.frequency_single')}</p>
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{t('admin.surveys.frequency')}</p>
+                      <p className="text-xs font-bold text-gray-600 truncate">{survey.frequency || t('admin.surveys.frequency_single')}</p>
                    </div>
                 </div>
 
                 <div className="pt-2 flex justify-between items-center border-t border-gray-50">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    {survey.type === 'global' ? t('surveys.platform_wide') : `${survey.assigned_company_count} ${t('surveys.companies_count')}`}
+                    {survey.type === 'global' ? t('admin.surveys.platform_wide') : `${survey.assigned_company_count} ${t('admin.surveys.companies_count')}`}
                   </span>
                   <div className="flex gap-2">
                     {survey.type !== 'global' && (
@@ -209,7 +209,7 @@ export default function SurveysPage() {
                     )}
                     <Link href={`/admin/surveys/${survey.id}`} onClick={(e) => e.stopPropagation()}>
                       <Button size="sm" variant="ghost" className="p-2 h-8 w-8 rounded-lg text-navy bg-navy/5">
-                        <Plus size={18} /> {t('surveys.add_first_question')}
+                        <Plus size={18} /> {t('admin.surveys.add_first_question')}
                       </Button>
                     </Link>
                   </div>

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreditType } from './entities/credit-type.entity';
 import { ProductPackage } from './entities/product-package.entity';
@@ -11,15 +11,23 @@ import { CreditTypeService } from './services/credit-type.service';
 import { PackageService } from './services/package.service';
 import { CreditService } from './services/credit.service';
 import { BillingService } from './services/billing.service';
+import { PaymentMethodService } from './services/payment-method.service';
+import { SubscriptionRenewalService } from './services/subscription-renewal.service';
+import { InvoiceService } from './services/invoice.service';
+import { CreditAlertService } from './services/credit-alert.service';
+
 import { StripeProvider } from './providers/stripe.provider';
-import { IyzicoProvider } from './providers/iyzico.provider';
 import { PaytrProvider } from './providers/paytr.provider';
+
 import { User } from '../user/entities/user.entity';
+import { ConsultantPlan } from '../consultant/entities/consultant-plan.entity';
+import { ConsultantPaymentMethod } from './entities/consultant-payment-method.entity';
 
 import { BillingController } from './controllers/billing.controller';
 import { AdminBillingController } from './controllers/admin-billing.controller';
 import { WebhookController } from './controllers/webhook.controller';
 import { SettingsModule } from '../settings/settings.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -31,8 +39,11 @@ import { SettingsModule } from '../settings/settings.module';
       CreditTransaction,
       Payment,
       User,
+      ConsultantPlan,
+      ConsultantPaymentMethod,
     ]),
-    SettingsModule, // For platform settings access
+    SettingsModule,
+    forwardRef(() => NotificationModule),
   ],
   controllers: [BillingController, AdminBillingController, WebhookController],
   providers: [
@@ -40,10 +51,22 @@ import { SettingsModule } from '../settings/settings.module';
     PackageService,
     CreditService,
     BillingService,
+    PaymentMethodService,
+    SubscriptionRenewalService,
+    InvoiceService,
+    CreditAlertService,
     StripeProvider,
-    IyzicoProvider,
     PaytrProvider,
   ],
-  exports: [CreditTypeService, PackageService, CreditService, BillingService],
+  exports: [
+    CreditTypeService,
+    PackageService,
+    CreditService,
+    BillingService,
+    PaymentMethodService,
+    SubscriptionRenewalService,
+    InvoiceService,
+    CreditAlertService,
+  ],
 })
 export class BillingModule {}

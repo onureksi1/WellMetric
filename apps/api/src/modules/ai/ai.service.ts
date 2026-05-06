@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Inject, forwardRef, ServiceUnavailableEx
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AiInsight } from './entities/ai-insight.entity';
+import { ApiCostService } from './api-cost.service';
 import { AIProviderFactory, AITaskEnum } from './ai-provider.factory';
 import { AuditService } from '../audit/audit.service';
 import { ContentService } from '../content/content.service';
@@ -39,6 +40,7 @@ export class AIService {
     private readonly reportService: ReportService,
     private readonly settingsService: SettingsService,
     private readonly creditService: CreditService,
+    private readonly apiCostService: ApiCostService,
     private readonly dataSource: DataSource,
     private readonly logger: AppLogger,
   ) {
@@ -125,7 +127,7 @@ export class AIService {
       metadata: {
         provider: (provider as any).constructor.name,
         model,
-        tokens_used: result.tokensUsed,
+        tokens_used: result.totalTokens,
         duration_ms: result.durationMs,
         respondent_count: respondentCount,
       },
@@ -138,7 +140,7 @@ export class AIService {
       'ai.call',
       'ai_insights',
       saved.id,
-      { task: AITaskEnum.OPEN_TEXT_SUMMARY, provider: (provider as any).constructor.name, model, tokens: result.tokensUsed },
+      { task: AITaskEnum.OPEN_TEXT_SUMMARY, provider: (provider as any).constructor.name, model, tokens: result.totalTokens },
     );
   }
 
@@ -171,7 +173,7 @@ export class AIService {
         delta: previousScore ? score - previousScore : null,
         provider: (provider as any).constructor.name,
         model,
-        tokens_used: result.tokensUsed,
+        tokens_used: result.totalTokens,
         duration_ms: result.durationMs,
       },
     });
@@ -182,7 +184,7 @@ export class AIService {
       'ai.call',
       'ai_insights',
       saved.id,
-      { task: AITaskEnum.RISK_ALERT, provider: (provider as any).constructor.name, model, tokens: result.tokensUsed },
+      { task: AITaskEnum.RISK_ALERT, provider: (provider as any).constructor.name, model, tokens: result.totalTokens },
     );
   }
 
@@ -213,7 +215,7 @@ export class AIService {
       'ai.call',
       null,
       null,
-      { task: AITaskEnum.ACTION_SUGGESTION, provider: (provider as any).constructor.name, model, tokens: result.tokensUsed },
+      { task: AITaskEnum.ACTION_SUGGESTION, provider: (provider as any).constructor.name, model, tokens: result.totalTokens },
     );
 
     return {
@@ -376,7 +378,7 @@ export class AIService {
         report,
         provider: (provider as any).constructor.name,
         model,
-        tokens: aiResult.tokensUsed,
+        tokens: aiResult.totalTokens,
       }
     });
 
@@ -403,7 +405,7 @@ export class AIService {
       metadata: {
         provider: (provider as any).constructor.name,
         model,
-        tokens_used: result.tokensUsed,
+        tokens_used: result.totalTokens,
         duration_ms: result.durationMs,
       },
     });
@@ -414,7 +416,7 @@ export class AIService {
       'ai.call',
       'ai_insights',
       saved.id,
-      { task: AITaskEnum.TREND_ANALYSIS, provider: (provider as any).constructor.name, model, tokens: result.tokensUsed },
+      { task: AITaskEnum.TREND_ANALYSIS, provider: (provider as any).constructor.name, model, tokens: result.totalTokens },
     );
   }
 
@@ -444,7 +446,7 @@ export class AIService {
       metadata: { message_count: conversationHistory.length, provider: (provider as any).constructor.name, model },
     });
 
-    return { response: result.response, tokens_used: result.tokensUsed };
+    return { response: result.response, tokens_used: result.totalTokens };
   }
 
   async adminAnomaly(period: string, language: string = 'tr') {
@@ -498,7 +500,7 @@ export class AIService {
       metadata: { provider: (provider as any).constructor.name, model },
     });
 
-    return { response: result.response, tokens_used: result.tokensUsed };
+    return { response: result.response, tokens_used: result.totalTokens };
   }
 
   async generateSurveyQuestions(industry: string, dimensions: string[], questionCount: number, language: string = 'tr') {
@@ -573,5 +575,75 @@ export class AIService {
         total_pages: Math.ceil(total / per_page),
       },
     };
+  }
+
+  async generateLongForm(
+    prompt:       string,
+    consultantId: string,
+    options: {
+      taskType:     string;
+      creditAmount: number;
+    }
+  ): Promise<string> {
+    const { provider, model, config, settings } = await this.providerFactory.getProvider(options.taskType as any);
+    
+    this.logger.debug(`[AIService] Generating long form for task: ${options.taskType} using model: ${model}`);
+    this.logger.debug(`[AIService] Prompt length: ${prompt.length} chars`);
+
+    // Kredi tüket
+    await this.creditService.deductCredits(
+      consultantId,
+      'ai_credit',
+      options.creditAmount,
+      `Long Form AI: ${options.taskType}`,
+    );
+
+    const result = await provider.complete(
+      prompt,
+      'Sen profesyonel bir wellbeing danışmanısın.',
+      4000, // maxTokens
+      0.7,  // temperature
+      model,
+      config
+    );
+
+    // Log cost
+    this.apiCostService.logAiCall({
+      consultantId,
+      taskType: options.taskType,
+      provider: (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      model,
+      inputTokens: result.inputTokens,
+      outputTokens: result.outputTokens,
+      durationMs: result.durationMs,
+    });
+
+    return result.response;
+  }
+
+  async generateBenchmarkSuggestions(industry: string, region: string, dimensions: string[]) {
+    const { provider, model, config } = await this.providerFactory.getProvider(AITaskEnum.BENCHMARK_GENERATION);
+    const prompt = `Sektör: ${industry}, Bölge: ${region}. Şu boyutlar için 0-100 arası gerçekçi wellbeing skorları öner: ${dimensions.join(', ')}. JSON formatında dön: { "suggestions": [ { "dimension": "...", "score": 75.5, "source": "..." } ] }`;
+    
+    const result = await provider.complete(prompt, 'Sen bir veri analistisin.', 1000, 0.3, model, config);
+    return JSON.parse(result.response);
+  }
+
+  async generateShortComment(prompt: string, consultantId: string): Promise<string> {
+    const { provider, model, config } = await this.providerFactory.getProvider(AITaskEnum.CONTENT_SUGGESTION);
+    const result = await provider.complete(prompt, 'Sen bir danışmansın.', 500, 0.7, model, config);
+    
+    // Log call for cost tracking
+    this.apiCostService.logAiCall({
+      consultantId,
+      taskType: AITaskEnum.CONTENT_SUGGESTION,
+      provider: (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      model,
+      inputTokens: result.inputTokens,
+      outputTokens: result.outputTokens,
+      durationMs: result.durationMs,
+    });
+
+    return result.response;
   }
 }

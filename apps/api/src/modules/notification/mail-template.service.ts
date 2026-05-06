@@ -8,6 +8,9 @@ import { UpdateTemplateDto } from './dto/update-template.dto';
 import { AuditService } from '../audit/audit.service';
 import { NotificationService } from './notification.service';
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 @Injectable()
 export class MailTemplateService {
   private readonly redisClient: Redis;
@@ -25,6 +28,79 @@ export class MailTemplateService {
       port: this.configService.get<number>('REDIS_PORT', 6379),
       password: this.configService.get<string>('REDIS_PASSWORD'),
     });
+  }
+
+  async onModuleInit() {
+    await this.syncTemplatesFromFiles();
+  }
+
+  private async syncTemplatesFromFiles() {
+    const templatesToSync = [
+      {
+        slug: 'content_shared',
+        subject_tr: 'Yeni İçerik Paylaşıldı',
+        subject_en: 'New Content Shared',
+        variables: ['consultant_name', 'content_title', 'department_name', 'notes', 'platform_url', 'dashboard_url', 'content_url'],
+        description: 'Danışman içerik paylaştığında HR\'a giden mail'
+      },
+      {
+        slug: 'training_plan_published',
+        subject_tr: 'Yeni Eğitim Planı Yayınlandı',
+        subject_en: 'New Training Plan Published',
+        variables: ['consultant_name', 'plan_title', 'event_count', 'starts_at', 'plan_url', 'platform_url'],
+        description: 'Danışman eğitim planı yayınladığında HR\'a giden mail'
+      },
+      {
+        slug: 'content_shared_to_employees',
+        subject_tr: 'Sizin İçin Yeni Bir Esenlik Kaynağı Paylaşıldı',
+        subject_en: 'A New Wellbeing Resource Shared for You',
+        variables: ['employee_name', 'company_name', 'content_title', 'content_type', 'content_url', 'consultant_name', 'notes', 'platform_url'],
+        description: 'HR içeriği çalışanlara duyurduğunda giden mail'
+      },
+      {
+        slug: 'consultant_report_ready',
+        subject_tr: 'Wellbeing Analiz Raporunuz Hazır',
+        subject_en: 'Your Wellbeing Analysis Report is Ready',
+        variables: ['consultant_name', 'company_name', 'period', 'report_url', 'platform_url'],
+        description: 'AI raporu hazır olduğunda danışmana giden mail'
+      }
+    ];
+
+    const rootDir = process.cwd().endsWith('apps/api') 
+      ? path.join(process.cwd(), '../..') 
+      : process.cwd();
+    
+    const trDir = path.join(rootDir, 'apps/api/src/modules/notification/templates/tr');
+    
+    for (const t of templatesToSync) {
+      const exists = await this.templateRepository.findOne({ where: { slug: t.slug } });
+      if (!exists) {
+        this.logger.log(`Syncing new template: ${t.slug}`);
+        try {
+          const bodyTrPath = path.join(trDir, `${t.slug}.html`);
+          let bodyTr = '';
+          if (fs.existsSync(bodyTrPath)) {
+            bodyTr = fs.readFileSync(bodyTrPath, 'utf-8');
+          } else {
+            this.logger.warn(`Body file not found for ${t.slug}: ${bodyTrPath}`);
+            continue;
+          }
+
+          await this.templateRepository.save({
+            slug: t.slug,
+            subject_tr: t.subject_tr,
+            subject_en: t.subject_en,
+            body_tr: bodyTr,
+            variables: t.variables,
+            description: t.description,
+            is_active: true
+          });
+          this.logger.log(`Template ${t.slug} synced to database.`);
+        } catch (err) {
+          this.logger.error(`Failed to sync template ${t.slug}:`, err.message);
+        }
+      }
+    }
   }
 
   async findAll() {
@@ -98,8 +174,16 @@ export class MailTemplateService {
       await this.redisClient.set(cacheKey, JSON.stringify({ body }), 'EX', 3600);
     }
 
-    // Replace variables
+    // 1. Handle {{#if key}} ... {{else}} ... {{/if}}
+    // Simple implementation for non-nested blocks
     let rendered = body;
+    rendered = rendered.replace(/{{#if\s+([\w\.]+)}}([\s\S]*?)(?:{{else}}([\s\S]*?))?{{\/if}}/g, (match, key, ifContent, elseContent) => {
+      const val = variables[key];
+      const isTruthy = val && val !== 'false' && val !== '0' && val !== '';
+      return isTruthy ? ifContent : (elseContent || '');
+    });
+
+    // 2. Replace variables {{key}}
     for (const [key, value] of Object.entries(variables)) {
       const escapedValue = this.escapeHtml(value);
       rendered = rendered.replace(new RegExp(`{{${key}}}`, 'g'), escapedValue);

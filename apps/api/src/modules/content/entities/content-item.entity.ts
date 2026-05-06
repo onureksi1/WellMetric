@@ -56,6 +56,9 @@ export class ContentItem {
   @JoinColumn({ name: 'created_by' })
   creator: User;
 
+  @Column({ type: 'boolean', default: false })
+  is_global: boolean;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 }

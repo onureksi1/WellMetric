@@ -4,6 +4,7 @@ import { DistributionCampaign } from './entities/distribution-campaign.entity';
 import { DistributionLog } from './entities/distribution-log.entity';
 import { CampaignService } from './campaign.service';
 import { CampaignController } from './campaign.controller';
+import { AdminCampaignController } from './admin-campaign.controller';
 import { TrackingController } from './tracking.controller';
 import { SurveyToken } from '../survey-token/entities/survey-token.entity';
 import { User } from '../user/entities/user.entity';
@@ -25,7 +26,7 @@ import { SettingsModule } from '../settings/settings.module';
     NotificationModule,
     SettingsModule,
   ],
-  controllers: [CampaignController, TrackingController],
+  controllers: [CampaignController, AdminCampaignController, TrackingController],
   providers: [CampaignService],
   exports: [CampaignService],
 })

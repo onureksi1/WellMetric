@@ -347,6 +347,33 @@ export class AuthService {
     return { success: true };
   }
 
+  async getMe(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['consultant', 'company'],
+    });
+
+    if (!user) {
+      throw new UnprocessableEntityException('Kullanıcı bulunamadı');
+    }
+
+    // Hassas bilgileri sil
+    delete user.password_hash;
+    
+    return user;
+  }
+
+  async updateMe(userId: string, dto: any) {
+    const { full_name, phone, language } = dto;
+    
+    await this.userRepository.update(userId, {
+      full_name,
+      language: language || 'tr'
+    });
+
+    return { success: true };
+  }
+
   private async generateTokens(user: User) {
     let consultant_id = null;
     

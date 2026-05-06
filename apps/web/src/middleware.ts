@@ -115,25 +115,25 @@ export async function middleware(request: NextRequest) {
 
   // 7. RBAC RULES (DÜZELTİLMİŞ)
   
-  // super_admin:
+  // super_admin.
   if (role === 'super_admin') {
     if (pathname.startsWith('/admin') || pathname.startsWith('/consultant')) return NextResponse.next();
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 
-  // consultant:
+  // consultant.
   if (role === 'consultant') {
     if (pathname.startsWith('/consultant')) return NextResponse.next();
     return NextResponse.redirect(new URL('/consultant', request.url));
   }
 
-  // hr_admin:
+  // hr_admin.
   if (role === 'hr_admin') {
     if (pathname.startsWith('/dashboard')) return NextResponse.next();
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // employee:
+  // employee.
   if (role === 'employee') {
     if (pathname.startsWith('/me') || pathname.startsWith('/surveys')) return NextResponse.next();
     return NextResponse.redirect(new URL('/me', request.url));

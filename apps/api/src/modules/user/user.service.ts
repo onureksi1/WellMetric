@@ -116,6 +116,7 @@ export class UserService {
       }
 
       const [users, total] = await query
+        .addSelect('user.password_hash')
         .skip((page - 1) * per_page)
         .take(per_page)
         .orderBy('user.created_at', 'DESC')
@@ -150,6 +151,9 @@ export class UserService {
       const resMap = new Map(responses.map(r => [r.user_id, parseInt(r.count)]));
 
       const enrichedUsers = users.map(u => {
+        const has_password = !!u.password_hash;
+        delete u.password_hash;
+        
         let status = 'none';
         if (u.last_login_at) status = 'active';
         else if (invMap.has(u.id)) status = 'invited';
@@ -158,6 +162,7 @@ export class UserService {
           ...u,
           department_name: u.department?.name || 'Genel',
           status,
+          has_password,
           invitation_status: status === 'invited' ? 'pending' : (status === 'active' ? 'accepted' : 'none'),
           survey_count: resMap.get(u.id) || 0,
           completed_surveys: resMap.get(u.id) || 0,
@@ -602,13 +607,20 @@ export class UserService {
     }
 
     const [users, total] = await query
+      .addSelect('user.password_hash') // Temporarily select to check existence
       .orderBy('user.created_at', 'DESC')
       .skip((page - 1) * per_page)
       .take(per_page)
       .getManyAndCount();
 
+    const data = users.map(u => {
+      const has_password = !!u.password_hash;
+      delete u.password_hash;
+      return { ...u, has_password };
+    });
+
     return {
-      data: users,
+      data,
       meta: {
         total,
         page,
@@ -681,6 +693,25 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: { id },
       relations: ['company', 'department'],
+      select: {
+        id: true,
+        company_id: true,
+        department_id: true,
+        email: true,
+        full_name: true,
+        role: true,
+        position: true,
+        location: true,
+        seniority: true,
+        age_group: true,
+        gender: true,
+        start_date: true,
+        language: true,
+        is_active: true,
+        last_login_at: true,
+        created_at: true,
+        password_hash: true,
+      }
     });
 
     if (!user) throw new NotFoundException('Kullanıcı bulunamadı.');
@@ -697,8 +728,12 @@ export class UserService {
       per_page: 10,
     });
 
+    const has_password = !!user.password_hash;
+    delete user.password_hash;
+
     return {
       ...user,
+      has_password,
       survey_responses,
       audit_logs: audit_logs.items,
     };

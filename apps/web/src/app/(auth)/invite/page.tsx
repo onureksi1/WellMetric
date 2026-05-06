@@ -10,6 +10,7 @@ import { useAuthStore } from '@/lib/store/auth.store';
 import client from '@/lib/api/client';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import { Modal } from '@/components/ui/Modal';
 import '@/lib/i18n';
 
 export default function InvitePage() {
@@ -23,11 +24,18 @@ export default function InvitePage() {
 
 
 function InviteContent() {
-  const { t } = useTranslation(['auth', 'common']);
+  const { t, i18n } = useTranslation(['auth', 'common']);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+  
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [agreedPrivacy, setAgreedPrivacy] = useState(false);
+  const [agreedKvkk, setAgreedKvkk] = useState(false);
+  
+  const [legalModal, setLegalModal] = useState<{ isOpen: boolean, type: string | null }>({ isOpen: false, type: null });
+  const [legalTexts, setLegalTexts] = useState<any>(null);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,6 +52,11 @@ function InviteContent() {
     client.get(`/auth/invite/verify?token=${token}`)
       .then(() => setTokenValid(true))
       .catch(() => setTokenValid(false));
+
+    // Fetch legal texts
+    client.get('/public-settings/legal')
+      .then(res => setLegalTexts(res.data))
+      .catch(err => console.error('Legal texts fetch error', err));
   }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,6 +67,11 @@ function InviteContent() {
     }
     if (password.length < 8) {
       toast.error(t('reset_password.requirements', 'Şifre en az 8 karakter olmalıdır'));
+      return;
+    }
+
+    if (!agreedTerms || !agreedPrivacy || !agreedKvkk) {
+      toast.error(t('invite.error_legal'));
       return;
     }
 
@@ -131,16 +149,93 @@ function InviteContent() {
                 />
               </div>
             </div>
+            <div className="space-y-3 pt-2">
+              <LegalCheckbox 
+                id="terms" 
+                checked={agreedTerms} 
+                onChange={setAgreedTerms} 
+                label={t('invite.checkbox_terms')} 
+                viewLabel={t('invite.view')}
+                onView={() => setLegalModal({ isOpen: true, type: 'terms' })}
+              />
+              <LegalCheckbox 
+                id="privacy" 
+                checked={agreedPrivacy} 
+                onChange={setAgreedPrivacy} 
+                label={t('invite.checkbox_privacy')} 
+                viewLabel={t('invite.view')}
+                onView={() => setLegalModal({ isOpen: true, type: 'privacy' })}
+              />
+              <LegalCheckbox 
+                id="kvkk" 
+                checked={agreedKvkk} 
+                onChange={setAgreedKvkk} 
+                label={t('invite.checkbox_kvkk')} 
+                viewLabel={t('invite.view')}
+                onView={() => setLegalModal({ isOpen: true, type: 'kvkk' })}
+              />
+            </div>
 
             <div>
               <Button type="submit" className="w-full" loading={loading || tokenValid === null}>
-                {t('invite.submit', 'Hesap Oluştur')}
+                {t('invite.submit')}
               </Button>
             </div>
 
           </form>
         </Card>
       </div>
+
+      <Modal 
+        isOpen={legalModal.isOpen} 
+        onClose={() => setLegalModal({ isOpen: false, type: null })}
+        title={t(`settings.legal.${legalModal.type === 'kvkk' ? 'kvkk_tr' : legalModal.type === 'privacy' ? 'privacy_policy_tr' : 'terms_of_use_tr'}`)}
+        size="lg"
+      >
+        <div className="max-h-[60vh] overflow-y-auto pr-4 text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">
+          {getLegalText(legalModal.type, legalTexts, i18n.language)}
+        </div>
+        <div className="mt-6 flex justify-end">
+          <Button onClick={() => setLegalModal({ isOpen: false, type: null })}>{t('common.close', 'Kapat')}</Button>
+        </div>
+      </Modal>
     </div>
   );
+}
+
+function LegalCheckbox({ id, checked, onChange, label, viewLabel, onView }: any) {
+  return (
+    <div className="flex items-start gap-3">
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-1 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer"
+      />
+      <div className="flex flex-col">
+        <label htmlFor={id} className="text-xs text-gray-600 cursor-pointer select-none">
+          {label}
+        </label>
+        <button 
+          type="button" 
+          onClick={onView}
+          className="text-[10px] text-primary hover:underline font-bold text-left mt-0.5"
+        >
+          {viewLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function getLegalText(type: string | null, texts: any, lang: string) {
+  if (!texts) return '...';
+  const l = lang === 'tr' ? 'tr' : 'en';
+  
+  if (type === 'terms') return texts[`terms_of_use_${l}`] || '...';
+  if (type === 'privacy') return texts[`privacy_policy_${l}`] || '...';
+  if (type === 'kvkk') return l === 'tr' ? texts.kvkk_text_tr : texts.gdpr_text_en;
+  
+  return '...';
 }

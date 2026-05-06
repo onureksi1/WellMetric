@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { IndustryBenchmarkScore } from './benchmark.entity';
 import { WellbeingScore } from '../score/entities/wellbeing-score.entity';
 import { Company } from '../company/entities/company.entity';
+import { AIService } from '../ai/ai.service';
 
 @Injectable()
 export class BenchmarkService {
@@ -14,6 +15,7 @@ export class BenchmarkService {
     private readonly scoreRepo: Repository<WellbeingScore>,
     @InjectRepository(Company)
     private readonly companyRepo: Repository<Company>,
+    private readonly aiService: AIService,
   ) {}
 
   // HR Dashboard ana endpoint'i için
@@ -130,5 +132,11 @@ export class BenchmarkService {
       updatedBy: null,
       updatedAt: new Date(),
     });
+  }
+
+  async aiGenerateBenchmarks(industry: string, region: string) {
+    const dimensions = ['overall','physical','mental','social','financial','work'];
+    const suggestions = await this.aiService.generateBenchmarkSuggestions(industry, region, dimensions);
+    return suggestions.suggestions;
   }
 }

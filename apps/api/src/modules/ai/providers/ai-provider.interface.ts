@@ -6,5 +6,5 @@ export interface AIProvider {
     temperature: number,
     model: string,
     config: any,
-  ): Promise<{ response: string; tokensUsed: number; durationMs: number }>;
+  ): Promise<{ response: string; inputTokens: number; outputTokens: number; totalTokens: number; durationMs: number }>;
 }

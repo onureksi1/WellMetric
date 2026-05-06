@@ -47,7 +47,7 @@ export function IndustrySelect({
 
   return (
     <div className={clsx('relative', className)}>
-      <Combobox value={value} onChange={onChange}>
+      <Combobox value={value || ''} onChange={onChange}>
         <div className="relative">
           <Combobox.Input
             className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
@@ -55,7 +55,7 @@ export function IndustrySelect({
               const item = industries.find(i => i.value === val);
               return item ? item.label : '';
             }}
-            placeholder={placeholder || t('industries.placeholder', 'Sektör seçin')}
+            placeholder={placeholder || t('common.industries.placeholder', 'Sektör seçin')}
             onChange={(event) => setQuery(event.target.value)}
           />
           <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -69,7 +69,7 @@ export function IndustrySelect({
         <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-gray-100">
           {filteredIndustries.length === 0 && query !== '' ? (
             <div className="relative cursor-default select-none py-2 px-4 text-gray-700 italic">
-              {t('industries.not_found', 'Sektör bulunamadı')}
+              {t('common.industries.not_found', 'Sektör bulunamadı')}
             </div>
           ) : (
             filteredIndustries.map((industry) => (

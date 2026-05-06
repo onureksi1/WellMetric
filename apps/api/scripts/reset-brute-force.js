@@ -6,7 +6,7 @@
 // node scripts/reset-brute-force.js ip 192.168.1.1
 
 const Redis = require('ioredis');
-require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../../.env') });
 
 const redis = new Redis({
   host: process.env.REDIS_HOST || 'localhost',

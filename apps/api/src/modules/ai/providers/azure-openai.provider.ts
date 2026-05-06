@@ -11,7 +11,7 @@ export class AzureOpenAIProvider implements AIProvider {
     temperature: number,
     model: string,
     config: any,
-  ): Promise<{ response: string; tokensUsed: number; durationMs: number }> {
+  ): Promise<{ response: string; inputTokens: number; outputTokens: number; totalTokens: number; durationMs: number }> {
     const start = Date.now();
     try {
       // For Azure, config contains endpoint, deploymentName, apiVersion, apiKey
@@ -34,9 +34,11 @@ export class AzureOpenAIProvider implements AIProvider {
 
       const response = completion.choices[0].message.content || '';
       const durationMs = Date.now() - start;
-      const tokensUsed = completion.usage?.total_tokens || 0;
+      const inputTokens = completion.usage?.prompt_tokens || 0;
+      const outputTokens = completion.usage?.completion_tokens || 0;
+      const totalTokens = completion.usage?.total_tokens || 0;
 
-      return { response, tokensUsed, durationMs };
+      return { response, inputTokens, outputTokens, totalTokens, durationMs };
     } catch (error) {
       throw new ServiceUnavailableException({
         code: 'AI_UNAVAILABLE_AZURE',

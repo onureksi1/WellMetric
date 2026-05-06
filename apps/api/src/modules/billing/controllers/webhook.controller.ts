@@ -66,33 +66,7 @@ export class WebhookController {
     return { received: true };
   }
 
-  // ── iyzico Webhook ────────────────────────────────────────────────
-  @Post('iyzico')
-  @HttpCode(200)
-  @UseGuards(ThrottlerGuard)
-  @Throttle({ global: { ttl: 60000, limit: 100 } })
-  async iyzicoWebhook(@Body() body: any) {
-    const payment = await this.paymentRepo.findOne({
-      where: { provider_payment_id: body.paymentId, provider: 'iyzico' }
-    });
 
-    if (!payment) {
-      console.error('iyzico: Ödeme bulunamadı:', body.paymentId);
-      return 'OK';
-    }
-
-    if (body.status === 'SUCCESS') {
-      await this.paymentRepo.update(payment.id, { status: 'completed' });
-      await this.billingService.activatePackageById(
-        payment.consultant_id,
-        payment.package_key,
-      );
-    } else {
-      await this.paymentRepo.update(payment.id, { status: 'failed' });
-    }
-
-    return 'OK';
-  }
 
   // ── PayTR Webhook ─────────────────────────────────────────────────
   @Post('paytr')

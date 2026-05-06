@@ -2,13 +2,17 @@ import { IsString, IsOptional, IsObject, IsNumber } from 'class-validator';
 
 export class CreatePaymentDto {
   @IsString()
-  provider: 'stripe' | 'iyzico' | 'paytr';
+  provider: 'stripe' | 'paytr';
 
   @IsString()
   package_key: string;
 
   @IsString()
   type: string;
+
+  @IsString()
+  @IsOptional()
+  interval?: string;
 
   @IsOptional()
   @IsObject()

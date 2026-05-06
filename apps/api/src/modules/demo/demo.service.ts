@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DemoRequest } from './entities/demo.entity';
@@ -19,6 +19,15 @@ export class DemoService {
   ) {}
 
   async create(dto: CreateDemoRequestDto) {
+    // Check if email already exists
+    const existing = await this.demoRepository.findOne({ 
+      where: { email: dto.email } 
+    });
+
+    if (existing) {
+      throw new BadRequestException('Bu e-posta adresi ile zaten bir başvurunuz bulunuyor.');
+    }
+
     const request = this.demoRepository.create(dto);
     const saved = await this.demoRepository.save(request);
 
@@ -45,7 +54,7 @@ export class DemoService {
   }
 
   async findAll(filters: DemoFilterDto) {
-    const { status, date_from, date_to, page = 1, per_page = 20 } = filters;
+    const { status, search, date_from, date_to, page = 1, per_page = 20 } = filters;
     
     const query = this.demoRepository.createQueryBuilder('demo')
       .leftJoinAndSelect('demo.assigned_to_user', 'user')
@@ -53,6 +62,13 @@ export class DemoService {
 
     if (status) {
       query.andWhere('demo.status = :status', { status });
+    }
+
+    if (search) {
+      query.andWhere(
+        '(demo.full_name ILIKE :search OR demo.email ILIKE :search OR demo.company_name ILIKE :search)',
+        { search: `%${search}%` }
+      );
     }
 
     if (date_from) {
@@ -121,5 +137,20 @@ export class DemoService {
   
   async getPendingCount() {
     return this.demoRepository.count({ where: { status: 'pending' } });
+  }
+
+  async getStats() {
+    const total = await this.demoRepository.count();
+    const pending = await this.demoRepository.count({ where: { status: 'pending' } });
+    const contacted = await this.demoRepository.count({ where: { status: 'contacted' } });
+    const converted = await this.demoRepository.count({ where: { status: 'converted' } });
+    
+    return {
+      total,
+      pending,
+      contacted,
+      converted,
+      conversion_rate: total > 0 ? Math.round((converted / total) * 100) : 0
+    };
   }
 }

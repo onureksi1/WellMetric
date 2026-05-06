@@ -15,33 +15,26 @@ export class AdminSurveyPoolService {
   async findAll(filters: SurveyPoolFilterDto) {
     const qb = this.surveyRepo
       .createQueryBuilder('s')
-      .leftJoin('s.created_by_user', 'u')   // users join
-      .leftJoin('u.company', 'c')             // consultant'ın kendi company değil
-      .addSelect([
-        's.id', 's.title_tr', 's.title_en',
-        's.type', 's.pool_added_at', 's.throttle_days',
-        'u.id', 'u.full_name',               // eğitmen adı
-      ])
+      .leftJoinAndSelect('s.created_by_user', 'u')
+      .leftJoinAndSelect('s.questions', 'q')
+      .leftJoinAndSelect('s.company', 'co')
       .where('s.type = :type', { type: 'company_specific' })
-      .andWhere('s.is_pool_visible = true')
+      .andWhere('s.isPoolVisible = true')
       .andWhere('s.created_by IS NOT NULL')
-      .orderBy('s.pool_added_at', 'DESC');
+      .orderBy('s.poolAddedAt', 'DESC');
 
     // Filtreler
     if (filters.consultant_id) {
       qb.andWhere('s.created_by = :cid', { cid: filters.consultant_id });
     }
     if (filters.industry) {
-      // surveys.company_id → companies.industry filtresi
-      qb.leftJoin('s.company', 'co')
-        .andWhere('co.industry = :industry', { industry: filters.industry });
+      qb.andWhere('co.industry = :industry', { industry: filters.industry });
     }
     if (filters.dimension) {
-      qb.leftJoin('s.questions', 'q')
-        .andWhere('q.dimension = :dim', { dim: filters.dimension });
+      qb.andWhere('q.dimension = :dim', { dim: filters.dimension });
     }
     if (filters.date_from) {
-      qb.andWhere('s.pool_added_at >= :from', { from: filters.date_from });
+      qb.andWhere('s.poolAddedAt >= :from', { from: filters.date_from });
     }
 
     const [data, total] = await qb
@@ -49,7 +42,12 @@ export class AdminSurveyPoolService {
       .take(filters.limit)
       .getManyAndCount();
 
-    return { data, total, page: filters.page, limit: filters.limit };
+    const mappedData = data.map(survey => ({
+      ...survey,
+      pool_added_at: survey.poolAddedAt
+    }));
+
+    return { data: mappedData, total, page: filters.page, limit: filters.limit };
   }
 
   async findOne(id: string) {

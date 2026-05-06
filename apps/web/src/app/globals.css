@@ -21,7 +21,7 @@
 @layer base {
   body {
     @apply antialiased text-slate-600 bg-slate-50 selection:bg-primary/20 selection:text-primary;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {

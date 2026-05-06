@@ -1,8 +1,10 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import axios from 'axios';
 import { 
   Settings as SettingsIcon, 
   Bot, 
@@ -19,29 +21,44 @@ import {
   ExternalLink,
   ChevronRight,
   Info,
-  Package,
-  Plus
+  Plus,
+  CreditCard
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import client from '@/lib/api/client';
-import '@/lib/i18n';
 
 const PROVIDERS = [
   { id: 'anthropic', name: 'Anthropic', icon: '/images/providers/anthropic.svg' },
   { id: 'openai', name: 'OpenAI', icon: '/images/providers/openai.svg' },
   { id: 'azure_openai', name: 'Azure OpenAI', icon: '/images/providers/azure.svg' },
   { id: 'aws_bedrock', name: 'AWS Bedrock', icon: '/images/providers/aws.svg' },
+  { id: 'huggingface', name: 'Hugging Face', icon: '/images/providers/huggingface.svg' },
   { id: 'ollama', name: 'Ollama (Local)', icon: '/images/providers/ollama.svg' }
 ];
 
-const MODELS: Record<string, string[]> = {
-  anthropic: ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022'],
-  openai: ['gpt-4o', 'gpt-4o-mini', 'o1-preview', 'o1-mini'],
-  aws_bedrock: ['anthropic.claude-3-5-sonnet-20241022-v2:0', 'meta.llama3-1-70b-instruct-v1:0']
+const MODELS: Record<string, { id: string, name: string }[]> = {
+  anthropic: [
+    { id: 'claude-opus-4-7', name: 'Claude Opus 4.7' },
+    { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' },
+    { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5 (Hızlı & Ucuz)' },
+  ],
+  openai: [
+    { id: 'gpt-4o', name: 'GPT-4o' },
+    { id: 'gpt-4o-mini', name: 'GPT-4o Mini (Flash)' },
+    { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+    { id: 'o1-preview', name: 'o1 Preview' }
+  ],
+  aws_bedrock: [
+    { id: 'anthropic.claude-sonnet-4-6-v1:0', name: 'Claude 4.6 Sonnet (AWS)' },
+    { id: 'meta.llama3-1-70b-instruct-v1:0', name: 'Llama 3.1 70B (AWS)' }
+  ],
+  huggingface: [
+    { id: 'meta-llama/Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B' },
+    { id: 'mistralai/Mistral-7B-Instruct-v0.3', name: 'Mistral 7B' }
+  ]
 };
 
 export default function SettingsPage() {
@@ -49,18 +66,25 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
 
   const TASKS = [
-    { id: 'survey_analysis', label: t('settings.ai.tasks.survey_analysis') },
-    { id: 'action_recommendation', label: t('settings.ai.tasks.action_recommendation') },
-    { id: 'report_summarization', label: t('settings.ai.tasks.report_summarization') },
-    { id: 'ai_chat', label: t('settings.ai.tasks.ai_chat') }
+    { id: 'open_text_summary', label: t('admin.settings.ai.task_names.open_text_summary') },
+    { id: 'risk_alert', label: t('admin.settings.ai.task_names.risk_alert') },
+    { id: 'action_suggestion', label: t('admin.settings.ai.task_names.action_suggestion') },
+    { id: 'trend_analysis', label: t('admin.settings.ai.task_names.trend_analysis') },
+    { id: 'hr_chat', label: t('admin.settings.ai.task_names.hr_chat') },
+    { id: 'admin_anomaly', label: t('admin.settings.ai.task_names.admin_anomaly') },
+    { id: 'admin_chat', label: t('admin.settings.ai.task_names.admin_chat') },
+    { id: 'benchmark_generation', label: t('admin.settings.ai.task_names.benchmark_generation') },
   ];
 
   // General Form Schema (Inside component to use t)
   const generalSchema = z.object({
-    platform_name: z.string().min(2, t('settings.general.error_platform_name')),
-    platform_url: z.string().url(t('settings.general.error_platform_url')),
+    platform_name: z.string().min(2, t('admin.settings.general.error_platform_name')),
+    platform_url: z.string().url(t('admin.settings.general.error_platform_url')),
     anonymity_threshold: z.number().min(3).max(20),
     score_alert_threshold: z.number().min(20).max(80),
+    admin_email: z.string().email(t('common.invalid_email')).optional().or(z.literal('')),
+    debug_mode: z.boolean().default(true),
+    platform_logo_url: z.string().optional().or(z.literal('')),
   });
 
   const [loading, setLoading] = useState(true);
@@ -82,10 +106,13 @@ export default function SettingsPage() {
         platform_url: res.data.platform_url,
         anonymity_threshold: res.data.anonymity_threshold,
         score_alert_threshold: res.data.score_alert_threshold,
+        admin_email: res.data.admin_email || '',
+        debug_mode: res.data.debug_mode ?? true,
+        platform_logo_url: res.data.platform_logo_url || '',
       });
     } catch (err: any) {
       console.error('[Settings] Fetch Error:', err);
-      toast.error(err.response?.data?.error?.message || t('settings.general.fetch_error'));
+      toast.error(err.response?.data?.error?.message || t('admin.settings.general.fetch_error'));
     } finally {
       setLoading(false);
     }
@@ -99,7 +126,7 @@ export default function SettingsPage() {
   const onUpdateGeneral = async (data: any) => {
     try {
       await client.put('/settings', data);
-      toast.success(t('settings.general.save_success'));
+      toast.success(t('admin.settings.general.save_success'));
       setIsDirty(false);
     } catch (err: any) {
       console.error('[Settings] General Update Error:', err);
@@ -120,7 +147,7 @@ export default function SettingsPage() {
     return (
       <div className="h-96 flex flex-col items-center justify-center gap-4">
         <XCircle className="text-danger" size={48} />
-        <p className="text-navy font-bold">{t('settings.general.load_failed')}</p>
+        <p className="text-navy font-bold">{t('admin.settings.general.load_failed')}</p>
         <Button onClick={fetchSettings} variant="secondary">{t('common.retry')}</Button>
       </div>
     );
@@ -131,8 +158,8 @@ export default function SettingsPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-black text-navy tracking-tight">{t('settings.title')}</h1>
-          <p className="text-slate-500 font-medium">{t('settings.subtitle')}</p>
+          <h1 className="text-2xl font-black text-navy tracking-tight">{t('admin.settings.title')}</h1>
+          <p className="text-slate-500 font-medium">{t('admin.settings.subtitle')}</p>
         </div>
         {isDirty && (
           <div className="px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold border border-amber-100 animate-pulse">
@@ -146,42 +173,120 @@ export default function SettingsPage() {
         {/* Sidebar Tabs */}
         <div className="lg:w-72 flex-shrink-0">
           <div className="sticky top-24 space-y-2 bg-white/50 p-2 rounded-2xl border border-slate-100">
-            <TabNavItem id="general" icon={SettingsIcon} label={t('settings.tabs.general')} active={activeTab === 'general'} onClick={setActiveTab} />
-            <TabNavItem id="ai" icon={Bot} label={t('settings.tabs.ai')} active={activeTab === 'ai'} onClick={setActiveTab} />
-            <TabNavItem id="mail" icon={Mail} label={t('settings.tabs.mail')} active={activeTab === 'mail'} onClick={setActiveTab} />
-            <TabNavItem id="storage" icon={HardDrive} label={t('settings.tabs.storage')} active={activeTab === 'storage'} onClick={setActiveTab} />
-            <TabNavItem id="packages" icon={Package} label={t('settings.tabs.packages')} active={activeTab === 'packages'} onClick={setActiveTab} />
+            <TabNavItem id="general" icon={SettingsIcon} label={t('admin.settings.tabs.general')} active={activeTab === 'general'} onClick={setActiveTab} />
+            <TabNavItem id="ai" icon={Bot} label={t('admin.settings.tabs.ai')} active={activeTab === 'ai'} onClick={setActiveTab} />
+            <TabNavItem id="mail" icon={Mail} label={t('admin.settings.tabs.mail')} active={activeTab === 'mail'} onClick={setActiveTab} />
+            <TabNavItem id="storage" icon={HardDrive} label={t('admin.settings.tabs.storage')} active={activeTab === 'storage'} onClick={setActiveTab} />
+            <TabNavItem id="payment" icon={CreditCard} label={t('admin.settings.tabs.payment')} active={activeTab === 'payment'} onClick={setActiveTab} />
+            <TabNavItem id="legal" icon={ShieldCheck} label={t('admin.settings.tabs.legal')} active={activeTab === 'legal'} onClick={setActiveTab} />
           </div>
         </div>
 
         {/* Content Area */}
         <div className="flex-1 min-w-0">
           {activeTab === 'general' && (
-            <Card title={t('settings.general.card_title')} className="shadow-sm border-slate-100">
-              <form onSubmit={handleSubGeneral(onUpdateGeneral)} className="space-y-8 max-w-2xl">
-                <div className="grid gap-6">
-                  <InputGroup label={t('settings.general.platform_name')} {...regGeneral('platform_name')} />
-                  <InputGroup label={t('settings.general.platform_url')} {...regGeneral('platform_url')} />
+            <Card title={t('admin.settings.general.card_title')} className="shadow-sm border-slate-100">
+                {/* Independent Logo Section */}
+                <div className="space-y-4 pb-8 border-b border-slate-50">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">{t('admin.settings.general.platform_logo')}</label>
+                  <div className="flex items-start gap-6">
+                    <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 group relative">
+                      {settings?.platform_logo_url ? (
+                        <img src={settings.platform_logo_url} className="w-full h-full object-contain" alt="Logo" />
+                      ) : (
+                        <Plus className="text-slate-300" size={32} />
+                      )}
+                      <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                        <Plus className="text-white" size={24} />
+                        <input 
+                          type="file" 
+                          className="sr-only" 
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            
+                            const toastId = toast.loading(t('common.uploading'));
+                            try {
+                              const { data: presigned } = await client.post('/uploads/presigned-url', {
+                                file_type: 'platform_logo',
+                                mime_type: file.type,
+                                file_size: file.size
+                              });
+
+                              await axios.put(presigned.presigned_url, file, {
+                                headers: { 'Content-Type': file.type }
+                              });
+
+                              await client.post('/uploads/confirm', {
+                                s3_key: presigned.s3_key,
+                                context: 'platform_logo'
+                              });
+
+                              toast.success(t('common.upload_success'), { id: toastId });
+                              fetchSettings(); // Refresh UI
+                            } catch (err: any) {
+                              toast.error(err.response?.data?.error?.message || t('common.upload_error'), { id: toastId });
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-bold text-navy">{t('admin.settings.general.platform_logo_desc', { defaultValue: 'Logo Yönetimi' })}</p>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        {t('admin.settings.general.platform_logo_url_desc', { defaultValue: 'Platform logosunu buradan değiştirebilirsiniz. Yüklediğiniz görsel tüm sayfalarda ve e-postalarda otomatik olarak güncellenir.' })}
+                      </p>
+                      {settings?.platform_logo_url && (
+                        <div className="pt-2">
+                          <code className="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">{settings.platform_logo_url}</code>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubGeneral(onUpdateGeneral)} className="space-y-8 max-w-2xl pt-4">
+                  <div className="grid gap-6">
+                    <InputGroup label={t('admin.settings.general.platform_name')} {...regGeneral('platform_name')} />
+                    <InputGroup label={t('admin.settings.general.platform_url')} {...regGeneral('platform_url')} />
+                    <InputGroup 
+                      label={t('admin.settings.general.admin_email')} 
+                      placeholder="admin@wellanalytics.io"
+                      {...regGeneral('admin_email')} 
+                      description={t('admin.settings.general.admin_email_desc')}
+                    />
+
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                      <div>
+                        <p className="text-xs font-bold text-navy uppercase tracking-widest">{t('admin.settings.general.debug_mode')}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">{t('admin.settings.general.debug_mode_desc')}</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" {...regGeneral('debug_mode')} className="sr-only peer" />
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                    </div>
 
                   
                   <div className="grid grid-cols-2 gap-6 pt-4 border-t border-slate-50">
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.general.anonymity_threshold')}</label>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.settings.general.anonymity_threshold')}</label>
                         <span className="text-xs font-black text-primary bg-primary/5 px-2 py-0.5 rounded-lg">{settings.anonymity_threshold}</span>
                       </div>
                       <input type="range" min="3" max="20" {...regGeneral('anonymity_threshold', { valueAsNumber: true })} className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary" />
-                      <p className="text-[10px] text-slate-400 leading-tight">{t('settings.general.anonymity_desc')}</p>
+                      <p className="text-[10px] text-slate-400 leading-tight">{t('admin.settings.general.anonymity_desc')}</p>
                     </div>
 
 
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.general.risk_alert_threshold')}</label>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.settings.general.risk_alert_threshold')}</label>
                         <span className="text-xs font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded-lg">{settings.score_alert_threshold}</span>
                       </div>
                       <input type="range" min="20" max="80" {...regGeneral('score_alert_threshold', { valueAsNumber: true })} className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-orange-500" />
-                      <p className="text-[10px] text-slate-400 leading-tight">{t('settings.general.risk_alert_desc')}</p>
+                      <p className="text-[10px] text-slate-400 leading-tight">{t('admin.settings.general.risk_alert_desc')}</p>
                     </div>
 
                   </div>
@@ -190,7 +295,7 @@ export default function SettingsPage() {
                 <div className="pt-6 border-t border-slate-50">
                   <Button type="submit" className="px-8 py-3 rounded-xl premium-gradient text-white flex gap-2 items-center">
                     <Save size={18} />
-                    {t('common.save_settings')}
+                    {t('save_settings')}
                   </Button>
                 </div>
 
@@ -198,10 +303,11 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {activeTab === 'ai' && <AiSettingsTab settings={settings} onRefresh={fetchSettings} TASKS={TASKS} />}
-          {activeTab === 'mail' && <MailSettingsTab settings={settings} onRefresh={fetchSettings} />}
-          {activeTab === 'storage' && <StorageSettingsTab settings={settings} onRefresh={fetchSettings} />}
-          {activeTab === 'packages' && <PackagesSettingsTab settings={settings} onRefresh={fetchSettings} />}
+          {activeTab === 'ai' && <AiSettingsTab settings={settings} onRefresh={fetchSettings} TASKS={TASKS} t={t} />}
+          {activeTab === 'mail' && <MailSettingsTab settings={settings} onRefresh={fetchSettings} t={t} />}
+          {activeTab === 'storage' && <StorageSettingsTab settings={settings} onRefresh={fetchSettings} t={t} />}
+          {activeTab === 'payment' && <PaymentSettingsTab t={t} />}
+          {activeTab === 'legal' && <LegalSettingsTab settings={settings} onRefresh={fetchSettings} t={t} />}
         </div>
       </div>
     </div>
@@ -231,7 +337,7 @@ function TabNavItem({ id, icon: Icon, label, active, onClick }: { id: string, ic
   );
 }
 
-const InputGroup = React.forwardRef(({ label, error, ...props }: any, ref) => (
+const InputGroup = React.forwardRef(({ label, error, description, ...props }: any, ref) => (
   <div className="space-y-2">
     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">{label}</label>
     <input 
@@ -239,6 +345,7 @@ const InputGroup = React.forwardRef(({ label, error, ...props }: any, ref) => (
       {...props}
       className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-medium outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary focus:bg-white transition-all" 
     />
+    {description && <p className="text-[10px] text-slate-400 font-medium ml-1 leading-tight">{description}</p>}
     {error && <p className="text-[10px] text-red-500 font-bold uppercase mt-1 ml-1">{error}</p>}
   </div>
 ));
@@ -247,11 +354,19 @@ const InputGroup = React.forwardRef(({ label, error, ...props }: any, ref) => (
 // AI SETTINGS TAB
 // ────────────────────────────────────────────────────────────────────────────
 
-function AiSettingsTab({ settings, onRefresh, TASKS }: { settings: any, onRefresh: () => void, TASKS: any[] }) {
-  const { t } = useTranslation(['admin', 'common']);
+function AiSettingsTab({ settings, onRefresh, TASKS, t }: { settings: any, onRefresh: () => void, TASKS: any[], t: any }) {
   const [taskModels, setTaskModels] = useState(settings.ai_task_models || {});
   const [aiEnabled, setAiEnabled] = useState(settings.ai_enabled);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (settings.ai_task_models) {
+      setTaskModels(settings.ai_task_models);
+    }
+    if (settings.ai_enabled !== undefined) {
+      setAiEnabled(settings.ai_enabled);
+    }
+  }, [settings]);
 
   const onUpdateToggle = async (val: boolean) => {
     setAiEnabled(val);
@@ -269,8 +384,18 @@ function AiSettingsTab({ settings, onRefresh, TASKS }: { settings: any, onRefres
   const onUpdateModels = async () => {
     setLoading(true);
     try {
-      await client.patch('/settings/ai-models', taskModels);
-      toast.success(t('settings.ai.update_success'));
+      // Ensure each task has both provider and model
+      const payload: any = {};
+      TASKS.forEach(task => {
+        const current = taskModels[task.id] || {};
+        payload[task.id] = {
+          provider: current.provider || 'anthropic',
+          model: current.model || (settings.ai_task_models?.[task.id]?.model) || ''
+        };
+      });
+
+      await client.patch('/settings/ai-models', payload);
+      toast.success(t('admin.settings.ai.update_success'));
       onRefresh();
     } catch (err: any) {
       console.error('[Settings] Update Error:', err);
@@ -285,12 +410,12 @@ function AiSettingsTab({ settings, onRefresh, TASKS }: { settings: any, onRefres
       <Card className="shadow-sm border-slate-100 overflow-visible">
         <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-50">
           <div>
-            <h3 className="text-lg font-black text-navy tracking-tight">{t('settings.ai.title')}</h3>
-            <p className="text-sm text-slate-500 font-medium">{t('settings.ai.subtitle')}</p>
+            <h3 className="text-lg font-black text-navy tracking-tight">{t('admin.settings.ai.title')}</h3>
+            <p className="text-sm text-slate-500 font-medium">{t('admin.settings.ai.subtitle')}</p>
           </div>
           <div className="flex items-center gap-3 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-            <span className={`text-[10px] font-bold uppercase px-3 py-1.5 rounded-xl transition-all cursor-pointer ${!aiEnabled ? 'bg-white text-slate-600 shadow-sm' : 'text-slate-400'}`} onClick={() => onUpdateToggle(false)}>{t('settings.ai.passive')}</span>
-            <span className={`text-[10px] font-bold uppercase px-3 py-1.5 rounded-xl transition-all cursor-pointer ${aiEnabled ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400'}`} onClick={() => onUpdateToggle(true)}>{t('settings.ai.active')}</span>
+            <span className={`text-[10px] font-bold uppercase px-3 py-1.5 rounded-xl transition-all cursor-pointer ${!aiEnabled ? 'bg-white text-slate-600 shadow-sm' : 'text-slate-400'}`} onClick={() => onUpdateToggle(false)}>{t('admin.settings.ai.passive')}</span>
+            <span className={`text-[10px] font-bold uppercase px-3 py-1.5 rounded-xl transition-all cursor-pointer ${aiEnabled ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400'}`} onClick={() => onUpdateToggle(true)}>{t('admin.settings.ai.active')}</span>
           </div>
         </div>
 
@@ -298,9 +423,9 @@ function AiSettingsTab({ settings, onRefresh, TASKS }: { settings: any, onRefres
           <table className="w-full text-left text-sm">
             <thead className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
               <tr>
-                <th className="py-4 px-4 w-1/3">{t('settings.ai.task')}</th>
-                <th className="py-4 px-4">{t('settings.ai.provider')}</th>
-                <th className="py-4 px-4">{t('settings.ai.model')}</th>
+                <th className="py-4 px-4 w-1/3">{t('admin.settings.ai.task')}</th>
+                <th className="py-4 px-4">{t('admin.settings.ai.provider')}</th>
+                <th className="py-4 px-4">{t('admin.settings.ai.model')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -321,6 +446,7 @@ function AiSettingsTab({ settings, onRefresh, TASKS }: { settings: any, onRefres
                       provider={taskModels[task.id]?.provider || 'anthropic'} 
                       value={taskModels[task.id]?.model || ''}
                       onChange={(model) => setTaskModels({...taskModels, [task.id]: { ...taskModels[task.id], model }})}
+                      t={t}
                     />
                   </td>
                 </tr>
@@ -332,22 +458,21 @@ function AiSettingsTab({ settings, onRefresh, TASKS }: { settings: any, onRefres
         <div className="mt-8 flex justify-end">
           <Button disabled={loading} onClick={onUpdateModels} className="flex gap-2 items-center px-6 py-2.5 rounded-xl bg-navy text-white hover:bg-black transition-all">
             {loading ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
-            {t('settings.ai.update_config')}
+            {t('admin.settings.ai.update_config')}
           </Button>
         </div>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {PROVIDERS.filter(p => p.id !== 'ollama').map((p) => (
-          <ApiKeyCard key={p.id} provider={p} initialMaskedKey={settings.api_keys?.[p.id]} />
+          <ApiKeyCard key={p.id} provider={p} initialMaskedKey={settings.api_keys?.[p.id]} t={t} />
         ))}
       </div>
     </div>
   );
 }
 
-function ModelSelector({ provider, value, onChange }: { provider: string, value: string, onChange: (v: string) => void }) {
-  const { t } = useTranslation('admin');
+function ModelSelector({ provider, value, onChange, t }: { provider: string, value: string, onChange: (v: string) => void, t: any }) {
   if (provider === 'azure_openai' || provider === 'ollama') {
     return (
       <input 
@@ -367,44 +492,55 @@ function ModelSelector({ provider, value, onChange }: { provider: string, value:
       onChange={(e) => onChange(e.target.value)}
       className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-primary/10 w-full cursor-pointer"
     >
-      <option value="">{t('settings.ai.model')}</option>
-      {options.map(m => <option key={m} value={m}>{m}</option>)}
+      <option value="">{t('admin.settings.ai.model')}</option>
+      {options.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
     </select>
   );
 }
 
-function ApiKeyCard({ provider, initialMaskedKey }: { provider: any, initialMaskedKey?: string }) {
-  const { t } = useTranslation('admin');
+function ApiKeyCard({ provider, initialMaskedKey, t }: { provider: any, initialMaskedKey?: string, t: any }) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [config, setConfig] = useState<any>({});
+  const [imgError, setImgError] = useState(false);
 
   const onUpdate = async () => {
     setLoading(true);
     try {
       await client.put('/settings/api-keys', { provider: provider.id, config });
-      toast.success(t('settings.ai.save_success'));
+      toast.success(t('admin.settings.ai.save_success'));
       setIsEditing(false);
     } catch (err: any) {
       console.error('[Settings] API Key Update Error:', err);
-      toast.error(err.response?.data?.error?.message || 'API anahtarları güncellenirken hata oluştu');
+      toast.error(err.response?.data?.error?.message || t('admin.settings.ai.error_update_keys'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card className="shadow-sm border-slate-100">
+    <Card className="shadow-sm border-slate-100 group">
       <div className="flex items-center gap-4 mb-6">
-        <div className="w-12 h-12 bg-white rounded-2xl border border-slate-100 flex items-center justify-center shadow-sm">
-          <img src={provider.icon} className="w-7 h-7 grayscale group-hover:grayscale-0 transition-all" alt={provider.name} />
+        <div className="w-12 h-12 bg-white rounded-2xl border border-slate-100 flex items-center justify-center shadow-sm overflow-hidden group-hover:border-primary/30 transition-all duration-500">
+          {!imgError ? (
+            <img 
+              src={provider.icon} 
+              className="w-7 h-7 transition-all duration-500 transform group-hover:scale-110 object-contain" 
+              alt={provider.name}
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="w-full h-full bg-slate-50 flex items-center justify-center text-primary font-black text-xl">
+              {provider.name[0]}
+            </div>
+          )}
         </div>
         <div className="flex-1">
           <h4 className="font-black text-navy">{provider.name}</h4>
           <div className="flex items-center gap-1.5">
             <div className={`w-1.5 h-1.5 rounded-full ${initialMaskedKey ? 'bg-primary' : 'bg-slate-300'}`} />
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{initialMaskedKey ? t('settings.ai.configured') : t('settings.ai.not_configured')}</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{initialMaskedKey ? t('admin.settings.ai.configured') : t('admin.settings.ai.not_configured')}</span>
           </div>
         </div>
         <button onClick={() => setIsEditing(!isEditing)} className="p-2 text-slate-400 hover:text-primary transition-colors">
@@ -464,7 +600,7 @@ function ApiKeyCard({ provider, initialMaskedKey }: { provider: any, initialMask
               </div>
               {provider.id === 'openai' && (
                 <div className="pt-2">
-                   <InputGroup label="Organization ID (Opsiyonel)" onChange={(e: any) => setConfig({...config, organization_id: e.target.value})} />
+                   <InputGroup label={t('admin.settings.ai.org_id_optional', { defaultValue: 'Organization ID (Optional)' })} onChange={(e: any) => setConfig({...config, organization_id: e.target.value})} />
                 </div>
               )}
             </div>
@@ -472,7 +608,7 @@ function ApiKeyCard({ provider, initialMaskedKey }: { provider: any, initialMask
 
           <Button disabled={loading} onClick={onUpdate} className="w-full py-3 rounded-2xl bg-navy text-white font-bold text-xs uppercase tracking-widest flex justify-center items-center gap-2">
             {loading ? <Loader2 className="animate-spin" size={14} /> : <RefreshCcw size={14} />}
-            {t('common.save_settings')}
+            {t('save_settings')}
           </Button>
         </div>
       )}
@@ -484,8 +620,7 @@ function ApiKeyCard({ provider, initialMaskedKey }: { provider: any, initialMask
 // MAIL SETTINGS TAB
 // ────────────────────────────────────────────────────────────────────────────
 
-function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: () => void }) {
-  const { t } = useTranslation(['admin', 'common']);
+function MailSettingsTab({ settings, onRefresh, t }: { settings: any, onRefresh: () => void, t: any }) {
   
   // mail_config.provider_specific yapısını destekle
   const initialProvider = settings.mail_provider || 'resend';
@@ -497,6 +632,10 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
   const [loading, setLoading] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [testLoading, setTestLoading] = useState(false);
+  const [quotas, setQuotas] = useState({
+    capacity: settings.mail_quota_capacity || 3000,
+    used: settings.mail_quota_used || 0
+  });
 
   // Provider değişince formu güncelle
   const handleProviderChange = (newProvider: string) => {
@@ -510,12 +649,13 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
     try {
       await client.put('/settings', {
         mail_provider: provider,
-        // Backend artik provider_specific merge islemini kendi yapiyor
         mail_config: config,
         mail_from_address: settings.mail_from_address,
         mail_from_name: settings.mail_from_name,
+        mail_quota_capacity: quotas.capacity,
+        mail_quota_used: quotas.used,
       });
-      toast.success(t('settings.mail.save_success'));
+      toast.success(t('admin.settings.mail.save_success'));
       onRefresh();
     } catch (err: any) {
       console.error('[Settings] Mail Update Error:', err);
@@ -526,14 +666,14 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
   };
 
   const onTest = async () => {
-    if (!testEmail) return toast.error('Lütfen bir test e-postası girin');
+    if (!testEmail) return toast.error(t('admin.settings.mail.error_test_empty'));
     setTestLoading(true);
     try {
       // Direct pipeline test for diagnostics
       await client.post('/admin/notification/test-pipeline', { to: testEmail });
-      toast.success(t('settings.mail.test_success'));
+      toast.success(t('admin.settings.mail.test_success'));
     } catch (err: any) {
-      toast.error(`✗ ${t('common.error')}: ${err.response?.data?.message || t('common.waiting')}`);
+      toast.error(`✗ ${t('common.error')}: ${err.response?.data?.message || t('common.unknown')}`);
     } finally {
       setTestLoading(false);
     }
@@ -541,10 +681,10 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
 
   return (
     <div className="space-y-6">
-      <Card title={t('settings.mail.title')}>
+      <Card title={t('admin.settings.mail.title')}>
         <div className="space-y-8 max-w-2xl">
           <div className="space-y-3">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.mail.select_provider')}</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.settings.mail.select_provider')}</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <ProviderCard id="resend" icon="📮" label="Resend" active={provider === 'resend'} onClick={handleProviderChange} />
               <ProviderCard id="sendgrid" icon="📧" label="SendGrid" active={provider === 'sendgrid'} onClick={handleProviderChange} />
@@ -554,15 +694,32 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
           </div>
 
           <div className="pt-6 border-t border-slate-50 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-slate-50">
+              <InputGroup 
+                label={t('admin.settings.mail.quota_capacity', { defaultValue: 'Mail Kota Kapasitesi' })} 
+                type="number" 
+                value={quotas.capacity} 
+                onChange={(e: any) => setQuotas({...quotas, capacity: parseInt(e.target.value) || 0})}
+                description={t('admin.settings.mail.quota_capacity_desc', { defaultValue: 'Aylık toplam gönderim limitiniz' })}
+              />
+              <InputGroup 
+                label={t('admin.settings.mail.quota_used', { defaultValue: 'Kullanılan Mail' })} 
+                type="number" 
+                value={quotas.used} 
+                onChange={(e: any) => setQuotas({...quotas, used: parseInt(e.target.value) || 0})}
+                description={t('admin.settings.mail.quota_used_desc', { defaultValue: 'Şu ana kadar harcanan miktar' })}
+              />
+            </div>
+
             {provider === 'resend' && (
               <div className="space-y-4">
                 <div className="p-4 bg-blue-50/50 rounded-2xl flex items-start gap-3 border border-blue-100">
                   <Info className="text-blue-500 flex-shrink-0" size={18} />
                   <p className="text-xs text-blue-600 leading-relaxed font-medium">
-                    Resend, geliştiriciler için en modern mail gönderme servisidir. <a href="https://resend.com" target="_blank" className="font-bold underline flex items-center gap-1 mt-1">resend.com'dan API Key al → <ExternalLink size={10} /></a>
+                    {t('admin.settings.mail.info_resend')} <a href="https://resend.com" target="_blank" className="font-bold underline flex items-center gap-1 mt-1">{t('admin.settings.mail.get_api_key')} → <ExternalLink size={10} /></a>
                   </p>
                 </div>
-                <InputGroup label={t('settings.mail.api_key')} type="password" value={config.api_key || ''} onChange={(e: any) => setConfig({...config, api_key: e.target.value})} />
+                <InputGroup label={t('admin.settings.mail.api_key')} type="password" value={config.api_key || ''} onChange={(e: any) => setConfig({...config, api_key: e.target.value})} />
               </div>
             )}
 
@@ -582,8 +739,8 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputGroup label="SMTP Host" value={config.host || ''} placeholder="smtp.gmail.com" onChange={(e: any) => setConfig({...config, host: e.target.value})} />
                 <InputGroup label="Port" type="number" value={config.port || ''} placeholder="587" onChange={(e: any) => setConfig({...config, port: parseInt(e.target.value) || 587})} />
-                <InputGroup label="Kullanıcı Adı" value={config.user || ''} onChange={(e: any) => setConfig({...config, user: e.target.value})} />
-                <InputGroup label="Şifre" type="password" value={config.password || config.pass || ''} onChange={(e: any) => setConfig({...config, password: e.target.value})} />
+                <InputGroup label={t('admin.settings.mail.smtp_user', { defaultValue: 'Kullanıcı Adı' })} value={config.user || ''} onChange={(e: any) => setConfig({...config, user: e.target.value})} />
+                <InputGroup label={t('admin.settings.mail.smtp_pass', { defaultValue: 'Şifre' })} type="password" value={config.password || config.pass || ''} onChange={(e: any) => setConfig({...config, password: e.target.value})} />
               </div>
             )}
           </div>
@@ -591,16 +748,16 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
           <div className="pt-8 border-t border-slate-50">
             <Button disabled={loading} onClick={onSave} className="px-8 py-3 rounded-xl premium-gradient text-white flex gap-2 items-center">
               <Save size={18} />
-              Yapılandırmayı Kaydet
+              {t('admin.settings.mail.save_config')}
             </Button>
           </div>
         </div>
       </Card>
 
-      <Card title={t('settings.mail.test_mail')}>
+      <Card title={t('admin.settings.mail.test_mail')}>
         <div className="flex flex-col md:flex-row gap-4 items-end max-w-2xl">
           <div className="flex-1 w-full">
-            <InputGroup label={t('settings.mail.test_address')} value={testEmail} onChange={(e: any) => setTestEmail(e.target.value)} placeholder="isim@sirket.com" />
+            <InputGroup label={t('admin.settings.mail.test_address')} value={testEmail} onChange={(e: any) => setTestEmail(e.target.value)} placeholder="isim@sirket.com" />
           </div>
           <Button 
             variant="primary" 
@@ -609,7 +766,7 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
             className="h-[52px] px-8 rounded-xl premium-gradient text-white shadow-lg flex gap-2 items-center"
           >
             {testLoading ? <Loader2 className="animate-spin" size={18} /> : <RefreshCcw size={18} />}
-            Test Gönder
+            {t('admin.settings.mail.send_test')}
           </Button>
         </div>
       </Card>
@@ -621,8 +778,7 @@ function MailSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: ()
 // STORAGE SETTINGS TAB
 // ────────────────────────────────────────────────────────────────────────────
 
-function StorageSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: () => void }) {
-  const { t } = useTranslation(['admin', 'common']);
+function StorageSettingsTab({ settings, onRefresh, t }: { settings: any, onRefresh: () => void, t: any }) {
   const [provider, setProvider] = useState(settings.storage_provider || 'cloudflare_r2');
   const [config, setConfig] = useState<any>(settings.storage_config || {});
   const [loading, setLoading] = useState(false);
@@ -635,7 +791,7 @@ function StorageSettingsTab({ settings, onRefresh }: { settings: any, onRefresh:
         storage_provider: provider,
         storage_config: config,
       });
-      toast.success(t('settings.storage.save_success'));
+      toast.success(t('admin.settings.storage.save_success'));
       onRefresh();
     } catch (err: any) {
       console.error('[Settings] Storage Update Error:', err);
@@ -649,9 +805,9 @@ function StorageSettingsTab({ settings, onRefresh }: { settings: any, onRefresh:
     setTestLoading(true);
     try {
       const res = await client.post('/settings/storage/test');
-      toast.success(t('settings.storage.test_success', { latency: res.data.latency_ms }));
+      toast.success(t('admin.settings.storage.test_success', { latency: res.data.latency_ms }));
     } catch (err: any) {
-      toast.error(`✗ ${t('common.error')}: ${err.response?.data?.message || 'Bilinmiyor'}`);
+      toast.error(`✗ ${t('common.error')}: ${err.response?.data?.message || t('common.unknown')}`);
     } finally {
       setTestLoading(false);
     }
@@ -659,15 +815,15 @@ function StorageSettingsTab({ settings, onRefresh }: { settings: any, onRefresh:
 
   return (
     <div className="space-y-6">
-      <Card title={t('settings.storage.title')}>
+      <Card title={t('admin.settings.storage.title')}>
         <div className="space-y-8 max-w-2xl">
           <div className="space-y-3">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('settings.storage.provider')}</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.settings.storage.provider')}</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <ProviderCard id="cloudflare_r2" icon="☁️" label="Cloudflare R2" active={provider === 'cloudflare_r2'} onClick={setProvider} />
               <ProviderCard id="aws_s3" icon="🪣" label="AWS S3" active={provider === 'aws_s3'} onClick={setProvider} />
               <ProviderCard id="minio" icon="🖥️" label="MinIO" active={provider === 'minio'} onClick={setProvider} />
-              <ProviderCard id="local" icon="📁" label="Yerel (VPS)" active={provider === 'local'} onClick={setProvider} />
+              <ProviderCard id="local" icon="📁" label={t('admin.settings.storage.provider_labels.local')} active={provider === 'local'} onClick={setProvider} />
             </div>
           </div>
 
@@ -707,7 +863,7 @@ function StorageSettingsTab({ settings, onRefresh }: { settings: any, onRefresh:
                   <div className="p-4 bg-orange-50/50 rounded-2xl flex items-start gap-3 border border-orange-100">
                     <Info className="text-orange-500 flex-shrink-0" size={18} />
                     <p className="text-xs text-orange-600 leading-relaxed font-medium">
-                      Yerel depolama üretim ortamı için önerilmez. Yedekleme ve veri güvenliği sorumluluğu size aittir.
+                      {t('admin.settings.storage.local_warning')}
                     </p>
                   </div>
                   <InputGroup label="Yükleme Dizini (Path)" placeholder="/var/www/wellanalytics/uploads" value={config.path || ''} onChange={(e: any) => setConfig({...config, path: e.target.value})} />
@@ -719,11 +875,11 @@ function StorageSettingsTab({ settings, onRefresh }: { settings: any, onRefresh:
           <div className="pt-8 border-t border-slate-50 flex flex-col sm:flex-row gap-4">
             <Button disabled={loading} onClick={onSave} className="px-8 py-3 rounded-xl premium-gradient text-white flex gap-2 items-center">
               <Save size={18} />
-              {t('common.save_settings')}
+              {t('save_settings')}
             </Button>
             <Button variant="ghost" disabled={testLoading} onClick={onTest} className="px-6 py-3 rounded-xl border border-slate-100 font-bold text-navy flex gap-2 items-center">
               {testLoading ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
-              {t('settings.storage.test_connection')}
+              {t('admin.settings.storage.test_connection')}
             </Button>
           </div>
         </div>
@@ -750,211 +906,309 @@ function ProviderCard({ id, icon, label, active, onClick }: { id: string, icon: 
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// PACKAGES SETTINGS TAB
+// PAYMENT SETTINGS TAB
 // ────────────────────────────────────────────────────────────────────────────
 
-function PackagesSettingsTab({ settings, onRefresh }: { settings: any, onRefresh: () => void }) {
-  const { t } = useTranslation(['admin', 'common']);
-  const [packages, setPackages] = useState<any>(settings.consultant_packages || {});
-  const [loading, setLoading] = useState(false);
+function PaymentSettingsTab({ t }: { t: any }) {
+  const [settings, setSettings] = useState<any>(null);
+  const [saving, setSaving]     = useState<string | null>(null);
+  const [editing, setEditing]   = useState<string | null>(null);
+  const [keyForm, setKeyForm]   = useState<Record<string, string>>({});
+
+  const fetchPaymentSettings = () => {
+    client.get('/settings/payment')
+      .then(res => setSettings(res.data))
+      .catch(err => toast.error(t('admin.settings.payment.fetch_error')));
+  };
 
   useEffect(() => {
-    if (settings.consultant_packages) {
-      setPackages(settings.consultant_packages);
+    fetchPaymentSettings();
+  }, []);
+
+  const handleToggle = async (providerKey: string, current: boolean) => {
+    setSaving(providerKey);
+    try {
+      await client.patch(`/settings/payment/providers/${providerKey}/toggle`, { is_active: !current });
+      toast.success(`${providerKey.toUpperCase()} ${!current ? t('admin.settings.ai.active').toLowerCase() : t('admin.settings.ai.passive').toLowerCase()} ${t('common.waiting').toLowerCase()}`);
+      setSettings((s: any) => ({
+        ...s,
+        providers: {
+          ...s.providers,
+          [providerKey]: { ...s.providers[providerKey], is_active: !current }
+        }
+      }));
+    } catch (err) {
+      toast.error(t('common.error'));
+    } finally {
+      setSaving(null);
     }
-  }, [settings.consultant_packages]);
-
-  const onUpdatePackage = (key: string, field: string, value: any) => {
-    setPackages((prev: any) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        [field]: value
-      }
-    }));
   };
 
-  const onAddPackage = () => {
-    const name = window.prompt(t('packages.add_prompt', 'Yeni paket anahtarını girin (örn: premium):'));
-    if (!name) return;
-    
-    const key = name.toLowerCase().replace(/\s+/g, '_');
-    if (packages[key]) {
-      toast.error(t('packages.errors.already_exists', 'Bu paket anahtarı zaten mevcut.'));
-      return;
+  const handleSaveKeys = async (providerKey: string) => {
+    setSaving(providerKey + '_keys');
+    try {
+      await client.put('/settings/payment', {
+        providers: { [providerKey]: keyForm }
+      });
+      toast.success(t('admin.settings.payment.save_keys_success'));
+      setEditing(null);
+      setKeyForm({});
+      fetchPaymentSettings();
+    } catch (err) {
+      toast.error(t('common.save_error'));
+    } finally {
+      setSaving(null);
     }
-
-    setPackages((prev: any) => ({
-      ...prev,
-      [key]: {
-        max_companies: 10,
-        max_employees: 100,
-        ai_enabled: false,
-        white_label: false,
-        description_tr: '',
-        description_en: '',
-        label_tr: name,
-        label_en: name
-      }
-    }));
   };
 
-  const onDeletePackage = (key: string) => {
-    if (!window.confirm(t('packages.delete_confirm'))) return;
-    
-    const newPackages = { ...packages };
-    delete newPackages[key];
-    setPackages(newPackages);
+  if (!settings) return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="animate-spin text-primary" size={40} />
+    </div>
+  );
+
+  const PROVIDER_FIELDS: Record<string, Array<{key: string; label: string; secret: boolean}>> = {
+    stripe: [
+      { key: 'public_key',     label: 'Public Key',      secret: false },
+      { key: 'secret_key',     label: 'Secret Key',      secret: true  },
+      { key: 'webhook_secret', label: 'Webhook Secret',  secret: true  },
+    ],
+    paytr: [
+      { key: 'merchant_id',   label: 'Merchant ID',   secret: false },
+      { key: 'merchant_key',  label: 'Merchant Key',  secret: true  },
+      { key: 'merchant_salt', label: 'Merchant Salt', secret: true  },
+    ],
+    paypal: [
+      { key: 'client_id',     label: 'Client ID',     secret: false },
+      { key: 'client_secret', label: 'Client Secret', secret: true  },
+      { key: 'mode',          label: 'Mode (sandbox/live)', secret: false },
+    ],
   };
+
+  return (
+    <div className="space-y-6">
+      <Card className="shadow-sm border-slate-100 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="font-black text-navy uppercase tracking-tight text-sm">{t('admin.settings.payment.default_provider')}</h4>
+            <p className="text-xs text-slate-400 font-medium mt-1">{t('admin.settings.payment.default_provider_desc')}</p>
+          </div>
+          <select
+            value={settings.default_provider ?? 'paytr'}
+            onChange={async e => {
+              try {
+                await client.put('/settings/payment', { default_provider: e.target.value });
+                setSettings((s: any) => ({ ...s, default_provider: e.target.value }));
+                toast.success(t('admin.settings.payment.save_success'));
+              } catch (err) {
+                toast.error(t('common.error'));
+              }
+            }}
+            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-primary transition-all min-w-[200px]"
+          >
+            {Object.entries(settings.providers ?? {})
+              .filter(([, c]: any) => c.is_active)
+              .map(([key, c]: any) => (
+                <option key={key} value={key}>{c.label ?? key}</option>
+              ))}
+          </select>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-6">
+        {Object.entries(settings.providers ?? {}).map(([providerKey, config]: any) => (
+          <Card key={providerKey} className={`overflow-hidden border-2 transition-all duration-300 ${config.is_active ? 'border-primary/10 shadow-lg shadow-primary/5' : 'border-slate-100 opacity-80'}`}>
+            <div className={`px-6 py-4 flex items-center justify-between ${config.is_active ? 'bg-primary/5' : 'bg-slate-50'}`}>
+              <div className="flex items-center gap-4">
+                <div className={`p-2 rounded-xl ${config.is_active ? 'bg-white text-primary' : 'bg-slate-100 text-slate-400'}`}>
+                  <CreditCard size={20} />
+                </div>
+                <div>
+                  <h5 className="font-black text-slate-900 text-sm tracking-tight">{config.label}</h5>
+                  <div className="flex gap-1 mt-0.5">
+                    {(config.currencies ?? []).map((curr: string) => (
+                      <span key={curr} className="text-[9px] font-black bg-white/50 px-1.5 py-0.5 rounded border border-slate-100 text-slate-400">{curr}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${config.is_active ? 'text-primary' : 'text-slate-400'}`}>
+                    {config.is_active ? t('admin.settings.payment.active') : t('admin.settings.payment.passive')}
+                  </span>
+                  <button
+                    onClick={() => handleToggle(providerKey, config.is_active)}
+                    disabled={saving === providerKey}
+                    className={`relative w-12 h-6 rounded-full transition-all duration-300 ${config.is_active ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-slate-300'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300 ${config.is_active ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    if (editing === providerKey) setEditing(null);
+                    else { setEditing(providerKey); setKeyForm({}); }
+                  }}
+                  className="bg-white border-slate-200 text-slate-600 font-bold text-xs px-4 h-9 rounded-lg"
+                >
+                  {editing === providerKey ? t('admin.settings.payment.cancel') : t('admin.settings.payment.edit_api_keys')}
+                </Button>
+              </div>
+            </div>
+
+            {editing === providerKey && (
+              <div className="p-8 bg-white border-t border-slate-50 animate-in slide-in-from-top-2 duration-300">
+                <div className="flex items-start gap-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 mb-8">
+                  <Info className="text-amber-500 shrink-0 mt-0.5" size={18} />
+                  <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                    {t('admin.settings.payment.save_keys_hint')}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {(PROVIDER_FIELDS[providerKey] ?? []).map(field => (
+                    <div key={field.key} className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex justify-between">
+                        {field.label}
+                        {config[field.key] && (
+                          <span className="text-slate-300 font-bold lowercase tracking-normal">{config[field.key]}</span>
+                        )}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={field.secret ? 'password' : 'text'}
+                          value={keyForm[field.key] ?? ''}
+                          onChange={e => setKeyForm(f => ({ ...f, [field.key]: e.target.value }))}
+                          placeholder={field.secret ? '••••••••••••••••' : t('admin.settings.payment.new_value_placeholder')}
+                          className="w-full bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-primary focus:bg-white transition-all"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end gap-3 mt-10 pt-6 border-t border-slate-50">
+                  <Button
+                    variant="ghost"
+                    onClick={() => { setEditing(null); setKeyForm({}); }}
+                    className="text-slate-400 font-bold text-sm"
+                  >
+                    {t('admin.settings.payment.cancel')}
+                  </Button>
+                  <Button
+                    onClick={() => handleSaveKeys(providerKey)}
+                    disabled={saving === providerKey + '_keys'}
+                    className="premium-gradient text-white px-8 py-2.5 rounded-xl shadow-lg shadow-primary/20 font-bold"
+                  >
+                    {saving === providerKey + '_keys' ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                    <span className="ml-2">{t('save_settings')}</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+// ────────────────────────────────────────────────────────────────────────────
+// LEGAL SETTINGS TAB
+// ────────────────────────────────────────────────────────────────────────────
+
+function LegalSettingsTab({ settings, onRefresh, t }: { settings: any, onRefresh: () => void, t: any }) {
+  const [loading, setLoading] = useState(false);
+  const [legalData, setLegalData] = useState({
+    terms_of_use_tr: settings.terms_of_use_tr || '',
+    terms_of_use_en: settings.terms_of_use_en || '',
+    privacy_policy_tr: settings.privacy_policy_tr || '',
+    privacy_policy_en: settings.privacy_policy_en || '',
+    kvkk_text_tr: settings.kvkk_text_tr || '',
+    gdpr_text_en: settings.gdpr_text_en || '',
+  });
 
   const onSave = async () => {
     setLoading(true);
     try {
-      await client.put('/admin/settings/packages', packages);
-      toast.success(t('settings.packages.save_success'));
+      await client.put('/settings', legalData);
+      toast.success(t('admin.settings.legal.save_success'));
       onRefresh();
     } catch (err: any) {
-      console.error('[Settings] Packages Update Error:', err);
+      console.error('[Settings] Legal Update Error:', err);
       toast.error(err.response?.data?.error?.message || t('common.save_error'));
     } finally {
       setLoading(false);
     }
   };
 
-  const packageKeys = Object.keys(packages);
+  const handleTextChange = (key: string, value: string) => {
+    setLegalData(prev => ({ ...prev, [key]: value }));
+  };
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-        <div>
-          <h3 className="text-2xl font-black text-navy tracking-tight">{t('settings.packages.title')}</h3>
-          <p className="text-sm text-slate-500 font-medium">{t('settings.packages.subtitle')}</p>
+    <div className="space-y-6">
+      <Card title={t('admin.settings.legal.title')}>
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <TextareaGroup 
+              label={t('admin.settings.legal.terms_of_use_tr')} 
+              value={legalData.terms_of_use_tr} 
+              onChange={(e: any) => handleTextChange('terms_of_use_tr', e.target.value)} 
+            />
+            <TextareaGroup 
+              label={t('admin.settings.legal.terms_of_use_en')} 
+              value={legalData.terms_of_use_en} 
+              onChange={(e: any) => handleTextChange('terms_of_use_en', e.target.value)} 
+            />
+            <TextareaGroup 
+              label={t('admin.settings.legal.privacy_policy_tr')} 
+              value={legalData.privacy_policy_tr} 
+              onChange={(e: any) => handleTextChange('privacy_policy_tr', e.target.value)} 
+            />
+            <TextareaGroup 
+              label={t('admin.settings.legal.privacy_policy_en')} 
+              value={legalData.privacy_policy_en} 
+              onChange={(e: any) => handleTextChange('privacy_policy_en', e.target.value)} 
+            />
+            <TextareaGroup 
+              label={t('admin.settings.legal.kvkk_tr')} 
+              value={legalData.kvkk_text_tr} 
+              onChange={(e: any) => handleTextChange('kvkk_text_tr', e.target.value)} 
+            />
+            <TextareaGroup 
+              label={t('admin.settings.legal.gdpr_en')} 
+              value={legalData.gdpr_text_en} 
+              onChange={(e: any) => handleTextChange('gdpr_text_en', e.target.value)} 
+            />
+          </div>
+
+          <div className="pt-8 border-t border-slate-50">
+            <Button disabled={loading} onClick={onSave} className="px-8 py-3 rounded-xl premium-gradient text-white flex gap-2 items-center">
+              {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+              {t('save_settings')}
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <Button variant="secondary" onClick={onAddPackage} className="bg-white border-slate-200 text-slate-600 px-6 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all flex gap-2 items-center">
-            <Plus size={18} />
-            {t('settings.packages.add')}
-          </Button>
-          <Button disabled={loading} onClick={onSave} className="premium-gradient text-white px-8 py-2.5 rounded-xl shadow-lg shadow-primary/20 flex gap-2 items-center font-bold tracking-wide">
-            {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-            {t('common:save_settings')}
-          </Button>
-        </div>
-      </div>
+      </Card>
+    </div>
+  );
+}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {packageKeys.map((key) => (
-          <Card key={key} className="shadow-xl shadow-slate-200/50 border-slate-100 p-0 overflow-hidden group border-2 hover:border-primary/20 transition-all duration-300">
-            <div className={`p-6 border-b border-slate-50 flex items-center justify-between ${
-              key === 'starter' ? 'bg-slate-50/50' : 
-              key === 'growth' ? 'bg-primary/5' : 
-              key === 'enterprise' ? 'bg-navy text-white' : 'bg-slate-100'
-            }`}>
-              <h4 className="font-black uppercase tracking-widest text-sm">
-                {packages[key]?.label_tr || key}
-              </h4>
-              <div className="flex items-center gap-2">
-                {key === 'growth' && <span className="bg-primary text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase">Popüler</span>}
-                {!['starter', 'growth', 'enterprise'].includes(key) && (
-                  <button 
-                    onClick={() => onDeletePackage(key)}
-                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <XCircle size={16} />
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            <div className="p-8 space-y-8">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="space-y-2">
-                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('settings.packages.label_tr')}</label>
-                     <input 
-                        className="w-full bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-primary focus:bg-white transition-all"
-                        value={packages[key]?.label_tr || ''} 
-                        onChange={(e) => onUpdatePackage(key, 'label_tr', e.target.value)}
-                        placeholder="Örn: Başlangıç"
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('settings.packages.label_en')}</label>
-                     <input 
-                        className="w-full bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-primary focus:bg-white transition-all"
-                        value={packages[key]?.label_en || ''} 
-                        onChange={(e) => onUpdatePackage(key, 'label_en', e.target.value)}
-                        placeholder="Örn: Starter"
-                     />
-                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InputGroup 
-                    label={t('settings.packages.labels.max_companies')} 
-                    type="number" 
-                    value={packages[key]?.max_companies || ''} 
-                    onChange={(e: any) => onUpdatePackage(key, 'max_companies', e.target.value === '' ? null : parseInt(e.target.value))} 
-                  />
-                  <InputGroup 
-                    label={t('settings.packages.labels.max_employees')} 
-                    type="number" 
-                    value={packages[key]?.max_employees || ''} 
-                    onChange={(e: any) => onUpdatePackage(key, 'max_employees', e.target.value === '' ? null : parseInt(e.target.value))} 
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-[20px] border border-slate-100">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-navy uppercase tracking-widest">{t('settings.packages.labels.ai_enabled')}</span>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase mt-1">Tam Erişim</span>
-                  </div>
-                  <button 
-                    onClick={() => onUpdatePackage(key, 'ai_enabled', !packages[key]?.ai_enabled)}
-                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${packages[key]?.ai_enabled ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-slate-300'}`}
-                  >
-                    <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300 ${packages[key]?.ai_enabled ? 'left-8' : 'left-1'}`} />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-[20px] border border-slate-100">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-navy uppercase tracking-widest">{t('settings.packages.labels.white_label')}</span>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase mt-1">Markasız Panel</span>
-                  </div>
-                  <button 
-                    onClick={() => onUpdatePackage(key, 'white_label', !packages[key]?.white_label)}
-                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${packages[key]?.white_label ? 'bg-navy shadow-lg shadow-navy/20' : 'bg-slate-300'}`}
-                  >
-                    <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300 ${packages[key]?.white_label ? 'left-8' : 'left-1'}`} />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-8 pt-4">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('settings.packages.labels.description')} (TR)</label>
-                    <textarea 
-                      value={packages[key]?.description_tr || ''} 
-                      onChange={(e) => onUpdatePackage(key, 'description_tr', e.target.value)}
-                      className="w-full bg-slate-50/50 border border-slate-100 rounded-[24px] px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:bg-white transition-all resize-none h-28"
-                      placeholder="Türkçe paket açıklaması..."
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('settings.packages.labels.description')} (EN)</label>
-                    <textarea 
-                      value={packages[key]?.description_en || ''} 
-                      onChange={(e) => onUpdatePackage(key, 'description_en', e.target.value)}
-                      className="w-full bg-slate-50/50 border border-slate-100 rounded-[24px] px-5 py-4 text-sm font-medium outline-none focus:border-primary focus:bg-white transition-all resize-none h-28"
-                      placeholder="English package description..."
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+function TextareaGroup({ label, value, onChange }: { label: string, value: string, onChange: (e: any) => void }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">{label}</label>
+      <textarea 
+        value={value}
+        onChange={onChange}
+        rows={8}
+        className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-medium outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary focus:bg-white transition-all resize-none"
+      />
     </div>
   );
 }

@@ -7,12 +7,15 @@ import { ProductPackage } from '../entities/product-package.entity';
 import { PackageService } from './package.service';
 import { CreditService } from './credit.service';
 import { StripeProvider } from '../providers/stripe.provider';
-import { IyzicoProvider } from '../providers/iyzico.provider';
 import { PaytrProvider } from '../providers/paytr.provider';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
+import { ConsultantPaymentMethod } from '../entities/consultant-payment-method.entity';
 import { User } from '../../user/entities/user.entity';
+import { InvoiceService } from './invoice.service';
+import { NotificationService } from '../../notification/notification.service';
 import { AppLogger } from '../../../common/logger/app-logger.service';
 import { ServiceDebugger } from '../../../common/logger/debug.helper';
+import { ConsultantPlan } from '../../consultant/entities/consultant-plan.entity';
 
 @Injectable()
 export class BillingService {
@@ -27,15 +30,43 @@ export class BillingService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(ProductPackage)
     private readonly packageRepository: Repository<ProductPackage>,
+    @InjectRepository(ConsultantPlan)
+    private readonly planRepository: Repository<ConsultantPlan>,
     private readonly packageService: PackageService,
     private readonly creditService: CreditService,
     private readonly stripeProvider: StripeProvider,
-    private readonly iyzicoProvider: IyzicoProvider,
     private readonly paytrProvider: PaytrProvider,
     private readonly dataSource: DataSource,
     private readonly logger: AppLogger,
+    private readonly invoiceService: InvoiceService,
+    private readonly notificationService: NotificationService,
   ) {
     this.debug = new ServiceDebugger(logger, 'BillingService');
+  }
+
+  private readonly PACKAGE_ORDER = ['starter', 'growth', 'enterprise'];
+
+  async validateUpgrade(consultantId: string, newPackageKey: string) {
+    const current = await this.subscriptionRepository.findOne({
+      where: { consultant_id: consultantId, status: 'active' }
+    });
+
+    if (current) {
+      const currentOrder = this.PACKAGE_ORDER.indexOf(current.package_key);
+      const newOrder     = this.PACKAGE_ORDER.indexOf(newPackageKey);
+
+      if (current.package_key === newPackageKey) {
+        throw new BadRequestException('Bu paket zaten aktif');
+      }
+
+      if (newOrder < currentOrder && newOrder !== -1) {
+        throw new BadRequestException(
+          'Daha düşük bir pakete geçemezsiniz. ' +
+          'Plan düşürme için destek ile iletişime geçin.'
+        );
+      }
+    }
+    return true;
   }
 
   async createPayment(params: CreatePaymentDto, consultantId: string) {
@@ -61,11 +92,6 @@ export class BillingService {
           result = { success: false, message: 'Stripe integration placeholder' };
           break;
 
-        case 'iyzico':
-          this.debug.step('createPayment', 'iyzico ödeme başlatılıyor', ctx);
-          result = await this.handleIyzicoPayment(params, consultant);
-          break;
-
         case 'paytr':
           this.debug.step('createPayment', 'PayTR ödeme başlatılıyor', ctx);
           result = await this.handlePaytrPayment(params, consultant);
@@ -83,73 +109,15 @@ export class BillingService {
     }
   }
 
-  // ── iyzico ödeme handler ──────────────────────────────────────────
-  private async handleIyzicoPayment(params: CreatePaymentDto, consultant: User) {
-    const pkg = await this.packageRepository.findOne({
-      where: { key: params.package_key }
-    });
-    if (!pkg) throw new NotFoundException('Package not found');
-
-    if (!params.payment_card) throw new BadRequestException('Kart bilgileri eksik');
-
-    const result = await this.iyzicoProvider.createPayment({
-      price:       String(pkg.price_monthly),
-      paidPrice:   String(pkg.price_monthly),
-      currency:    'TRY',
-      installment: 1,
-      paymentCard: params.payment_card,
-      buyer: {
-        id:                  consultant.id,
-        name:                consultant.full_name?.split(' ')[0] || 'Consultant',
-        surname:             consultant.full_name?.split(' ').slice(1).join(' ') || '-',
-        email:               consultant.email,
-        identityNumber:      params.identity_number || '11111111111',
-        registrationAddress: params.billing_address || 'Türkiye',
-        ip:                  params.ip || '127.0.0.1',
-        city:                params.city || 'İstanbul',
-        country:             'Turkey',
-      },
-      billingAddress: {
-        contactName: consultant.full_name || 'Consultant',
-        city:        params.city || 'İstanbul',
-        country:     'Turkey',
-        address:     params.billing_address || 'Türkiye',
-      },
-      basketItems: [{
-        id:        pkg.key,
-        name:      pkg.label_tr,
-        category1: 'Software',
-        itemType:  'VIRTUAL',
-        price:     String(pkg.price_monthly),
-      }],
-    });
-
-    if (result.status !== 'success') {
-      throw new BadRequestException(result.errorMessage || 'Ödeme başarısız');
-    }
-
-    await this.paymentRepository.save({
-      consultant_id:       consultant.id,
-      amount:              Number(pkg.price_monthly),
-      currency:            'TRY',
-      provider:            'iyzico',
-      provider_payment_id: result.paymentId,
-      status:              'completed',
-      type:                params.type,
-      package_key:         params.package_key,
-    });
-
-    await this.handlePaymentSuccess(consultant.id, pkg.key, 'iyzico', result.paymentId || '', Number(pkg.price_monthly));
-
-    return { success: true, payment_id: result.paymentId };
-  }
-
   // ── PayTR ödeme handler ───────────────────────────────────────────
   private async handlePaytrPayment(params: CreatePaymentDto, consultant: User) {
     const pkg = await this.packageRepository.findOne({
       where: { key: params.package_key }
     });
     if (!pkg) throw new NotFoundException('Package not found');
+
+    // Downgrade/Duplicate kontrolü
+    await this.validateUpgrade(consultant.id, params.package_key);
 
     const merchantOid = `${consultant.id.slice(0, 8)}-${Date.now()}`;
 
@@ -184,10 +152,29 @@ export class BillingService {
   }
 
   async getSubscription(consultantId: string) {
-    return this.subscriptionRepository.findOne({
+    const sub = await this.subscriptionRepository.findOne({
       where: { consultant_id: consultantId, status: 'active' },
       relations: ['package'],
     });
+
+    if (!sub) return null;
+
+    const price = sub.interval === 'yearly' ? sub.package?.price_yearly : sub.package?.price_monthly;
+    
+    // Debug log (remove in production)
+    console.log(`[BillingService] Subscription found for ${consultantId}:`, {
+      interval: sub.interval,
+      package:  sub.package_key,
+      price:    price,
+      currency: sub.package?.currency
+    });
+
+    return {
+      ...sub,
+      package_label: sub.package?.label_tr || sub.package_key.toUpperCase(),
+      price: price,
+      currency: sub.package?.currency || 'TRY'
+    };
   }
 
   async subscribe(consultantId: string, packageKey: string, interval: 'monthly' | 'yearly', provider: string) {
@@ -200,7 +187,7 @@ export class BillingService {
     };
   }
 
-  async handlePaymentSuccess(consultantId: string, packageKey: string, provider: string, providerPaymentId: string, amount: number) {
+  async handlePaymentSuccess(consultantId: string, packageKey: string, provider: string, providerPaymentId: string, amount: number, interval?: string) {
     const pkg = await this.packageService.findOne(packageKey);
 
     return this.dataSource.transaction(async (manager) => {
@@ -232,19 +219,53 @@ export class BillingService {
 
         const now = new Date();
         const endDate = new Date();
-        endDate.setMonth(now.getMonth() + 1);
+        if (interval === 'yearly') {
+          endDate.setFullYear(now.getFullYear() + 1);
+        } else {
+          endDate.setMonth(now.getMonth() + 1);
+        }
+
+        // Kayıtlı ödeme yöntemini bul
+        const paymentMethod = await manager.findOne(ConsultantPaymentMethod, {
+          where: { consultant_id: consultantId, provider, is_default: true }
+        });
 
         const sub = manager.create(Subscription, {
           consultant_id: consultantId,
           package_key: pkg.key,
           status: 'active',
-          interval: 'monthly',
+          interval: interval || 'monthly',
           current_period_start: now,
           current_period_end: endDate,
           provider,
-          provider_subscription_id: providerPaymentId
+          provider_subscription_id: providerPaymentId,
+          // Auto-charge alanları
+          stripe_customer_id:       paymentMethod?.stripe_customer_id,
+          stripe_payment_method_id: paymentMethod?.stripe_payment_method_id,
         });
         await manager.save(sub);
+
+        // 4. Update Consultant Plan Limits
+        const plan = await manager.findOne(ConsultantPlan, { where: { consultant_id: consultantId } });
+        const planData = {
+          plan:          pkg.key,
+          max_companies: pkg.max_companies ?? 5,
+          max_employees: pkg.max_employees ?? 100,
+          ai_enabled:    pkg.ai_enabled,
+          white_label:   pkg.white_label,
+          valid_until:   endDate,
+          is_active:     true,
+        };
+
+        if (plan) {
+          await manager.update(ConsultantPlan, { consultant_id: consultantId }, planData);
+        } else {
+          const newPlan = manager.create(ConsultantPlan, {
+            consultant_id: consultantId,
+            ...planData,
+          });
+          await manager.save(newPlan);
+        }
       }
 
       for (const [typeKey, creditAmount] of Object.entries(pkg.credits)) {
@@ -256,6 +277,28 @@ export class BillingService {
           `${pkg.label_tr} Paketi Yüklemesi`,
           payment.id
         );
+      }
+
+      // Ödeme başarılı → fatura üret → mail gönder
+      try {
+        const consultant = await manager.findOne(User, { where: { id: consultantId } });
+        if (consultant) {
+          await this.invoiceService.generateInvoice(payment.id);
+
+          await this.notificationService.sendEmail(
+            consultant.email,
+            'invoice_ready',
+            {
+              full_name:      consultant.full_name,
+              invoice_number: `INV-${new Date().getFullYear()}-${payment.id.slice(-6).toUpperCase()}`,
+              amount:         `${amount} ${pkg.currency}`,
+              invoice_url:    `${process.env.APP_URL}/api/v1/consultant/billing/invoices/${payment.id}/download`,
+              date:           new Date().toLocaleDateString('tr-TR'),
+            }
+          );
+        }
+      } catch (err) {
+        this.logger.error('Fatura üretimi/mail gönderimi başarısız', { service: 'BillingService', userId: consultantId }, err);
       }
 
       return { success: true };
@@ -308,6 +351,27 @@ export class BillingService {
     });
 
     const activeCredits = await this.creditService.getTotalActiveCredits();
+    
+    // Fetch Platform Settings for mail quota
+    const settings = await this.dataSource.query(`SELECT mail_quota_capacity, mail_quota_used FROM platform_settings LIMIT 1`);
+    const mailConfig = settings[0] || { mail_quota_capacity: 3000, mail_quota_used: 0 };
+
+    // External Quotas
+    let mailQuota = {
+      remaining: (mailConfig?.mail_quota_capacity || 3000) - (mailConfig?.mail_quota_used || 0),
+      total: mailConfig?.mail_quota_capacity || 3000
+    };
+
+    try {
+      if (this.notificationService && typeof this.notificationService.getMailQuota === 'function') {
+        const quotaRes = await this.notificationService.getMailQuota();
+        if (quotaRes && quotaRes.success !== false && quotaRes.total !== undefined) {
+          mailQuota = quotaRes;
+        }
+      }
+    } catch (err) {
+      console.error('[BillingService] Quota fetch failed:', err.message);
+    }
 
     return {
       monthly_revenue: parseFloat(revenueRes[0]?.total || 0),
@@ -315,14 +379,18 @@ export class BillingService {
       active_credits: activeCredits,
       revenue_change: '+12%',
       subs_change: '+5',
+      external_quotas: {
+        mail: mailQuota
+      }
     };
   }
 
-  async getRecentTransactions(limit: number) {
+  async getRecentTransactions(limit: number = 10) {
+    const takeValue = Number(limit) || 10;
     return this.paymentRepository.find({
-      relations: ['consultant'],
+      take: takeValue,
       order: { created_at: 'DESC' },
-      take: limit,
+      relations: ['consultant']
     });
   }
 

@@ -25,7 +25,11 @@ export const ConsultantAssignSurveyModal: React.FC<ConsultantAssignSurveyModalPr
 }) => {
   const [surveyId, setSurveyId] = useState<string>(initialSurveyId || '');
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
-  const [period, setPeriod] = useState<string>('2024-Q1');
+  const [period, setPeriod] = useState<string>(() => {
+    const now = new Date();
+    const q = Math.floor(now.getMonth() / 3) + 1;
+    return `${now.getFullYear()}-Q${q}`;
+  });
   const [dueAt, setDueAt] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
@@ -131,10 +135,13 @@ export const ConsultantAssignSurveyModal: React.FC<ConsultantAssignSurveyModalPr
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
             >
-              <option value="2024-Q1">2024 1. Çeyrek</option>
-              <option value="2024-Q2">2024 2. Çeyrek</option>
-              <option value="2024-Q3">2024 3. Çeyrek</option>
-              <option value="2024-Q4">2024 4. Çeyrek</option>
+              {[2025, 2026].map(year => (
+                ['Q1', 'Q2', 'Q3', 'Q4'].map(q => (
+                  <option key={`${year}-${q}`} value={`${year}-${q}`}>
+                    {year} {q === 'Q1' ? '1.' : q === 'Q2' ? '2.' : q === 'Q3' ? '3.' : '4.'} Çeyrek
+                  </option>
+                ))
+              ))}
             </select>
           </div>
           <div>

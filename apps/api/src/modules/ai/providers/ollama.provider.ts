@@ -11,7 +11,7 @@ export class OllamaProvider implements AIProvider {
     temperature: number,
     model: string,
     config: any,
-  ): Promise<{ response: string; tokensUsed: number; durationMs: number }> {
+  ): Promise<{ response: string; inputTokens: number; outputTokens: number; totalTokens: number; durationMs: number }> {
     const start = Date.now();
     try {
       const baseUrl = config.base_url || 'http://localhost:11434';
@@ -27,9 +27,11 @@ export class OllamaProvider implements AIProvider {
 
       const response = res.data.response || '';
       const durationMs = Date.now() - start;
-      const tokensUsed = 0; // Ollama doesn't return tokens in a standard way easily
+      const inputTokens = res.data.prompt_eval_count || 0;
+      const outputTokens = res.data.eval_count || 0;
+      const totalTokens = inputTokens + outputTokens;
 
-      return { response, tokensUsed, durationMs };
+      return { response, inputTokens, outputTokens, totalTokens, durationMs };
     } catch (error) {
       throw new ServiceUnavailableException({
         code: 'AI_UNAVAILABLE_OLLAMA',

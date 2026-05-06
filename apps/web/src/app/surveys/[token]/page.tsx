@@ -112,7 +112,7 @@ export default function PublicSurveyPage() {
   const validateCurrentSection = () => {
     const missingRequired = currentQuestions.filter(q => q.is_required && !answers[q.id]);
     if (missingRequired.length > 0) {
-      toast.error(t('question.required'));
+      toast.error(t('survey.question.required'));
       return false;
     }
     return true;
@@ -152,14 +152,14 @@ export default function PublicSurveyPage() {
         colors: ['#2E865A', '#4CAF7D', '#1A5C3A', '#FFD700', '#FF6B6B']
       });
     } catch (err) {
-      toast.error(t('errors.submit_failed'));
+      toast.error(t('survey.errors.submit_failed'));
       setPhase('survey');
     }
   };
 
   if (phase === 'loading') {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+      <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center p-6">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -183,16 +183,16 @@ export default function PublicSurveyPage() {
 
   if (phase === 'error') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="min-h-[100dvh] bg-gray-50 flex items-center justify-center p-6">
         <Card className="max-w-md w-full p-8 text-center space-y-6">
           {errorType === 'used' && (
             <>
               <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 size={48} />
               </div>
-              <h2 className="text-2xl font-black text-navy">{t('success.title', { name: '' })}</h2>
+              <h2 className="text-2xl font-black text-navy">{t('survey.success.title', { name: '' })}</h2>
               <p className="text-gray-500 leading-relaxed">
-                {t('errors.token_used')}
+                {t('survey.errors.token_used')}
               </p>
             </>
           )}
@@ -201,9 +201,9 @@ export default function PublicSurveyPage() {
               <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto">
                 <Clock size={48} />
               </div>
-              <h2 className="text-2xl font-black text-navy">{t('errors.token_expired_title', 'Süre Doldu')}</h2>
+              <h2 className="text-2xl font-black text-navy">{t('survey.errors.token_expired_title', 'Süre Doldu')}</h2>
               <p className="text-gray-500">
-                {t('errors.token_expired')}
+                {t('survey.errors.token_expired')}
               </p>
             </>
           )}
@@ -212,9 +212,9 @@ export default function PublicSurveyPage() {
               <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
                 <AlertCircle size={48} />
               </div>
-              <h2 className="text-2xl font-black text-navy">{t('errors.token_invalid_title', 'Geçersiz Bağlantı')}</h2>
+              <h2 className="text-2xl font-black text-navy">{t('survey.errors.token_invalid_title', 'Geçersiz Bağlantı')}</h2>
               <p className="text-gray-500">
-                {t('errors.token_invalid')}
+                {t('survey.errors.token_invalid')}
               </p>
             </>
           )}
@@ -228,50 +228,50 @@ export default function PublicSurveyPage() {
 
   if (phase === 'welcome') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col p-6">
-        <header className="flex justify-between items-center max-w-4xl mx-auto w-full mb-12">
+      <div className="min-h-[100dvh] bg-gray-50 flex flex-col p-4 sm:p-6">
+        <header className="flex justify-between items-center max-w-4xl mx-auto w-full mb-6 sm:mb-12">
            <div className="flex items-center gap-2">
-             <div className="w-10 h-10 bg-primary rounded-xl" />
-             <span className="font-black text-navy tracking-tight">WELLBEING METRIC</span>
+             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-xl" />
+             <span className="font-black text-navy tracking-tight text-sm sm:text-base">WELLBEING METRIC</span>
            </div>
-           {surveyData?.company.logo_url && <img src={surveyData.company.logo_url} className="h-8 object-contain" alt="Company" />}
+           {surveyData?.company.logo_url && <img src={surveyData.company.logo_url} className="h-7 sm:h-8 object-contain" alt="Company" />}
         </header>
 
         <main className="flex-1 flex items-center justify-center">
-          <motion.div 
+          <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="bg-white rounded-[2rem] shadow-xl border border-gray-100 max-w-lg w-full p-8 md:p-10 space-y-8 relative overflow-hidden"
+            className="bg-white rounded-[2rem] shadow-xl border border-gray-100 max-w-lg w-full p-6 sm:p-8 md:p-10 space-y-6 sm:space-y-8 relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 right-0 h-2 bg-primary/20" />
-            
+
             <div className="space-y-2">
               <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-black uppercase tracking-wider">
-                {t('welcome.title')}
+                {t('survey.welcome.title')}
               </span>
-              <h1 className="text-3xl font-black text-navy">
-                {t('welcome.greeting', { name: '' })}
+              <h1 className="text-2xl sm:text-3xl font-black text-navy">
+                {t('survey.welcome.greeting', { name: '' })}
               </h1>
               <p className="text-gray-500 font-medium">
-                {t('welcome.intro', { company_name: surveyData?.company.name })}
+                {t('survey.welcome.intro', { company_name: surveyData?.company.name })}
               </p>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-gray-50 p-4 rounded-2xl text-center space-y-1">
                 <Timer size={20} className="mx-auto text-primary" />
-                <p className="text-[10px] font-bold text-gray-400 uppercase">{t('welcome.duration_label', 'Süre')}</p>
-                <p className="text-sm font-black text-navy">{t('welcome.duration', { minutes: 5 })}</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase">{t('survey.welcome.duration_label', 'Süre')}</p>
+                <p className="text-sm font-black text-navy">{t('survey.welcome.duration', { minutes: 5 })}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-2xl text-center space-y-1">
                 <ShieldCheck size={20} className="mx-auto text-primary" />
-                <p className="text-[10px] font-bold text-gray-400 uppercase">{t('welcome.privacy_label', 'Gizlilik')}</p>
-                <p className="text-sm font-black text-navy">{t('welcome.anonymous')}</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase">{t('survey.welcome.privacy_label', 'Gizlilik')}</p>
+                <p className="text-sm font-black text-navy">{t('survey.welcome.anonymous')}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-2xl text-center space-y-1">
                 <div className="text-sm font-black text-primary mx-auto">{dimensions.length}</div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase">{t('welcome.sections_label', 'Bölüm')}</p>
-                <p className="text-sm font-black text-navy">{t('welcome.sections', { count: dimensions.length })}</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase">{t('survey.welcome.sections_label', 'Bölüm')}</p>
+                <p className="text-sm font-black text-navy">{t('survey.welcome.sections', { count: dimensions.length })}</p>
               </div>
             </div>
 
@@ -279,13 +279,13 @@ export default function PublicSurveyPage() {
               onClick={() => setPhase('survey')}
               className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-2xl font-black text-lg shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              {t('welcome.start')} <ArrowRight size={20} />
+              {t('survey.welcome.start')} <ArrowRight size={20} />
             </button>
           </motion.div>
         </main>
 
-        <footer className="text-center py-8 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
-           {t('welcome.powered_by', 'Powered by Wellbeing Metric 🌱')}
+        <footer className="text-center py-4 sm:py-8 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+           {t('survey.welcome.powered_by', 'Powered by Wellbeing Metric 🌱')}
         </footer>
       </div>
     );
@@ -297,15 +297,17 @@ export default function PublicSurveyPage() {
     const answeredCount = Object.keys(answers).length;
 
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <SurveyProgress 
-          dimensions={dimensions} 
-          currentIndex={currentDimIndex} 
-          completedDimensions={completedDims}
-          language={lang}
-        />
+      <div className="min-h-[100dvh] bg-gray-50 flex flex-col">
+        <div className="sticky top-0 z-30">
+          <SurveyProgress
+            dimensions={dimensions}
+            currentIndex={currentDimIndex}
+            completedDimensions={completedDims}
+            language={lang}
+          />
+        </div>
 
-        <main className="flex-1 max-w-3xl mx-auto w-full p-6 pb-32">
+        <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 pt-4 pb-32 touch-pan-y">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentDim}
@@ -316,9 +318,9 @@ export default function PublicSurveyPage() {
               className="space-y-8"
             >
               {/* Dimension Header */}
-              <div className="text-center py-6">
-                <div className="text-6xl mb-4">{DIMENSION_ICONS[currentDim]}</div>
-                <h2 className="text-3xl font-black text-navy capitalize">
+              <div className="text-center py-4 sm:py-6">
+                <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">{DIMENSION_ICONS[currentDim]}</div>
+                <h2 className="text-2xl sm:text-3xl font-black text-navy capitalize">
                   {t(`dimensions.${currentDim}.title`, currentDim)}
                 </h2>
                 <p className="text-gray-500 mt-2 font-medium">
@@ -364,21 +366,21 @@ export default function PublicSurveyPage() {
         </main>
 
         {/* Footer Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 p-4 z-40">
-           <div className="max-w-3xl mx-auto flex gap-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-40">
+           <div className="max-w-3xl mx-auto flex gap-3 sm:gap-4">
               {currentDimIndex > 0 && (
                 <button 
                   onClick={prevSection}
                   className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold border-2 border-gray-100 text-gray-500 hover:bg-gray-50 transition-colors"
                 >
-                  <ArrowLeft size={18} /> {t('navigation.previous')}
+                  <ArrowLeft size={18} /> {t('survey.navigation.previous')}
                 </button>
               )}
               <button 
                 onClick={nextSection}
                 className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
-                {currentDimIndex === dimensions.length - 1 ? t('navigation.submit') : t('navigation.next')} <ArrowRight size={18} />
+                {currentDimIndex === dimensions.length - 1 ? t('survey.navigation.submit') : t('survey.navigation.next')} <ArrowRight size={18} />
               </button>
            </div>
         </div>
@@ -395,14 +397,14 @@ export default function PublicSurveyPage() {
                   <Send size={28} />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-black text-navy">{t('confirmation.title')}</h3>
+                  <h3 className="text-xl font-black text-navy">{t('survey.confirmation.title')}</h3>
                   <p className="text-gray-500 text-sm">
-                    {t('confirmation.desc', 'Tüm bölümleri tamamladınız. Yanıtlarınızı kaydetmek için onaylayın.')}
+                    {t('survey.confirmation.desc', 'Tüm bölümleri tamamladınız. Yanıtlarınızı kaydetmek için onaylayın.')}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <button onClick={handleSubmit} className="w-full py-3.5 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20">{t('confirmation.submit')}</button>
-                  <button onClick={() => setShowConfirm(false)} className="w-full py-3.5 bg-gray-50 text-gray-500 rounded-2xl font-bold">{t('confirmation.review')}</button>
+                  <button onClick={handleSubmit} className="w-full py-3.5 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20">{t('survey.confirmation.submit')}</button>
+                  <button onClick={() => setShowConfirm(false)} className="w-full py-3.5 bg-gray-50 text-gray-500 rounded-2xl font-bold">{t('survey.confirmation.review')}</button>
                 </div>
              </motion.div>
           </div>
@@ -413,7 +415,7 @@ export default function PublicSurveyPage() {
 
   if (phase === 'submitting') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-white flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 size={48} className="text-primary animate-spin mx-auto" />
           <p className="font-bold text-navy">{t('submitting')}</p>
@@ -424,30 +426,30 @@ export default function PublicSurveyPage() {
 
   if (phase === 'success') {
     return (
-      <div className="min-h-screen bg-white flex flex-col p-6">
+      <div className="min-h-[100dvh] bg-white flex flex-col p-6">
         <main className="flex-1 flex items-center justify-center">
-           <motion.div 
+           <motion.div
              initial={{ scale: 0.8, opacity: 0 }}
              animate={{ scale: 1, opacity: 1 }}
-             className="text-center max-w-lg space-y-8"
+             className="text-center max-w-lg space-y-6 sm:space-y-8 px-2"
            >
-              <div className="text-8xl">🎉</div>
-              <div className="space-y-4">
-                <h1 className="text-4xl font-black text-navy">{t('success.title', { name: '' })}</h1>
+              <div className="text-7xl sm:text-8xl">🎉</div>
+              <div className="space-y-3 sm:space-y-4">
+                <h1 className="text-3xl sm:text-4xl font-black text-navy">{t('survey.success.title', { name: '' })}</h1>
                 <p className="text-xl text-gray-500 font-medium">
-                  {t('success.message')} {t('success.impact')}
+                  {t('survey.success.message')} {t('survey.success.impact')}
                 </p>
               </div>
               <div className="p-6 bg-green-50 rounded-3xl border border-green-100">
                 <p className="text-sm text-green-700 font-bold">
-                  {t('success.anonymous_note')}
+                  {t('survey.success.anonymous_note')}
                 </p>
               </div>
               <button 
                 onClick={() => window.close()}
                 className="px-8 py-3 bg-gray-100 text-navy rounded-2xl font-bold hover:bg-gray-200 transition-all"
               >
-                {t('success.close')}
+                {t('survey.success.close')}
               </button>
            </motion.div>
         </main>

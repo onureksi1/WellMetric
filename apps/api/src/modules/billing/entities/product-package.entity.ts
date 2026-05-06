@@ -35,6 +35,9 @@ export class ProductPackage {
   @Column({ type: 'varchar', length: 10, default: 'TRY' })
   currency: string;
 
+  @Column({ type: 'jsonb', default: [] })
+  features: any[];
+
   @Column({ type: 'jsonb', default: {} })
   credits: Record<string, number>;
 

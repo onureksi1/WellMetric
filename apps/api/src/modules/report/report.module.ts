@@ -4,6 +4,7 @@ import { ReportService } from './report.service';
 import { ReportController } from './report.controller';
 import { ReportProcessor } from './report.processor';
 import { LogoHelper } from './helpers/logo.helper';
+import { ReportHtmlHelper } from './helpers/report-html.helper';
 import { ScoreModule } from '../score/score.module';
 import { AIModule } from '../ai/ai.module';
 import { ActionModule } from '../action/action.module';
@@ -28,7 +29,8 @@ import { SettingsModule } from '../settings/settings.module';
     ReportService,
     ReportProcessor,
     LogoHelper,
+    ReportHtmlHelper,
   ],
-  exports: [ReportService],
+  exports: [ReportService, ReportHtmlHelper],
 })
 export class ReportModule {}

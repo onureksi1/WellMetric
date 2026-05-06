@@ -41,13 +41,16 @@ export class Payment {
   status: string; // 'pending', 'completed', 'failed', 'refunded'
 
   @Column({ type: 'varchar', length: 50 })
-  provider: string; // 'stripe', 'iyzico', etc.
+  provider: string; // 'stripe', 'paytr', etc.
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   provider_payment_id: string | null;
 
   @Column({ type: 'text', nullable: true })
   invoice_url: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  invoice_number: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: any;

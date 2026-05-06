@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
   
   // Validation Schema (Inside component to use t)
   const schema = z.object({
-    email: z.string().email(t('errors.invalid_email', 'Geçerli bir e-posta adresi giriniz')),
+    email: z.string().email(t('common.errors.invalid_email', 'Geçerli bir e-posta adresi giriniz')),
   });
 
   type FormData = z.infer<typeof schema>;

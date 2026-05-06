@@ -44,4 +44,10 @@ export class BenchmarkController {
   reset(@Param('id') id: string) {
     return this.benchmarkService.resetBenchmark(id);
   }
+
+  @Post('admin/benchmarks/ai-generate')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async aiGenerate(@Body() body: { industry: string, region: string }) {
+    return this.benchmarkService.aiGenerateBenchmarks(body.industry, body.region);
+  }
 }

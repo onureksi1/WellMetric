@@ -3,6 +3,8 @@
 import React from 'react';
 import { useLogout } from '@/lib/hooks/useLogout';
 import { useWhiteLabel } from '@/contexts/WhiteLabelContext';
+import { useAuthStore } from '@/lib/store/auth.store';
+import { LogOut } from 'lucide-react';
 
 export default function EmployeeLayout({
   children,

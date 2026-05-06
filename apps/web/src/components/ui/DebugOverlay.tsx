@@ -8,16 +8,33 @@ export const DebugOverlay = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState<{ type: 'error' | 'success' | 'info', message: string, time: string }[]>([]);
   const [apiStatus, setApiStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // Check if debug mode is enabled
+    const checkSettings = async () => {
+      try {
+        const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+        const res = await fetch(`${apiUrl}/api/v1/settings`).then(r => r.json()).catch(() => null);
+        if (res) {
+          setIsEnabled(res.debug_mode ?? true);
+        }
+      } catch (err) {
+        console.warn('[DebugOverlay] Failed to fetch settings', err);
+      }
+    };
+    checkSettings();
+
     // Intercept console.error to show in debug overlay
     const originalError = console.error;
     console.error = (...args) => {
-      setLogs(prev => [...prev.slice(-9), { 
-        type: 'error', 
-        message: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), 
-        time: new Date().toLocaleTimeString() 
-      }]);
+      setTimeout(() => {
+        setLogs(prev => [...prev.slice(-9), { 
+          type: 'error', 
+          message: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), 
+          time: new Date().toLocaleTimeString() 
+        }]);
+      }, 0);
       originalError.apply(console, args);
     };
 
@@ -42,6 +59,8 @@ export const DebugOverlay = () => {
       clearInterval(interval);
     };
   }, []);
+
+  if (isEnabled === false) return null;
 
   if (!isOpen) {
     return (

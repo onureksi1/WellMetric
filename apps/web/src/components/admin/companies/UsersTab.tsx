@@ -24,6 +24,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 interface UsersTabProps {
   companyId: string;
@@ -32,6 +33,7 @@ interface UsersTabProps {
 }
 
 export const UsersTab: React.FC<UsersTabProps> = ({ companyId, departments, filterRole }) => {
+  const { t } = useTranslation('admin');
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -226,7 +228,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({ companyId, departments, filt
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="İsim veya e-posta ile ara..."
+              placeholder={t('companies.user_search_placeholder', 'İsim veya e-posta ile ara...')}
               className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               value={filters.search}
               onChange={e => setFilters({...filters, search: e.target.value})}
@@ -350,7 +352,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({ companyId, departments, filt
                     </td>
                     <td className="py-4 px-4 text-right">
                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {!user.password_hash && (
+                          {!user.has_password && !user.last_login_at && (
                             <Button 
                               variant="ghost" 
                               size="sm" 

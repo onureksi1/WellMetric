@@ -11,7 +11,7 @@ export class GoogleProvider implements AIProvider {
     temperature: number,
     model: string,
     config: any,
-  ): Promise<{ response: string; tokensUsed: number; durationMs: number }> {
+  ): Promise<{ response: string; inputTokens: number; outputTokens: number; totalTokens: number; durationMs: number }> {
     const start = Date.now();
     try {
       const genAI = new GoogleGenerativeAI(config.api_key);
@@ -28,11 +28,11 @@ export class GoogleProvider implements AIProvider {
       const response = result.response.text();
       const durationMs = Date.now() - start;
       
-      // Google SDK doesn't return token usage in a simple way for generateContent in older versions, 
-      // but we can estimate or use countTokens if needed. For now, zero as fallback or simple estimate.
-      const tokensUsed = 0; 
+      const inputTokens = result.response.usageMetadata?.promptTokenCount || 0;
+      const outputTokens = result.response.usageMetadata?.candidatesTokenCount || 0;
+      const totalTokens = result.response.usageMetadata?.totalTokenCount || 0;
 
-      return { response, tokensUsed, durationMs };
+      return { response, inputTokens, outputTokens, totalTokens, durationMs };
     } catch (error) {
       throw new ServiceUnavailableException({
         code: 'AI_UNAVAILABLE',

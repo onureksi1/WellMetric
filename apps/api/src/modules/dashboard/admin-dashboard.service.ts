@@ -6,6 +6,7 @@ import { SurveyResponse } from '../response/entities/survey-response.entity';
 import { Survey } from '../survey/entities/survey.entity';
 import { AuditLog } from '../audit/entities/audit-log.entity';
 import { User } from '../user/entities/user.entity';
+import { Employee } from '../user/entities/employee.entity';
 import { AiInsight } from '../ai/entities/ai-insight.entity';
 import { ScoreService } from '../score/score.service';
 import Redis from 'ioredis';
@@ -27,6 +28,8 @@ export class AdminDashboardService {
     private readonly auditRepository: Repository<AuditLog>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Employee)
+    private readonly employeeRepository: Repository<Employee>,
     @InjectRepository(AiInsight)
     private readonly aiInsightRepository: Repository<AiInsight>,
     private readonly scoreService: ScoreService,
@@ -41,9 +44,13 @@ export class AdminDashboardService {
   }
 
   async getAdminOverview() {
+    this.logger.log('Fetching admin dashboard overview...');
     const cacheKey = 'admin:dashboard:overview';
     const cached = await this.redisClient.get(cacheKey);
-    if (cached) return JSON.parse(cached);
+    if (cached) {
+      this.logger.log('Returning cached admin overview');
+      return JSON.parse(cached);
+    }
 
     const now = new Date();
     const currentPeriod = now.toISOString().slice(0, 7);
@@ -54,6 +61,7 @@ export class AdminDashboardService {
 
     // 1. Metrics
     const metrics = await this.getMetrics(currentPeriod, prevPeriod);
+    this.logger.log(`Metrics calculated. Total Employees: ${metrics.total_employees}`);
 
     // 2. Monthly Trend
     const monthlyTrend = await this.getMonthlyTrend();
@@ -155,8 +163,8 @@ export class AdminDashboardService {
         FROM survey_responses sr
         LEFT JOIN (
           SELECT company_id, COUNT(*) as total_emp 
-          FROM users 
-          WHERE role = 'employee' AND is_active = true 
+          FROM employees 
+          WHERE is_active = true 
           GROUP BY company_id
         ) uc ON uc.company_id = sr.company_id
         WHERE sr.period = $1
@@ -174,8 +182,8 @@ export class AdminDashboardService {
         FROM survey_responses sr
         LEFT JOIN (
           SELECT company_id, COUNT(*) as total_emp 
-          FROM users 
-          WHERE role = 'employee' AND is_active = true 
+          FROM employees 
+          WHERE is_active = true 
           GROUP BY company_id
         ) uc ON uc.company_id = sr.company_id
         WHERE sr.period = $1
@@ -183,7 +191,8 @@ export class AdminDashboardService {
       ) t
     `, [prevPeriod]);
 
-    const totalEmployees = await this.userRepository.count({ where: { is_active: true, role: 'employee' } });
+    const empRes = await this.dataSource.query('SELECT COUNT(*)::int as count FROM employees WHERE is_active = true');
+    const totalEmployees = empRes[0]?.count || 0;
 
     const aiInsights = await this.aiInsightRepository.count({
       where: { generated_at: MoreThan(new Date(currentPeriod + '-01')) }
@@ -239,7 +248,7 @@ export class AdminDashboardService {
         TO_CHAR(m.month_date, 'YYYY-MM') as month,
         TO_CHAR(m.month_date, 'Mon''YY') as label,
         (SELECT COUNT(*) FROM companies WHERE created_at <= m.month_date + INTERVAL '1 month - 1 day' AND is_active = true) as company_count,
-        (SELECT COUNT(*) FROM users WHERE created_at <= m.month_date + INTERVAL '1 month - 1 day' AND is_active = true AND role = 'employee') as employee_count,
+        (SELECT COUNT(*) FROM employees WHERE created_at <= m.month_date + INTERVAL '1 month - 1 day' AND is_active = true) as employee_count,
         (SELECT COUNT(*) FROM survey_responses WHERE period = TO_CHAR(m.month_date, 'YYYY-MM')) as response_count
       FROM months m
       ORDER BY m.month_date ASC
@@ -281,8 +290,8 @@ export class AdminDashboardService {
         FROM survey_responses sr
         LEFT JOIN (
           SELECT company_id, COUNT(*) as total_emp 
-          FROM users 
-          WHERE role = 'employee' AND is_active = true 
+          FROM employees 
+          WHERE is_active = true 
           GROUP BY company_id
         ) uc ON uc.company_id = sr.company_id
         WHERE sr.period = $1
@@ -321,12 +330,12 @@ export class AdminDashboardService {
         uc.total_emp as employee_count,
         (SELECT MAX(submitted_at) FROM survey_responses WHERE company_id = c.id) as last_survey_date
       FROM companies c
-      LEFT JOIN wellbeing_scores ws ON ws.company_id = c.id AND ws.period = $1 AND ws.dimension = 'overall' AND ws.segment_type IS NULL
+      LEFT JOIN wellbeing_scores ws ON ws.company_id = c.id AND ws.period = TO_CHAR($1::date, 'YYYY-MM') AND ws.dimension = 'overall' AND ws.segment_type IS NULL
       LEFT JOIN wellbeing_scores ws_prev ON ws_prev.company_id = c.id AND ws_prev.period = TO_CHAR(($1::date - INTERVAL '1 month'), 'YYYY-MM') AND ws_prev.dimension = 'overall' AND ws_prev.segment_type IS NULL
       LEFT JOIN (
         SELECT company_id, COUNT(*) as total_emp 
-        FROM users 
-        WHERE role = 'employee' AND is_active = true 
+        FROM employees 
+        WHERE is_active = true 
         GROUP BY company_id
       ) uc ON uc.company_id = c.id
       LEFT JOIN (
@@ -336,11 +345,11 @@ export class AdminDashboardService {
         FROM survey_responses sr
         LEFT JOIN (
           SELECT company_id, COUNT(*) as total_emp 
-          FROM users 
-          WHERE role = 'employee' AND is_active = true 
+          FROM employees 
+          WHERE is_active = true 
           GROUP BY company_id
         ) uc2 ON uc2.company_id = sr.company_id
-        WHERE sr.period = $1
+        WHERE sr.period = TO_CHAR($1::date, 'YYYY-MM')
         GROUP BY sr.company_id, uc2.total_emp
       ) participation ON participation.company_id = c.id
       WHERE c.is_active = true
@@ -359,8 +368,8 @@ export class AdminDashboardService {
         FROM survey_responses sr
         LEFT JOIN (
           SELECT company_id, COUNT(*) as total_emp 
-          FROM users 
-          WHERE role = 'employee' AND is_active = true 
+          FROM employees 
+          WHERE is_active = true 
           GROUP BY company_id
         ) uc ON uc.company_id = sr.company_id
         WHERE sr.period = $1
@@ -377,8 +386,8 @@ export class AdminDashboardService {
       JOIN companies c ON c.id = sr.company_id
       LEFT JOIN (
         SELECT company_id, COUNT(*) as total_emp 
-        FROM users 
-        WHERE role = 'employee' AND is_active = true 
+        FROM employees 
+        WHERE is_active = true 
         GROUP BY company_id
       ) uc ON uc.company_id = sr.company_id
       WHERE sr.period = $1

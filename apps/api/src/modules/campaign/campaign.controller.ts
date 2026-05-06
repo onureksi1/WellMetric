@@ -61,24 +61,4 @@ export class CampaignController {
   async cancel(@CurrentUser() user: any, @Param('id') id: string) {
     return this.campaignService.cancel(id, user.company_id, user.id);
   }
-
-  // --- SUPER ADMIN ROUTES ---
-
-  @Roles('super_admin')
-  @Get('admin/campaigns')
-  async findAllAdmin(@Query() filters: CampaignFilterDto) {
-    return this.campaignService.findAll(null, filters);
-  }
-
-  @Roles('super_admin')
-  @Get('admin/campaigns/stats')
-  async getStatsAdmin(@Query() filters: AdminStatsFilterDto) {
-    return this.campaignService.getPlatformStats(filters);
-  }
-
-  @Roles('super_admin')
-  @Get('admin/campaigns/:id')
-  async findOneAdmin(@Param('id') id: string) {
-    return this.campaignService.findOne(id, null);
-  }
 }

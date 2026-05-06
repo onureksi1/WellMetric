@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 
 export default function MailTemplatesPage() {
-  const { t } = useTranslation('admin');
+  const { t } = useTranslation(['admin', 'common']);
   const router = useRouter();
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +36,7 @@ export default function MailTemplatesPage() {
       const response = await api.get('/admin/mail-templates');
       setTemplates(response.data);
     } catch (error) {
-      toast.error(t('mail_templates.load_error'));
+      toast.error(t('admin.mail_templates.load_error'));
     } finally {
       setLoading(false);
     }
@@ -54,10 +54,10 @@ export default function MailTemplatesPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-4xl font-extrabold text-navy tracking-tight mb-2">
-            {t('mail_templates.title')}
+            {t('admin.mail_templates.title')}
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl">
-            {t('mail_templates.subtitle')}
+            {t('admin.mail_templates.subtitle')}
           </p>
         </div>
         
@@ -65,7 +65,7 @@ export default function MailTemplatesPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
-            placeholder={t('mail_templates.search_placeholder')}
+            placeholder={t('admin.mail_templates.search_placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm outline-none"
@@ -77,7 +77,7 @@ export default function MailTemplatesPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 gap-4">
           <Loader2 className="animate-spin text-primary" size={48} />
-          <p className="text-gray-500 animate-pulse font-medium">{t('mail_templates.loading')}</p>
+          <p className="text-gray-500 animate-pulse font-medium">{t('admin.mail_templates.loading')}</p>
         </div>
 
       ) : (
@@ -128,7 +128,7 @@ export default function MailTemplatesPage() {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-400 italic">
                     <Clock size={14} />
-                    {t('mail_templates.list.updated')}: {new Date(template.updated_at).toLocaleDateString(t('common:date_locale'))}
+                    {t('admin.mail_templates.list.updated')}: {new Date(template.updated_at).toLocaleDateString(t('common.date_locale'))}
                   </div>
 
                 </div>
@@ -140,7 +140,7 @@ export default function MailTemplatesPage() {
                     className="flex-1 premium-gradient text-white h-12 rounded-xl flex items-center justify-center gap-2 font-bold shadow-lg shadow-primary/20"
                   >
                     <Edit3 size={18} />
-                    {t('mail_templates.list.edit')}
+                    {t('admin.mail_templates.list.edit')}
                   </Button>
                   <Button
                     variant="outline"
@@ -148,7 +148,7 @@ export default function MailTemplatesPage() {
                     className="flex-1 h-12 rounded-xl flex items-center justify-center gap-2 font-bold transition-all"
                   >
                     <Send size={18} />
-                    {t('mail_templates.list.test')}
+                    {t('admin.mail_templates.list.test')}
                   </Button>
                 </div>
               </motion.div>

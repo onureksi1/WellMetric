@@ -4,7 +4,6 @@ import { Repository, DataSource } from 'typeorm';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { v4 as uuidv4 } from 'uuid';
-import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -17,6 +16,7 @@ import { AuditService } from '../audit/audit.service';
 import { SettingsService } from '../settings/settings.service';
 import { LogoHelper } from './helpers/logo.helper';
 import { PdfTemplateHelper, ReportColors } from './helpers/pdf-template.helper';
+import { ReportHtmlHelper } from './helpers/report-html.helper';
 
 @Injectable()
 export class ReportService {
@@ -33,6 +33,7 @@ export class ReportService {
     private readonly auditService: AuditService,
     private readonly settingsService: SettingsService,
     private readonly logoHelper: LogoHelper,
+    private readonly reportHtmlHelper: ReportHtmlHelper,
   ) {}
 
   async requestExport(companyId: string, requestedBy: string, dto: ExportReportDto) {
@@ -98,69 +99,46 @@ export class ReportService {
       const participationRes = await this.dataSource.query(
         `SELECT COUNT(*) as total FROM survey_tokens WHERE company_id = $1 AND is_used = true`, [companyId]
       );
-      const participationRate = 85; // Mocked for now, logic could be more complex
+      const participationRate = 85;
 
-      const t = PdfTemplateHelper.getTranslations(language);
-      const logoBuffer = await this.logoHelper.fetchLogoBuffer(company.logo_url, companyId);
-
-      // 2. PDF Creation
-      const doc = new PDFDocument({ margin: 50 });
-      const chunks: Buffer[] = [];
-      doc.on('data', chunk => chunks.push(chunk));
-
-      // Page 1: Cover
-      if (logoBuffer) doc.image(logoBuffer, { fit: [200, 100], align: 'center' }).moveDown();
-      doc.fontSize(24).fillColor(ReportColors.NAVY).text(company.name, { align: 'center' });
-      doc.fontSize(18).text(PdfTemplateHelper.formatPeriod(period, language), { align: 'center' });
-      doc.moveDown(5);
-      doc.fontSize(12).fillColor('#666666').text(t.preparedBy, { align: 'center' });
-      doc.text(new Date().toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US'), { align: 'center' });
-
-      // Page 2: Executive Summary
-      doc.addPage();
-      doc.fontSize(20).fillColor(ReportColors.NAVY).text(t.executiveSummary);
-      doc.moveDown();
-      doc.fontSize(14).text(`${t.overallScore}: ${scores.overall?.toFixed(1) || 'N/A'}`);
-      doc.fontSize(12).text(`${t.participationRate}: %${participationRate}`);
-      doc.moveDown();
-      
-      doc.fontSize(14).text(t.criticalFindings);
-      const lowScores = ['physical', 'mental', 'social', 'financial', 'work']
-        .map(dim => ({ dim, score: scores[dim] || 0 }))
-        .sort((a, b) => a.score - b.score)
-        .slice(0, 3);
-      lowScores.forEach(s => doc.fontSize(10).text(`- ${s.dim}: ${s.score.toFixed(1)}`, { indent: 20 }));
-
-      // Page 3-4: Dimension Details (simplified for breath)
-      doc.addPage();
-      doc.fontSize(20).text(t.dimensionDetails);
-      ['physical', 'mental', 'social', 'financial', 'work'].forEach(dim => {
-        doc.moveDown();
-        doc.fontSize(14).text(dim.toUpperCase());
-        PdfTemplateHelper.drawScoreBar(doc, 50, doc.y, scores[dim] || null, 300);
-        doc.moveDown(2);
-      });
-
-      // Page 5: Dept Comparison
-      doc.addPage();
-      doc.fontSize(20).text(t.departmentComparison);
-      doc.moveDown();
-      // Draw simple table... (omitted for brevity in one-shot)
-
-      // Page 6: Employee Voice
-      doc.addPage();
-      doc.fontSize(20).text(t.employeeVoice);
-      doc.fontSize(10).fillColor('#888888').text(t.anonymousWarning);
-      doc.moveDown();
-      const summary = insights.items.find(i => i.insight_type === 'open_text_summary');
-      doc.fillColor('#000000').fontSize(12).text(summary?.content || 'Analiz bulunamadı.');
-
-      // Finalize
-      doc.end();
-
-      // 3. Upload to S3
-      const pdfBuffer = Buffer.concat(await new Promise<Buffer[]>((resolve) => doc.on('end', () => resolve(chunks))));
       const settings = await this.settingsService.getSettings();
+      const consultant = await this.dataSource.query(`SELECT full_name, logo_url FROM users WHERE id = $1`, [requestedBy]);
+
+      const mappedScores = [
+        { dimension: 'overall',   score: scores.overall || 0,   benchmark: benchmark.overall || 70, prev_score: null, label_tr: 'Genel', label_en: 'Overall' },
+        { dimension: 'physical',  score: scores.physical || 0,  benchmark: benchmark.physical || 70, prev_score: null, label_tr: 'Fiziksel', label_en: 'Physical' },
+        { dimension: 'mental',    score: scores.mental || 0,    benchmark: benchmark.mental || 70, prev_score: null, label_tr: 'Zihinsel', label_en: 'Mental' },
+        { dimension: 'social',    score: scores.social || 0,    benchmark: benchmark.social || 70, prev_score: null, label_tr: 'Sosyal', label_en: 'Social' },
+        { dimension: 'financial', score: scores.financial || 0, benchmark: benchmark.financial || 70, prev_score: null, label_tr: 'Finansal', label_en: 'Financial' },
+        { dimension: 'work',      score: scores.work || 0,      benchmark: benchmark.work || 70, prev_score: null, label_tr: 'İş & Anlam', label_en: 'Work & Purpose' },
+      ];
+
+      const mappedDepts = deptScores.map(ds => ({
+        name: ds.department_name,
+        score: ds.overall || 0,
+        respondents: ds.respondents || 0
+      }));
+
+      const ai_content = insights.items.map(i => i.content).join('\n\n');
+
+      // 2. HTML to PDF via Puppeteer
+      const pdfBuffer = await this.reportHtmlHelper.generatePdf({
+        company_name: company.name,
+        company_industry: company.industry,
+        period,
+        language: language as 'tr' | 'en',
+        brand_logo_url: settings.brand_logo_url || '',
+        brand_name: settings.brand_name || 'WellAnalytics',
+        consultant_name: consultant[0]?.full_name || 'WellAnalytics Support',
+        consultant_logo_url: consultant[0]?.logo_url,
+        is_white_label: !!consultant[0]?.logo_url,
+        scores: mappedScores,
+        departments: mappedDepts,
+        ai_content: ai_content,
+        total_respondents: parseInt(participationRes[0]?.total || '0'),
+        response_rate: participationRate,
+        risk_areas: mappedScores.filter(s => s.score < 50).map(s => s.dimension)
+      });
       const s3Key = `reports/${companyId}/${period}/${jobId}.pdf`;
       
       const s3 = await this.getS3Client();
@@ -171,19 +149,12 @@ export class ReportService {
         ContentType: 'application/pdf',
       }));
 
-      // 4. Notification & Audit
-      const signedUrl = await this.getSignedUrlInternal(s3Key);
-      const userRes = await this.dataSource.query(`SELECT email FROM users WHERE id = $1`, [requestedBy]);
-      if (userRes.length) {
-        await this.notificationService.sendEmail(userRes[0].email, 'report-ready', {
-          url: signedUrl,
-          period: PdfTemplateHelper.formatPeriod(period, language),
-          format: 'PDF',
-        });
+      // 4. Audit Log
+      if (requestedBy) {
+        await this.auditService.logAction(requestedBy, companyId, 'report.generated', 'reports', jobId, { period, format: 'PDF', s3Key });
       }
 
-      await this.auditService.logAction(requestedBy, companyId, 'report.generated', 'reports', jobId, { format: 'pdf', period, s3_key: s3Key });
-
+      return s3Key;
     } catch (error) {
       this.logger.error(`PDF generation failed for job ${jobId}`, error);
       throw error;
@@ -260,128 +231,14 @@ export class ReportService {
     try {
       const companyRes = await this.dataSource.query(`SELECT name, logo_url FROM companies WHERE id = $1`, [companyId]);
       const company = companyRes[0];
-      const logoBuffer = await this.logoHelper.fetchLogoBuffer(company.logo_url, companyId);
-      const t = PdfTemplateHelper.getTranslations(language);
       
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
-      const chunks: Buffer[] = [];
-      doc.on('data', chunk => chunks.push(chunk));
+      const pdfBuffer = await this.reportHtmlHelper.generateIntelligencePdf(
+        { name: company.name, logoUrl: company.logo_url },
+        period,
+        report,
+        language
+      );
 
-      // --- PAGE 1: COVER ---
-      doc.rect(0, 0, doc.page.width, 20).fill(ReportColors.GREEN);
-      doc.moveDown(5);
-      if (logoBuffer) doc.image(logoBuffer, { fit: [150, 80], align: 'center' }).moveDown(2);
-      
-      doc.fontSize(32).fillColor(ReportColors.NAVY).text('Wellbeing İstihbarat Raporu', { align: 'center' });
-      doc.fontSize(20).text(company.name, { align: 'center' });
-      doc.moveDown();
-      doc.fontSize(16).fillColor('#666666').text(PdfTemplateHelper.formatPeriod(period, language), { align: 'center' });
-      
-      doc.moveDown(10);
-      doc.fontSize(10).fillColor('#999999').text('Bu rapor anonim verilerden AI asistanı tarafından oluşturulmuştur.', { align: 'center' });
-      doc.rect(0, doc.page.height - 20, doc.page.width, 20).fill(ReportColors.GREEN);
-
-      // --- PAGE 2: EXECUTIVE SUMMARY ---
-      doc.addPage();
-      this.drawHeader(doc, 'Yönetici Özeti', language);
-      doc.fontSize(12).fillColor('#000000').text(report.executive_summary, { lineGap: 5 });
-      
-      doc.moveDown(2);
-      doc.rect(doc.x, doc.y, 200, 80).fill('#F8F9FA');
-      doc.fillColor(ReportColors.NAVY).fontSize(10).text('GENEL SKOR', doc.x + 10, doc.y + 10);
-      doc.fontSize(24).text(`${report.dimension_analysis.find((d: any) => d.dimension === 'overall')?.score || 'N/A'}`);
-      
-      // --- PAGE 3-4: DIMENSION ANALYSIS ---
-      doc.addPage();
-      this.drawHeader(doc, 'Boyut Analizi', language);
-      report.dimension_analysis.forEach((dim: any, i: number) => {
-        if (i > 0 && i % 3 === 0) doc.addPage();
-        
-        doc.fontSize(14).fillColor(ReportColors.NAVY).text(dim.dimension.toUpperCase(), { underline: true });
-        PdfTemplateHelper.drawScoreBar(doc, doc.x, doc.y + 5, dim.score, 300);
-        doc.moveDown(2);
-        doc.fontSize(10).fillColor('#333333').text(`AI Yorumu: ${dim.ai_comment}`);
-        doc.moveDown(0.5);
-        doc.fillColor('#666666').text(`Kök Neden Hipotezi: ${dim.root_cause_hypothesis}`);
-        doc.moveDown(0.5);
-        doc.fillColor(ReportColors.GREEN).text(`Öneri: ${dim.recommendation}`);
-        doc.moveDown(2);
-      });
-
-      // --- PAGE 5: DEPARTMENT ANALYSIS ---
-      doc.addPage();
-      this.drawHeader(doc, 'Departman Karşılaştırması', language);
-      doc.fontSize(12).text('En İyi Performans Gösterenler:');
-      report.department_analysis.best_performers.forEach((p: any) => {
-        doc.fontSize(10).text(`- ${p.name}: ${p.score} (${p.key_strength})`, { indent: 20 });
-      });
-      doc.moveDown();
-      doc.fontSize(12).text('Risk Altındaki Departmanlar:');
-      report.department_analysis.at_risk.forEach((r: any) => {
-        doc.fontSize(10).text(`- ${r.name}: ${r.score} - ${r.primary_risk} (Aciliyet: ${r.urgency})`, { indent: 20 });
-      });
-
-      // --- PAGE 6: SEGMENT INSIGHTS ---
-      doc.addPage();
-      this.drawHeader(doc, 'Segment Bulguları', language);
-      report.segment_insights.forEach((s: any) => {
-        doc.fontSize(12).fillColor(ReportColors.NAVY).text(`${s.segment_type.toUpperCase()}`);
-        doc.fontSize(10).fillColor('#333333').text(s.finding);
-        doc.text(`Hipotez: ${s.hypothesis}`);
-        doc.moveDown();
-      });
-
-      // --- PAGE 7: EMPLOYEE VOICE ---
-      doc.addPage();
-      this.drawHeader(doc, 'Çalışan Sesi', language);
-      const ev = report.employee_voice;
-      doc.fontSize(12).text('Duygu Analizi:');
-      doc.text(`Pozitif: %${ev.sentiment_breakdown.positive} | Negatif: %${ev.sentiment_breakdown.negative} | Nötr: %${ev.sentiment_breakdown.neutral}`);
-      doc.moveDown();
-      doc.text('Öne Çıkan Temalar:');
-      doc.text(ev.dominant_themes.join(', '), { indent: 20 });
-      doc.moveDown();
-      doc.text('Anonim Alıntılar:');
-      ev.anonymous_quotes.forEach((q: any) => {
-        doc.fontSize(9).fillColor('#666666').text(`"${q}"`, { indent: 20 });
-      });
-
-      // --- PAGE 8: RISK ASSESSMENT ---
-      doc.addPage();
-      this.drawHeader(doc, 'Risk Değerlendirmesi', language);
-      report.risk_assessment.critical_risks.forEach((r: any) => {
-        doc.fontSize(11).fillColor(ReportColors.RED).text(`KRİTİK RİSK: ${r.risk}`);
-        doc.fontSize(10).fillColor('#333333').text(`Kanıt: ${r.evidence}`);
-        doc.text(`Göz ardı edilirse: ${r.if_ignored}`);
-        doc.moveDown();
-      });
-
-      // --- PAGE 9: ACTION PLAN ---
-      doc.addPage();
-      this.drawHeader(doc, 'Aksiyon Planı', language);
-      report.action_plan.forEach((a: any) => {
-        doc.fontSize(12).fillColor(ReportColors.GREEN).text(`${a.priority}. ${a.title}`);
-        doc.fontSize(10).fillColor('#333333').text(`Hedef: ${a.target_dimension} | Departman: ${a.target_department || 'Tümü'}`);
-        doc.text(`Adımlar: ${a.specific_steps.join(' -> ')}`);
-        doc.moveDown();
-      });
-
-      // --- PAGE 10: FORECAST & CLOSING ---
-      doc.addPage();
-      this.drawHeader(doc, 'Tahmin ve Kapanış', language);
-      doc.fontSize(12).text('Gelecek Ay Tahmini:');
-      doc.text(`Gerçekçi: ${report.forecast.realistic} (Aralık: ${report.forecast.pessimistic} - ${report.forecast.optimistic})`);
-      doc.moveDown();
-      doc.text('Erken Uyarı İşaretleri:');
-      report.forecast.early_warning_signs.forEach((s: any) => doc.text(`- ${s}`, { indent: 20 }));
-      
-      doc.moveDown(5);
-      doc.fontSize(10).text('Platform İletişim: support@wellanalytics.com', { align: 'center' });
-
-      doc.end();
-
-      // Upload and Notify (Reuse logic from generatePdf)
-      const pdfBuffer = Buffer.concat(await new Promise<Buffer[]>((resolve) => doc.on('end', () => resolve(chunks))));
       const settings = await this.settingsService.getSettings();
       const jobId = uuidv4();
       const s3Key = `intelligence_reports/${companyId}/${period}/${jobId}.pdf`;
@@ -401,7 +258,6 @@ export class ReportService {
       );
 
       return s3Key;
-
     } catch (error) {
       this.logger.error('Failed to generate intelligence PDF', error);
       throw error;

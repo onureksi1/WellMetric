@@ -7,6 +7,7 @@ import * as crypto from 'crypto';
 import { UpdatePlatformSettingsDto } from './dto/update-platform-settings.dto';
 import { UpdateApiKeysDto } from './dto/update-api-keys.dto';
 import { UpdateAiModelsDto } from './dto/update-ai-models.dto';
+import { UpdatePaymentSettingsDto } from './dto/update-payment-settings.dto';
 import { TestMailDto } from './dto/test-mail.dto';
 
 const ALGORITHM = 'aes-256-cbc';
@@ -131,10 +132,28 @@ export class SettingsService {
     // Mask api keys
     const rawApiKeys = settings.api_keys || {};
     const processedKeys: Record<string, string> = {};
-    for (const [provider, encryptedValue] of Object.entries(rawApiKeys)) {
-      if (encryptedValue) {
-        const decrypted = this.decrypt(encryptedValue as string);
-        processedKeys[provider] = mask ? this.maskKey(decrypted) : decrypted;
+    for (const [provider, value] of Object.entries(rawApiKeys)) {
+      if (value) {
+        try {
+          let decryptedValue = '';
+          // Case 1: Value is a JSON string (e.g. {"api_key": "..."})
+          if (typeof value === 'string' && value.startsWith('{')) {
+            const parsed = this.decryptConfig(JSON.parse(value));
+            // Try common key names or take the first string value
+            decryptedValue = parsed.api_key || 
+                            parsed.apiKey || 
+                            parsed.access_key_id || 
+                            parsed.secret_key ||
+                            Object.values(parsed).find(v => typeof v === 'string') as string;
+          } else {
+            // Case 2: Value is a direct encrypted string
+            decryptedValue = this.decrypt(value as string);
+          }
+          
+          processedKeys[provider] = mask ? this.maskKey(decryptedValue) : decryptedValue;
+        } catch (e) {
+          processedKeys[provider] = '';
+        }
       }
     }
     settings.api_keys = processedKeys;
@@ -146,6 +165,24 @@ export class SettingsService {
     if (mask) {
       await this.redisClient.set(REDIS_KEY, JSON.stringify(settings), 'EX', 3600);
     }
+    return settings;
+  }
+  
+  async getPublicSettings() {
+    const PUBLIC_REDIS_KEY = 'platform:settings:public';
+    const cached = await this.redisClient.get(PUBLIC_REDIS_KEY);
+    if (cached) return JSON.parse(cached);
+
+    const result = await this.dataSource.query(`
+      SELECT platform_name, platform_url, platform_logo_url, supported_languages, default_language 
+      FROM platform_settings 
+      LIMIT 1
+    `);
+    
+    if (!result || result.length === 0) return null;
+    
+    const settings = result[0];
+    await this.redisClient.set(PUBLIC_REDIS_KEY, JSON.stringify(settings), 'EX', 3600);
     return settings;
   }
 
@@ -227,7 +264,7 @@ export class SettingsService {
       throw new InternalServerErrorException(`Platform ayarları güncellenirken bir hata oluştu: ${error.message}`);
     }
 
-    await this.redisClient.del(REDIS_KEY);
+    await this.invalidateCache();
     return { success: true };
   }
 
@@ -247,7 +284,7 @@ export class SettingsService {
       `, [adminUserId || null]);
     });
 
-    await this.redisClient.del(REDIS_KEY);
+    await this.invalidateCache();
     return { success: true };
   }
 
@@ -264,7 +301,7 @@ export class SettingsService {
       `, [adminUserId || null]);
     });
 
-    await this.redisClient.del(REDIS_KEY);
+    await this.invalidateCache();
     return { success: true };
   }
 
@@ -434,15 +471,128 @@ export class SettingsService {
     });
 
     await this.redisClient.del('platform:packages');
-    await this.redisClient.del(REDIS_KEY);
+    await this.invalidateCache();
     return { success: true };
   }
 
   async getPaymentProviders() {
     const res = await this.dataSource.query(`SELECT payment_settings FROM platform_settings LIMIT 1`);
-    const settings = res[0]?.payment_settings || { providers: [] };
+    const settings = res[0]?.payment_settings || { providers: {} };
     
-    // Return only enabled providers
-    return (settings.providers || []).filter((p: any) => p.enabled === true);
+    // Return only active providers for consultant
+    const providers = settings.providers || {};
+    return Object.entries(providers)
+      .filter(([, config]: any) => config.is_active)
+      .map(([key, config]: any) => ({
+        key,
+        label: config.label || key,
+        currencies: config.currencies || ['TRY']
+      }));
+  }
+
+  async getPaymentSettings() {
+    const res = await this.dataSource.query(`SELECT payment_settings FROM platform_settings LIMIT 1`);
+    const ps = res[0]?.payment_settings || {};
+
+    // API key'leri maskele
+    const masked = JSON.parse(JSON.stringify(ps));
+    const sensitiveKeys = ['secret_key', 'webhook_secret', 'merchant_key', 'merchant_salt', 'client_secret', 'api_key'];
+
+    if (masked.providers) {
+      for (const [providerKey, config] of Object.entries(masked.providers)) {
+        for (const sk of sensitiveKeys) {
+          if ((config as any)[sk]) {
+            const val = (config as any)[sk];
+            // Eğer değer şifrelenmişse önce çöz
+            const decrypted = val.includes(':') ? this.decrypt(val) : val;
+            (config as any)[sk] = this.maskKey(decrypted);
+          }
+        }
+      }
+    }
+
+    return masked;
+  }
+
+  async updatePaymentSettings(dto: UpdatePaymentSettingsDto, adminUserId: string) {
+    const res = await this.dataSource.query(`SELECT payment_settings FROM platform_settings LIMIT 1`);
+    const current = res[0]?.payment_settings || {};
+
+    const merged = { ...current };
+    const sensitiveKeys = ['secret_key', 'webhook_secret', 'merchant_key', 'merchant_salt', 'client_secret', 'api_key'];
+
+    if (dto.providers) {
+      merged.providers = merged.providers || {};
+      for (const [provider, config] of Object.entries(dto.providers)) {
+        merged.providers[provider] = merged.providers[provider] || {};
+        for (const [key, val] of Object.entries(config as object)) {
+          if (val !== '' && val !== null && val !== undefined) {
+            // Hassas alan ise ve maskeli değilse şifrele
+            if (sensitiveKeys.includes(key) && typeof val === 'string' && !val.includes('****')) {
+              merged.providers[provider][key] = this.encrypt(val);
+            } else if (!val.toString().includes('****')) {
+              merged.providers[provider][key] = val;
+            }
+          }
+        }
+      }
+    }
+
+    if (dto.default_provider) merged.default_provider = dto.default_provider;
+    if (dto.default_currency) merged.default_currency = dto.default_currency;
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.query(`UPDATE platform_settings SET payment_settings = $1, updated_at = NOW(), updated_by = $2`, [JSON.stringify(merged), adminUserId]);
+      await manager.query(`
+        INSERT INTO audit_logs (user_id, action, target_type, payload)
+        VALUES ($1, 'settings.payment.update', 'platform_settings', $2)
+      `, [adminUserId, JSON.stringify({ updated_providers: Object.keys(dto.providers || {}) })]);
+    });
+
+    await this.invalidateCache();
+    return { success: true };
+  }
+
+  async togglePaymentProvider(provider: string, isActive: boolean, adminUserId: string) {
+    const res = await this.dataSource.query(`SELECT payment_settings FROM platform_settings LIMIT 1`);
+    const ps = res[0]?.payment_settings || {};
+
+    if (!ps.providers?.[provider]) {
+      throw new InternalServerErrorException(`${provider} provider ayarları bulunamadı`);
+    }
+
+    ps.providers[provider].is_active = isActive;
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.query(`UPDATE platform_settings SET payment_settings = $1, updated_at = NOW(), updated_by = $2`, [JSON.stringify(ps), adminUserId]);
+      await manager.query(`
+        INSERT INTO audit_logs (user_id, action, target_type, payload)
+        VALUES ($1, 'settings.payment.toggle', 'platform_settings', $2)
+      `, [adminUserId, JSON.stringify({ provider, is_active: isActive })]);
+    });
+
+    await this.invalidateCache();
+    return { success: true, provider, is_active: isActive };
+  }
+
+  async getActiveProviders() {
+    return this.getPaymentProviders();
+  }
+
+  async getLegalSettings() {
+    const res = await this.dataSource.query(`
+      SELECT 
+        terms_of_use_tr, terms_of_use_en,
+        privacy_policy_tr, privacy_policy_en,
+        kvkk_text_tr, gdpr_text_en
+      FROM platform_settings 
+      LIMIT 1
+    `);
+    return res[0] || {};
+  }
+
+  async invalidateCache() {
+    await this.redisClient.del(REDIS_KEY);
+    await this.redisClient.del('platform:settings:public');
   }
 }

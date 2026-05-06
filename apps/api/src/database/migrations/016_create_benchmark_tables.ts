@@ -4,7 +4,7 @@ export class CreateBenchmarkTables1746400000000 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
 
     await queryRunner.query(`
-      CREATE TABLE industry_benchmark_scores (
+      CREATE TABLE IF NOT EXISTS industry_benchmark_scores (
         id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         industry     VARCHAR(100) NOT NULL,
         region       VARCHAR(20)  NOT NULL, -- 'global' | 'turkey'
@@ -19,7 +19,7 @@ export class CreateBenchmarkTables1746400000000 implements MigrationInterface {
         UNIQUE(industry, region, dimension)
       );
 
-      CREATE INDEX idx_benchmark_industry
+      CREATE INDEX IF NOT EXISTS idx_benchmark_industry
         ON industry_benchmark_scores(industry, region);
     `);
 

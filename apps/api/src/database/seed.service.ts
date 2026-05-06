@@ -59,7 +59,7 @@ export class SeedService implements OnApplicationBootstrap {
         platform_name: 'Wellbeing Metric',
         ai_enabled: true,
         ai_provider_default: 'anthropic',
-        ai_model_default: 'claude-3-5-sonnet',
+        ai_model_default: 'claude-sonnet-4-6',
         anonymity_threshold: 5,
         score_alert_threshold: 45,
         supported_languages: ['tr', 'en'],

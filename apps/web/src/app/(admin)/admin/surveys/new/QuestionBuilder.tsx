@@ -7,17 +7,17 @@ import { useFormContext, useFieldArray } from 'react-hook-form';
 import { QuestionPreviewModal } from './QuestionPreviewModal';
 
 const getQuestionTypes = (t: any) => [
-  { value: 'likert5', label: t('surveys.question.types.likert5', '📊 Likert 5 (1-5 Emoji Skala)') },
-  { value: 'likert10', label: t('surveys.question.types.likert10', '📊 Likert 10 (1-10 Sayısal)') },
-  { value: 'star_rating', label: t('surveys.question.types.star_rating', '⭐ Yıldız Derecelendirme (1-5)') },
-  { value: 'yes_no', label: t('surveys.question.types.yes_no', '✅ Evet / Hayır') },
-  { value: 'nps', label: t('surveys.question.types.nps', '📈 NPS (0-10)') },
-  { value: 'number_input', label: t('surveys.question.types.number_input', '🔢 Sayısal Giriş') },
-  { value: 'single_choice', label: t('surveys.question.types.single_choice', '🔘 Tek Seçim (Radio)') },
-  { value: 'multi_choice', label: t('surveys.question.types.multi_choice', '☑️ Çoklu Seçim (Checkbox)') },
-  { value: 'ranking', label: t('surveys.question.types.ranking', '🔀 Sıralama (Ranking)') },
-  { value: 'matrix', label: t('surveys.question.types.matrix', '📋 Tablo (Matrix)') },
-  { value: 'open_text', label: t('surveys.question.types.open_text', '📝 Açık Metin') },
+  { value: 'likert5', label: t('admin.surveys.question.types.likert5', '📊 Likert 5 (1-5 Emoji Skala)') },
+  { value: 'likert10', label: t('admin.surveys.question.types.likert10', '📊 Likert 10 (1-10 Sayısal)') },
+  { value: 'star_rating', label: t('admin.surveys.question.types.star_rating', '⭐ Yıldız Derecelendirme (1-5)') },
+  { value: 'yes_no', label: t('admin.surveys.question.types.yes_no', '✅ Evet / Hayır') },
+  { value: 'nps', label: t('admin.surveys.question.types.nps', '📈 NPS (0-10)') },
+  { value: 'number_input', label: t('admin.surveys.question.types.number_input', '🔢 Sayısal Giriş') },
+  { value: 'single_choice', label: t('admin.surveys.question.types.single_choice', '🔘 Tek Seçim (Radio)') },
+  { value: 'multi_choice', label: t('admin.surveys.question.types.multi_choice', '☑️ Çoklu Seçim (Checkbox)') },
+  { value: 'ranking', label: t('admin.surveys.question.types.ranking', '🔀 Sıralama (Ranking)') },
+  { value: 'matrix', label: t('admin.surveys.question.types.matrix', '📋 Tablo (Matrix)') },
+  { value: 'open_text', label: t('admin.surveys.question.types.open_text', '📝 Açık Metin') },
 ];
 
 const getDimensions = (t: any) => [
@@ -82,7 +82,7 @@ export function QuestionBuilder({ index, remove, control }: any) {
             onClick={() => setPreviewOpen(true)}
             className="flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-gray-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
           >
-            <Eye size={16} /> {t('surveys.question.preview', 'Önizle')}
+            <Eye size={16} /> {t('admin.surveys.question.preview', 'Önizle')}
           </button>
 
           <button 
@@ -99,19 +99,19 @@ export function QuestionBuilder({ index, remove, control }: any) {
         {/* Main Text Inputs */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('surveys.question.tr_label', 'Türkçe Soru Metni*')}</label>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('admin.surveys.question.tr_label', 'Türkçe Soru Metni*')}</label>
             <textarea 
               {...register(`questions.${index}.question_text_tr`)}
-              placeholder={t('surveys.question.tr_placeholder', 'Örn: Çalışma ortamından memnun musunuz?')}
+              placeholder={t('admin.surveys.question.tr_placeholder', 'Örn: Çalışma ortamından memnun musunuz?')}
               className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
               rows={2}
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('surveys.question.en_label', 'İngilizce Soru Metni')}</label>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('admin.surveys.question.en_label', 'İngilizce Soru Metni')}</label>
             <textarea 
               {...register(`questions.${index}.question_text_en`)}
-              placeholder={t('surveys.question.en_placeholder', 'Optional english translation...')}
+              placeholder={t('admin.surveys.question.en_placeholder', 'Optional english translation...')}
               className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
               rows={2}
             />
@@ -123,11 +123,11 @@ export function QuestionBuilder({ index, remove, control }: any) {
         {isMatrix && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
             <div className="space-y-1">
-               <label className="text-xs font-bold text-gray-500">{t('surveys.question.matrix_tr_label', 'Tablo Başlığı (TR)*')}</label>
-               <input {...register(`questions.${index}.matrix_label_tr`)} placeholder={t('surveys.question.matrix_tr_placeholder', 'Örn: Aşağıdaki ifadelere ne kadar katılıyorsunuz?')} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none" />
+               <label className="text-xs font-bold text-gray-500">{t('admin.surveys.question.matrix_tr_label', 'Tablo Başlığı (TR)*')}</label>
+               <input {...register(`questions.${index}.matrix_label_tr`)} placeholder={t('admin.surveys.question.matrix_tr_placeholder', 'Örn: Aşağıdaki ifadelere ne kadar katılıyorsunuz?')} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none" />
             </div>
             <div className="space-y-1">
-               <label className="text-xs font-bold text-gray-500">{t('surveys.question.matrix_en_label', 'Tablo Başlığı (EN)')}</label>
+               <label className="text-xs font-bold text-gray-500">{t('admin.surveys.question.matrix_en_label', 'Tablo Başlığı (EN)')}</label>
                <input {...register(`questions.${index}.matrix_label_en`)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none" />
             </div>
           </div>
@@ -138,15 +138,15 @@ export function QuestionBuilder({ index, remove, control }: any) {
         {isNumber && (
           <div className="flex flex-wrap gap-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
              <div className="space-y-1 flex-1 min-w-[100px]">
-               <label className="text-xs font-bold text-blue-700">{t('surveys.question.min_val', 'Min Değer*')}</label>
+               <label className="text-xs font-bold text-blue-700">{t('admin.surveys.question.min_val', 'Min Değer*')}</label>
                <input type="number" {...register(`questions.${index}.number_min`, { valueAsNumber: true })} className="w-full bg-white border border-blue-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500" />
              </div>
              <div className="space-y-1 flex-1 min-w-[100px]">
-               <label className="text-xs font-bold text-blue-700">{t('surveys.question.max_val', 'Max Değer*')}</label>
+               <label className="text-xs font-bold text-blue-700">{t('admin.surveys.question.max_val', 'Max Değer*')}</label>
                <input type="number" {...register(`questions.${index}.number_max`, { valueAsNumber: true })} className="w-full bg-white border border-blue-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500" />
              </div>
              <div className="space-y-1 flex-1 min-w-[100px]">
-               <label className="text-xs font-bold text-blue-700">{t('surveys.question.step_val', 'Adım (Step)')}</label>
+               <label className="text-xs font-bold text-blue-700">{t('admin.surveys.question.step_val', 'Adım (Step)')}</label>
                <input type="number" {...register(`questions.${index}.number_step`, { valueAsNumber: true })} defaultValue={1} className="w-full bg-white border border-blue-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500" />
              </div>
           </div>
@@ -157,9 +157,9 @@ export function QuestionBuilder({ index, remove, control }: any) {
         {hasOptions && (
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('surveys.question.options_label', 'Seçenekler')}</label>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('admin.surveys.question.options_label', 'Seçenekler')}</label>
               <span className="text-[10px] text-gray-400 font-medium">
-                {qType === 'single_choice' ? t('surveys.question.options_hint_scorable', '0-100 arası değer girin') : t('surveys.question.options_hint_not_scorable', 'Skora dahil değil, değer alanı ihmal edilir')}
+                {qType === 'single_choice' ? t('admin.surveys.question.options_hint_scorable', '0-100 arası değer girin') : t('admin.surveys.question.options_hint_not_scorable', 'Skora dahil değil, değer alanı ihmal edilir')}
               </span>
             </div>
 
@@ -180,7 +180,7 @@ export function QuestionBuilder({ index, remove, control }: any) {
               onClick={() => appendOption({ label_tr: '', label_en: '', value: 0, order_index: options.length + 1 })}
               className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80"
             >
-              <Plus size={16} /> {t('surveys.question.add_option', 'Seçenek Ekle')}
+              <Plus size={16} /> {t('admin.surveys.question.add_option', 'Seçenek Ekle')}
             </button>
 
           </div>
@@ -190,8 +190,8 @@ export function QuestionBuilder({ index, remove, control }: any) {
         {isMatrix && (
           <div className="space-y-3 mt-4">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('surveys.question.matrix_rows_label', 'Tablo Satırları')}</label>
-              <span className="text-[10px] text-gray-400 font-medium">{t('surveys.question.matrix_rows_hint', 'Her satır farklı bir boyutu ölçebilir')}</span>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('admin.surveys.question.matrix_rows_label', 'Tablo Satırları')}</label>
+              <span className="text-[10px] text-gray-400 font-medium">{t('admin.surveys.question.matrix_rows_hint', 'Her satır farklı bir boyutu ölçebilir')}</span>
             </div>
 
             
@@ -221,7 +221,7 @@ export function QuestionBuilder({ index, remove, control }: any) {
               onClick={() => appendRow({ label_tr: '', label_en: '', dimension: 'overall', is_reversed: false, weight: 1.0, order_index: rows.length + 1 })}
               className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80"
             >
-              <Plus size={16} /> {t('surveys.question.add_row', 'Satır Ekle')}
+              <Plus size={16} /> {t('admin.surveys.question.add_row', 'Satır Ekle')}
             </button>
           </div>
         )}
@@ -231,7 +231,7 @@ export function QuestionBuilder({ index, remove, control }: any) {
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-4 border-t border-gray-100">
            {!isMatrix && (
              <div className="flex items-center gap-2">
-               <span className="text-xs font-bold text-gray-400 uppercase">{t('surveys.question.dimension', 'Boyut')}:</span>
+               <span className="text-xs font-bold text-gray-400 uppercase">{t('admin.surveys.question.dimension', 'Boyut')}:</span>
                <select {...register(`questions.${index}.dimension`)} className="bg-gray-50 border-none text-xs font-bold text-navy py-1.5 px-2 rounded-md outline-none cursor-pointer">
                  {DIMENSIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
                </select>
@@ -241,19 +241,19 @@ export function QuestionBuilder({ index, remove, control }: any) {
            {isScorable && (
              <label className="flex items-center gap-2 cursor-pointer group/rev">
                <input type="checkbox" {...register(`questions.${index}.is_reversed`)} className="rounded text-primary focus:ring-primary h-4 w-4" />
-               <span className="text-xs font-bold text-gray-500 group-hover/rev:text-navy transition-colors">{t('surveys.question.reversed_label', 'Ters Skor?')}</span>
+               <span className="text-xs font-bold text-gray-500 group-hover/rev:text-navy transition-colors">{t('admin.surveys.question.reversed_label', 'Ters Skor?')}</span>
              </label>
            )}
 
 
            <div className="flex items-center gap-2 ml-auto">
-             <span className="text-xs font-bold text-gray-400 uppercase">{t('surveys.question.weight_label', 'Ağırlık:')}</span>
+             <span className="text-xs font-bold text-gray-400 uppercase">{t('admin.surveys.question.weight_label', 'Ağırlık:')}</span>
              <input type="number" step="0.1" {...register(`questions.${index}.weight`, { valueAsNumber: true })} className="w-16 bg-gray-50 border border-gray-200 rounded text-xs px-2 py-1 outline-none focus:border-primary text-center font-bold" />
            </div>
 
 
            <label className="flex items-center gap-2 cursor-pointer border-l border-gray-200 pl-4">
-             <span className="text-xs font-bold text-gray-500">{t('surveys.question.required_label', 'Zorunlu')}</span>
+             <span className="text-xs font-bold text-gray-500">{t('admin.surveys.question.required_label', 'Zorunlu')}</span>
              <div className={`w-8 h-4 rounded-full relative ${watch(`questions.${index}.is_required`) ? 'bg-primary' : 'bg-gray-300'}`}>
                <input type="checkbox" {...register(`questions.${index}.is_required`)} className="hidden" />
                <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${watch(`questions.${index}.is_required`) ? 'left-4' : 'left-0.5'}`} />

@@ -60,11 +60,11 @@ export default function DepartmentsPage() {
   
   // Validation Schema (Inside component to use t)
   const actionSchema = z.object({
-    title: z.string().min(3, t('errors.min_length', { min: 3, defaultValue: 'Başlık en az 3 karakter olmalıdır' })),
-    dimension_key: z.string().min(1, t('errors.required', 'Boyut seçiniz')),
-    department_id: z.string().min(1, t('errors.required', 'Departman seçiniz')),
+    title: z.string().min(3, t('common.errors.min_length', { min: 3, defaultValue: 'Başlık en az 3 karakter olmalıdır' })),
+    dimension_key: z.string().min(1, t('common.errors.required', 'Boyut seçiniz')),
+    department_id: z.string().min(1, t('common.errors.required', 'Departman seçiniz')),
     content_id: z.string().optional(),
-    due_date: z.string().min(1, t('errors.required', 'Son tarih seçiniz')),
+    due_date: z.string().min(1, t('common.errors.required', 'Son tarih seçiniz')),
   });
 
   type ActionFormValues = z.infer<typeof actionSchema>;
@@ -115,7 +115,7 @@ export default function DepartmentsPage() {
   const createActionMutation = useMutation({
     mutationFn: (data: ActionFormValues) => client.post('/hr/actions', data),
     onSuccess: () => {
-      toast.success(t('actions.create_modal.success', 'Aksiyon oluşturuldu'));
+      toast.success(t('dashboard.actions.create_modal.success', 'Aksiyon oluşturuldu'));
       setIsActionModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ['hr-actions'] });
     },
@@ -155,14 +155,14 @@ export default function DepartmentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-navy">{t('departments.title')}</h1>
-          <p className="text-sm text-gray-500">{t('departments.subtitle')}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-navy">{t('dashboard.departments.title')}</h1>
+          <p className="text-sm text-gray-500">{t('dashboard.departments.subtitle')}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <Link href="/dashboard/departments/manage" className="w-full sm:w-auto">
             <Button variant="ghost" className="w-full sm:w-auto flex gap-2 text-xs border border-gray-100 bg-white hover:bg-gray-50">
               <Settings size={14} />
-              {t('departments.manage.title', 'Departmanları Yönet')}
+              {t('dashboard.departments.manage.title', 'Departmanları Yönet')}
             </Button>
           </Link>
           <div className="flex bg-white border border-gray-100 rounded-lg p-1 shadow-sm w-full sm:w-auto">
@@ -171,14 +171,14 @@ export default function DepartmentsPage() {
               className={clsx('flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all', view === 'table' ? 'bg-primary text-white shadow-sm' : 'text-gray-400 hover:text-navy')}
             >
               <TableIcon size={14} />
-              <span className="xs:inline">{t('departments.view_table')}</span>
+              <span className="xs:inline">{t('dashboard.departments.view_table')}</span>
             </button>
             <button 
               onClick={() => setView('heatmap')}
               className={clsx('flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all', view === 'heatmap' ? 'bg-primary text-white shadow-sm' : 'text-gray-400 hover:text-navy')}
             >
               <Grid size={14} />
-              <span className="xs:inline">{t('departments.view_heatmap')}</span>
+              <span className="xs:inline">{t('dashboard.departments.view_heatmap')}</span>
             </button>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function DepartmentsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder={t('departments.manage.search', 'Departman ara...')}
+              placeholder={t('dashboard.departments.manage.search', 'Departman ara...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-gray-50/50 border border-gray-100 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/10 transition-all outline-none"
@@ -210,14 +210,14 @@ export default function DepartmentsPage() {
             <table className="hidden md:table w-full text-left text-sm">
               <thead className="bg-gray-50/50 text-gray-400 font-bold uppercase tracking-widest text-[10px]">
                 <tr>
-                  <th className="py-4 px-4">{t('departments.columns.department')}</th>
-                  <th className="py-4 px-4 text-center">{t('departments.columns.overall')}</th>
-                  <th className="py-4 px-4 text-center">{t('departments.columns.physical')}</th>
-                  <th className="py-4 px-4 text-center">{t('departments.columns.mental')}</th>
-                  <th className="py-4 px-4 text-center">{t('departments.columns.social')}</th>
-                  <th className="py-4 px-4 text-center">{t('departments.columns.financial')}</th>
-                  <th className="py-4 px-4 text-center">{t('departments.columns.work')}</th>
-                  <th className="py-4 px-4 text-center">{t('departments.columns.status')}</th>
+                  <th className="py-4 px-4">{t('dashboard.departments.columns.department')}</th>
+                  <th className="py-4 px-4 text-center">{t('dashboard.departments.columns.overall')}</th>
+                  <th className="py-4 px-4 text-center">{t('dashboard.departments.columns.physical')}</th>
+                  <th className="py-4 px-4 text-center">{t('dashboard.departments.columns.mental')}</th>
+                  <th className="py-4 px-4 text-center">{t('dashboard.departments.columns.social')}</th>
+                  <th className="py-4 px-4 text-center">{t('dashboard.departments.columns.financial')}</th>
+                  <th className="py-4 px-4 text-center">{t('dashboard.departments.columns.work')}</th>
+                  <th className="py-4 px-4 text-center">{t('dashboard.departments.columns.status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -226,7 +226,7 @@ export default function DepartmentsPage() {
                     <td className="py-4 px-4">
                       <div>
                         <p className="font-bold text-navy group-hover:text-primary transition-colors">{dept.name}</p>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{dept.users_count} {t('departments.columns.employees')}</p>
+                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{dept.users_count} {t('dashboard.departments.columns.employees')}</p>
                       </div>
                     </td>
                     <ScoreCell score={dept.overall_score} isBold />
@@ -250,7 +250,7 @@ export default function DepartmentsPage() {
                    <div className="flex justify-between items-start">
                      <div>
                        <p className="font-bold text-navy">{dept.name}</p>
-                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{dept.users_count} {t('departments.columns.employees')}</p>
+                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{dept.users_count} {t('dashboard.departments.columns.employees')}</p>
                      </div>
                      <div className="flex flex-col items-end gap-1">
                         <StatusDot score={dept.overall_score} />
@@ -283,7 +283,7 @@ export default function DepartmentsPage() {
                     dept.overall_score >= 50 ? 'bg-warning text-white' : 'bg-danger text-white'
                   )}
                 >
-                  <p className="text-xs font-bold uppercase tracking-widest opacity-80">{dept.users_count} {t('departments.columns.employees')}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-80">{dept.users_count} {t('dashboard.departments.columns.employees')}</p>
                   <div className="py-6">
                     <h3 className="text-xl font-bold">{dept.name}</h3>
                     <p className="text-4xl font-black mt-2">{dept.overall_score}</p>
@@ -300,8 +300,8 @@ export default function DepartmentsPage() {
         <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3">
            <Info className="text-blue-500 mt-0.5" size={18} />
            <p className="text-xs text-blue-700 leading-relaxed">
-             <strong>{t('departments.anonymity_note', 'Anonimlik Eşiği')}:</strong> 
-             {t('departments.anonymity_desc', 'Şirket ayarlarınız gereği 5\'ten az çalışanı olan departmanların detaylı skorları bireysel gizliliği korumak amacıyla maskelenmiş olabilir.')}
+             <strong>{t('dashboard.departments.anonymity_note', 'Anonimlik Eşiği')}:</strong> 
+             {t('dashboard.departments.anonymity_desc', 'Şirket ayarlarınız gereği 5\'ten az çalışanı olan departmanların detaylı skorları bireysel gizliliği korumak amacıyla maskelenmiş olabilir.')}
            </p>
         </div>
       </Card>
@@ -316,7 +316,7 @@ export default function DepartmentsPage() {
         <div className="space-y-8">
           <div className="flex justify-between items-center bg-gray-50 p-6 rounded-2xl">
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('departments.columns.employees')}</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.departments.columns.employees')}</p>
               <h4 className="text-3xl font-black text-navy">{selectedDept?.users_count}</h4>
             </div>
             <div className="flex gap-4">
@@ -326,7 +326,7 @@ export default function DepartmentsPage() {
             </div>
           </div>
 
-          <Card title={String(t('departments.detail.trend'))}>
+          <Card title={String(t('dashboard.departments.detail.trend'))}>
             <TrendLine data={trendData} dimensions={['overall']} />
           </Card>
 
@@ -342,7 +342,7 @@ export default function DepartmentsPage() {
             <Button variant="ghost" className="flex-1" onClick={() => setIsDetailModalOpen(false)}>{t('common.close')}</Button>
             <Button className="flex-1 gap-2" onClick={() => handleCreateAction()}>
               <Plus size={18} />
-              {t('departments.detail.create_action')}
+              {t('dashboard.departments.detail.create_action')}
             </Button>
           </div>
         </div>
@@ -352,15 +352,15 @@ export default function DepartmentsPage() {
       <Modal 
         isOpen={isActionModalOpen} 
         onClose={() => setIsActionModalOpen(false)} 
-        title={t('actions.create_modal.title')}
+        title={t('dashboard.actions.create_modal.title')}
       >
         <form onSubmit={actionForm.handleSubmit(v => createActionMutation.mutate(v))} className="space-y-4">
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('actions.create_modal.action_title')}*</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.actions.create_modal.action_title')}*</label>
             <input 
               {...actionForm.register('title')}
               className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/10"
-              placeholder={t('actions.create_modal.placeholder', 'Örn: Stres Yönetimi Atölyesi')}
+              placeholder={t('dashboard.actions.create_modal.placeholder', 'Örn: Stres Yönetimi Atölyesi')}
             />
 
             {actionForm.formState.errors.title && <p className="text-danger text-[10px] font-bold mt-1">{actionForm.formState.errors.title.message}</p>}
@@ -368,7 +368,7 @@ export default function DepartmentsPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('actions.create_modal.dimension')}</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.actions.create_modal.dimension')}</label>
               <select 
                 {...actionForm.register('dimension_key')}
                 className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/10"
@@ -382,7 +382,7 @@ export default function DepartmentsPage() {
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('actions.create_modal.department')}</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.actions.create_modal.department')}</label>
               <select 
                 {...actionForm.register('department_id')}
                 disabled
@@ -394,7 +394,7 @@ export default function DepartmentsPage() {
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('actions.create_modal.content')}</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.actions.create_modal.content')}</label>
             <select 
               {...actionForm.register('content_id')}
               className="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/10"
@@ -405,7 +405,7 @@ export default function DepartmentsPage() {
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('actions.create_modal.due_date')}*</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">{t('dashboard.actions.create_modal.due_date')}*</label>
             <input 
               type="date"
               {...actionForm.register('due_date')}
@@ -415,7 +415,7 @@ export default function DepartmentsPage() {
 
           <div className="flex gap-3 pt-4">
             <Button variant="ghost" className="flex-1" onClick={() => setIsActionModalOpen(false)}>{t('common.cancel')}</Button>
-            <Button loading={createActionMutation.isPending} className="flex-1" type="submit">{t('actions.create_modal.submit')}</Button>
+            <Button loading={createActionMutation.isPending} className="flex-1" type="submit">{t('dashboard.actions.create_modal.submit')}</Button>
           </div>
         </form>
       </Modal>

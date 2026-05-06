@@ -12,7 +12,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class DemoController {
   constructor(private readonly demoService: DemoService) {}
 
-  @Post('demo-request')
+  @Post('demo-requests')
   create(@Body() dto: CreateDemoRequestDto) {
     return this.demoService.create(dto);
   }
@@ -29,6 +29,13 @@ export class DemoController {
   @Get('admin/demo-requests/pending-count')
   getPendingCount() {
     return this.demoService.getPendingCount();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
+  @Get('admin/demo-requests/stats')
+  getStats() {
+    return this.demoService.getStats();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

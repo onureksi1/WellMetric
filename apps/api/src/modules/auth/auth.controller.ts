@@ -141,4 +141,19 @@ export class AuthController {
   ) {
     return this.authService.updateLanguage(user.id, language);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@CurrentUser() user: any) {
+    return this.authService.getMe(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  async updateMe(
+    @CurrentUser() user: any,
+    @Body() dto: any,
+  ) {
+    return this.authService.updateMe(user.id, dto);
+  }
 }

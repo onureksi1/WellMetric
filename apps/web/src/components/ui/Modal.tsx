@@ -36,12 +36,12 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth, size = 'md' 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div 
-        className="absolute inset-0 bg-navy/40 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-transparent"
         onClick={onClose}
       />
       
       <div className={clsx(
-        "relative w-full bg-white rounded-[24px] shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden",
+        "relative w-full bg-white rounded-[32px] shadow-none border-2 border-primary/20",
         maxWidthClasses[effectiveMaxWidth]
       )}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">

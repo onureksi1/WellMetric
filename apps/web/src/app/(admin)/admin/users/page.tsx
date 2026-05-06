@@ -130,17 +130,17 @@ export default function AdminUsersPage() {
       switch (action) {
         case 'create':
           await adminUsersApi.create(data)
-          toast.success(t('users.create.success'))
+          toast.success(t('admin.users.create.success'))
           setModals(m => ({ ...m, create: false }))
           break
         case 'update':
           await adminUsersApi.update(targetId!, data)
-          toast.success(t('common:updated'))
+          toast.success(t('common.updated'))
           setModals(m => ({ ...m, edit: false }))
           break
         case 'assign':
           await adminUsersApi.assignCompany(targetId!, data)
-          toast.success(t('users.assign.success'))
+          toast.success(t('admin.users.assign.success'))
           setModals(m => ({ ...m, assign: false }))
           break
         case 'status':
@@ -150,11 +150,11 @@ export default function AdminUsersPage() {
           break
         case 'resend':
           await adminUsersApi.resendInvite(targetId!)
-          toast.success(t('users.actions.resend_invite_success') || 'Davet yeniden gönderildi')
+          toast.success(t('admin.users.actions.resend_invite_success'))
           break
         case 'delete':
           await adminUsersApi.delete(targetId!)
-          toast.success(t('users.delete.success'))
+          toast.success(t('admin.users.delete.success'))
           setModals(m => ({ ...m, delete: false }))
           break
       }
@@ -164,7 +164,7 @@ export default function AdminUsersPage() {
     } catch (err: any) {
       const errorMsg = err.response?.data?.message
       if (errorMsg === 'USER_ALREADY_ACTIVATED' || errorMsg === 'Bu kullanıcı zaten kaydını tamamlamış.') {
-        toast.error('Bu kullanıcı zaten aktif')
+        toast.error(t('admin.users.errors.already_active'))
       } else {
         toast.error(errorMsg || t('common.error'))
       }
@@ -175,13 +175,13 @@ export default function AdminUsersPage() {
 
   // ── HELPERS ────────────────────────────────────────────────────────
   const getStatusBadge = (user: any) => {
-    if (!user.is_active) return <Badge variant="gray">{t('users.status.inactive')}</Badge>
-    if (!user.password_hash) return <Badge variant="orange">{t('users.status.pending_invite')}</Badge>
-    return <Badge variant="green">{t('users.status.active')}</Badge>
+    if (!user.is_active) return <Badge variant="gray">{t('admin.users.status.inactive')}</Badge>
+    if (!user.has_password && !user.last_login_at) return <Badge variant="orange">{t('admin.users.status.pending_invite')}</Badge>
+    return <Badge variant="green">{t('admin.users.status.active')}</Badge>
   }
 
   const timeAgo = (date: any) => {
-    if (!date) return t('users.never_logged_in')
+    if (!date) return t('admin.users.never_logged_in')
     return formatDistanceToNow(new Date(date), { addSuffix: true, locale: lang })
   }
 
@@ -191,8 +191,8 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-navy">{t('users.title')}</h1>
-          <p className="text-sm text-gray-500">{t('users.subtitle')}</p>
+          <h1 className="text-2xl font-bold text-navy">{t('admin.users.title')}</h1>
+          <p className="text-sm text-gray-500">{t('admin.users.subtitle')}</p>
         </div>
         <Button 
           className="w-full sm:w-auto gap-2 shadow-lg shadow-primary/20"
@@ -202,7 +202,7 @@ export default function AdminUsersPage() {
           }}
         >
           <Plus size={18} />
-          {t('users.add')}
+          {t('admin.users.add')}
         </Button>
       </div>
 
@@ -210,25 +210,25 @@ export default function AdminUsersPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
           icon={<UsersIcon className="text-primary" />} 
-          label={t('users.stats.total')} 
+          label={t('admin.users.stats.total')} 
           value={stats?.total || 0} 
-          subValue={`${stats?.by_role?.hr_admin || 0} HR | ${stats?.by_role?.employee || 0} ${t('users.stats.employees')}`}
+          subValue={`${stats?.by_role?.hr_admin || 0} HR | ${stats?.by_role?.employee || 0} ${t('admin.users.stats.employees')}`}
         />
         <StatCard 
           icon={<CheckCircle2 className="text-green-500" />} 
-          label={t('users.stats.active')} 
+          label={t('admin.users.stats.active')} 
           value={stats?.active || 0} 
-          subValue={`${t('users.stats.recent_login')}: ${stats?.login_last_30_days || 0}`}
+          subValue={`${t('admin.users.stats.recent_login')}: ${stats?.login_last_30_days || 0}`}
         />
         <StatCard 
           icon={<UserX className="text-gray-400" />} 
-          label={t('users.stats.inactive')} 
+          label={t('admin.users.stats.inactive')} 
           value={stats?.inactive || 0} 
-          subValue={`${t('users.stats.new_month')}: ${stats?.new_this_month || 0}`}
+          subValue={`${t('admin.users.stats.new_month')}: ${stats?.new_this_month || 0}`}
         />
         <StatCard 
           icon={<Clock className="text-amber-500" />} 
-          label={t('users.stats.pending')} 
+          label={t('admin.users.stats.pending')} 
           value={stats?.pending_invite || 0} 
           highlight
         />
@@ -241,7 +241,7 @@ export default function AdminUsersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
               type="text" 
-              placeholder={t('header.search_placeholder')}
+              placeholder={t('admin.header.search_placeholder')}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -253,7 +253,7 @@ export default function AdminUsersPage() {
               value={filters.company_id}
               onChange={(e) => setFilters(f => ({ ...f, company_id: e.target.value }))}
             >
-              <option value="">{t('common:all_companies')}</option>
+              <option value="">{t('common.all_companies')}</option>
               {companies?.data?.map((c: any) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -263,18 +263,18 @@ export default function AdminUsersPage() {
               value={filters.role}
               onChange={(e) => setFilters(f => ({ ...f, role: e.target.value }))}
             >
-              <option value="">{t('common:all_roles')}</option>
+              <option value="">{t('common.all_roles')}</option>
               <option value="hr_admin">HR Admin</option>
-              <option value="employee">{t('users.stats.employees')}</option>
+              <option value="employee">{t('admin.users.stats.employees')}</option>
             </select>
             <select 
               className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20"
               value={filters.is_active}
               onChange={(e) => setFilters(f => ({ ...f, is_active: e.target.value }))}
             >
-              <option value="">{t('common:all_statuses')}</option>
-              <option value="true">{t('users.status.active')}</option>
-              <option value="false">{t('users.status.inactive')}</option>
+              <option value="">{t('common.all_statuses')}</option>
+              <option value="true">{t('admin.users.status.active')}</option>
+              <option value="false">{t('admin.users.status.inactive')}</option>
             </select>
             {(filters.company_id || filters.role || filters.is_active || filters.search) && (
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-danger" onClick={() => {
@@ -295,19 +295,19 @@ export default function AdminUsersPage() {
           <table className="w-full text-left text-sm border-collapse">
             <thead className="bg-gray-50 text-gray-500 font-bold text-[10px] uppercase tracking-wider">
               <tr>
-                <th className="py-4 px-6">{t('users.columns.user')}</th>
-                <th className="py-4 px-6">{t('users.columns.company')}</th>
-                <th className="py-4 px-6 text-center">{t('users.columns.role')}</th>
-                <th className="py-4 px-6 text-center">{t('users.columns.status')}</th>
-                <th className="py-4 px-6 text-center">{t('users.columns.last_login')}</th>
-                <th className="py-4 px-6 text-right">{t('users.columns.actions')}</th>
+                <th className="py-4 px-6">{t('admin.users.columns.user')}</th>
+                <th className="py-4 px-6">{t('admin.users.columns.company')}</th>
+                <th className="py-4 px-6 text-center">{t('admin.users.columns.role')}</th>
+                <th className="py-4 px-6 text-center">{t('admin.users.columns.status')}</th>
+                <th className="py-4 px-6 text-center">{t('admin.users.columns.last_login')}</th>
+                <th className="py-4 px-6 text-right">{t('admin.users.columns.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {usersLoading ? (
                 <tr><td colSpan={6} className="p-8"><TableSkeleton /></td></tr>
               ) : usersData?.data?.length === 0 ? (
-                <tr><td colSpan={6} className="py-12 text-center text-gray-500 italic">{t('users.no_users')}</td></tr>
+                <tr><td colSpan={6} className="py-12 text-center text-gray-500 italic">{t('admin.users.no_users')}</td></tr>
               ) : (
                 usersData?.data?.map((user: any) => (
                   <tr 
@@ -340,7 +340,7 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="py-4 px-6 text-center">
                       <Badge variant={user.role === 'hr_admin' ? 'purple' : 'blue'} className="text-[10px] uppercase">
-                        {user.role === 'hr_admin' ? 'HR Admin' : t('users.stats.employees')}
+                        {user.role === 'hr_admin' ? 'HR Admin' : t('admin.users.stats.employees')}
                       </Badge>
                     </td>
                     <td className="py-4 px-6 text-center">
@@ -371,7 +371,7 @@ export default function AdminUsersPage() {
         {/* Pagination */}
         <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
           <p className="text-xs text-gray-500">
-            {t('common:showing')}: {usersData?.data?.length || 0} / {usersData?.meta?.total || 0}
+            {t('common.showing')}: {usersData?.data?.length || 0} / {usersData?.meta?.total || 0}
           </p>
           <div className="flex gap-2">
             <Button 
@@ -432,15 +432,15 @@ export default function AdminUsersPage() {
       <Modal
         isOpen={modals.delete}
         onClose={() => setModals(m => ({ ...m, delete: false }))}
-        title={t('users.delete.confirm')}
+        title={t('admin.users.delete.confirm')}
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            <strong>{formData?.full_name || formData?.email}</strong> isimli kullanıcıyı veritabanından <strong>kalıcı olarak</strong> silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+            {t('admin.users.delete.confirm_permanent', { name: formData?.full_name || formData?.email })}
           </p>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="ghost" onClick={() => setModals(m => ({ ...m, delete: false }))}>{t('common.cancel')}</Button>
-            <Button variant="danger" loading={loading} onClick={() => handleAction('delete')}>Kalıcı Olarak Sil</Button>
+            <Button variant="danger" loading={loading} onClick={() => handleAction('delete')}>{t('admin.users.actions.permanent_delete')}</Button>
           </div>
         </div>
       </Modal>
@@ -483,25 +483,25 @@ function UserActionsMenu({ user, onEdit, onAssign, onResend, onStatusToggle, onD
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 py-2 animate-in fade-in zoom-in duration-200">
             <button className="w-full flex items-center gap-3 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50" onClick={() => { onEdit(); setOpen(false) }}>
-              <Edit2 size={14} /> {t('users.actions.edit')}
+              <Edit2 size={14} /> {t('admin.users.actions.edit')}
             </button>
             <button className="w-full flex items-center gap-3 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50" onClick={() => { onAssign(); setOpen(false) }}>
-              <Building2 size={14} /> {t('users.actions.assign_company')}
+              <Building2 size={14} /> {t('admin.users.actions.assign_company')}
             </button>
-            {!user.password_hash && user.is_active && (
+            {!user.has_password && !user.last_login_at && user.is_active && (
               <button className="w-full flex items-center gap-3 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5" onClick={() => { onResend(); setOpen(false) }}>
-                <Mail size={14} /> {t('users.actions.resend_invite')}
+                <Mail size={14} /> {t('admin.users.actions.resend_invite')}
               </button>
             )}
             <button 
               className={`w-full flex items-center gap-3 px-4 py-2 text-xs font-medium hover:bg-gray-50 ${user.is_active ? 'text-amber-600' : 'text-green-600'}`} 
               onClick={() => { onStatusToggle(); setOpen(false) }}
             >
-              <Power size={14} /> {user.is_active ? t('users.actions.deactivate') : t('users.actions.activate')}
+              <Power size={14} /> {user.is_active ? t('admin.users.actions.deactivate') : t('admin.users.actions.activate')}
             </button>
             <div className="h-px bg-gray-100 my-1" />
             <button className="w-full flex items-center gap-3 px-4 py-2 text-xs font-medium text-danger hover:bg-danger/5" onClick={() => { onDelete(); setOpen(false) }}>
-              <Trash2 size={14} /> Kalıcı Olarak Sil
+              <Trash2 size={14} /> {t('admin.users.actions.permanent_delete')}
             </button>
           </div>
         </>
@@ -518,7 +518,7 @@ function Drawer({ isOpen, onClose, user, onAction, t, timeAgo }: any) {
       <div className="fixed inset-0 bg-navy/40 backdrop-blur-sm z-[80] animate-in fade-in duration-300" onClick={onClose} />
       <div className="fixed top-0 right-0 h-full w-full max-w-[400px] bg-white z-[90] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-bold text-navy">{t('common:details')}</h2>
+          <h2 className="font-bold text-navy">{t('common.details')}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-gray-400"><X size={20} /></button>
         </div>
 
@@ -535,35 +535,38 @@ function Drawer({ isOpen, onClose, user, onAction, t, timeAgo }: any) {
                 <h3 className="text-lg font-bold text-navy">{user.full_name || '-'}</h3>
                 <p className="text-sm text-gray-500">{user.email}</p>
                 <div className="mt-2 flex justify-center">
-                   {user.is_active ? <Badge variant="green">{t('users.status.active')}</Badge> : <Badge variant="gray">{t('users.status.inactive')}</Badge>}
+                   {user.is_active 
+                    ? (user.has_password || user.last_login_at ? <Badge variant="green">{t('admin.users.status.active')}</Badge> : <Badge variant="orange">{t('admin.users.status.pending_invite')}</Badge>) 
+                    : <Badge variant="gray">{t('admin.users.status.inactive')}</Badge>
+                   }
                 </div>
               </div>
             </div>
 
             {/* Info Grid */}
             <div className="grid grid-cols-1 gap-4">
-               <InfoItem label={t('users.columns.company')} value={
+               <InfoItem label={t('admin.users.columns.company')} value={
                  <Link href={`/admin/companies/${user.company?.id}`} className="text-primary hover:underline flex items-center gap-1">
                    {user.company?.name} <ExternalLink size={12} />
                  </Link>
                } />
-               <InfoItem label={t('users.columns.role')} value={
+               <InfoItem label={t('admin.users.columns.role')} value={
                  <Badge variant={user.role === 'hr_admin' ? 'purple' : 'blue'} className="text-[10px]">
-                   {user.role === 'hr_admin' ? 'HR Admin' : t('users.stats.employees')}
+                   {user.role === 'hr_admin' ? 'HR Admin' : t('admin.users.stats.employees')}
                  </Badge>
                } />
-               <InfoItem label={t('users.columns.department')} value={user.department?.name || '-'} />
-               <InfoItem label={t('users.labels.language')} value={user.language?.toUpperCase()} />
-               <InfoItem label={t('users.labels.location')} value={user.location || '-'} />
-               <InfoItem label={t('users.labels.seniority')} value={user.seniority || '-'} />
-               <InfoItem label={t('users.labels.start_date')} value={user.start_date ? new Date(user.start_date).toLocaleDateString() : '-'} />
-               <InfoItem label={t('users.columns.last_login')} value={timeAgo(user.last_login_at)} />
-               <InfoItem label={t('users.labels.registration_date')} value={new Date(user.created_at).toLocaleDateString()} />
+               <InfoItem label={t('admin.users.columns.department')} value={user.department?.name || '-'} />
+               <InfoItem label={t('admin.users.labels.language')} value={user.language?.toUpperCase()} />
+               <InfoItem label={t('admin.users.labels.location')} value={user.location || '-'} />
+               <InfoItem label={t('admin.users.labels.seniority')} value={user.seniority || '-'} />
+               <InfoItem label={t('admin.users.labels.start_date')} value={user.start_date ? new Date(user.start_date).toLocaleDateString() : '-'} />
+               <InfoItem label={t('admin.users.columns.last_login')} value={timeAgo(user.last_login_at)} />
+               <InfoItem label={t('admin.users.labels.registration_date')} value={new Date(user.created_at).toLocaleDateString()} />
             </div>
 
             {/* Survey Stats */}
             <div className="space-y-4">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('surveys.title')}</h4>
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('admin.surveys.title')}</h4>
               <div className="bg-gray-50 rounded-xl p-4 flex justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-500 uppercase">Toplam Katılım</p>
@@ -588,7 +591,7 @@ function Drawer({ isOpen, onClose, user, onAction, t, timeAgo }: any) {
                   </div>
                 ))}
                 {user.survey_responses?.length === 0 && (
-                  <p className="text-center text-xs text-gray-400 py-4 italic">{t('users.labels.no_participation')}</p>
+                  <p className="text-center text-xs text-gray-400 py-4 italic">{t('admin.users.labels.no_participation')}</p>
                 )}
               </div>
             </div>
@@ -596,11 +599,11 @@ function Drawer({ isOpen, onClose, user, onAction, t, timeAgo }: any) {
         )}
 
         <div className="p-6 border-t border-gray-100 grid grid-cols-2 gap-2">
-          <Button variant="ghost" className="text-xs" onClick={() => onAction('resend')} disabled={!user?.is_active || user?.password_hash}>
-            <Mail size={14} className="mr-2" /> {t('users.actions.resend_invite')}
+          <Button variant="ghost" className="text-xs" onClick={() => onAction('resend')} disabled={!user?.is_active || user?.has_password || user?.last_login_at}>
+            <Mail size={14} className="mr-2" /> {t('admin.users.actions.resend_invite')}
           </Button>
           <Button variant="ghost" className={`text-xs ${user?.is_active ? 'text-amber-600' : 'text-green-600'}`} onClick={() => onAction('status', undefined, { is_active: !user?.is_active })}>
-            <Power size={14} className="mr-2" /> {user?.is_active ? t('users.actions.deactivate') : t('users.actions.activate')}
+            <Power size={14} className="mr-2" /> {user?.is_active ? t('admin.users.actions.deactivate') : t('admin.users.actions.activate')}
           </Button>
         </div>
       </div>
@@ -636,11 +639,11 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, companies, load
   if (!isOpen) return null
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? t('users.actions.edit') : t('users.create.title')} maxWidth="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? t('admin.users.actions.edit') : t('admin.users.create.title')} maxWidth="md">
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onSubmit(data) }}>
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('common:full_name')}*</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('common.full_name')}*</label>
             <input 
               required
               className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20"
@@ -649,7 +652,7 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, companies, load
             />
           </div>
           <div className="col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('common:email')}*</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('common.email')}*</label>
             <input 
               required
               disabled={isEdit}
@@ -660,7 +663,7 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, companies, load
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('users.columns.role')}*</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('admin.users.columns.role')}*</label>
             <div className="flex gap-2">
               <button 
                 type="button"
@@ -674,12 +677,12 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, companies, load
                 className={`flex-1 py-2 text-[10px] font-bold rounded-lg border transition-all ${data.role === 'employee' ? 'bg-primary border-primary text-white' : 'bg-white border-gray-200 text-gray-500'}`}
                 onClick={() => setData({ ...data, role: 'employee' })}
               >
-                {t('users.stats.employees')}
+                {t('admin.users.stats.employees')}
               </button>
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('common:language')}*</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('common.language')}*</label>
             <div className="flex gap-2">
               <button 
                 type="button"
@@ -698,7 +701,7 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, companies, load
             </div>
           </div>
           <div className="col-span-2 md:col-span-1 space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('users.columns.company')}*</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('admin.users.columns.company')}*</label>
             <select 
               required
               disabled={isEdit}
@@ -706,19 +709,19 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, companies, load
               value={data.company_id || ''}
               onChange={e => setData({ ...data, company_id: e.target.value })}
             >
-              <option value="">{t('common:select_company')}</option>
+              <option value="">{t('common.select_company')}</option>
               {companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div className="col-span-2 md:col-span-1 space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('users.columns.department')}</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('admin.users.columns.department')}</label>
             <select 
               className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
               value={data.department_id || ''}
               disabled={!data.company_id}
               onChange={e => setData({ ...data, department_id: e.target.value })}
             >
-              <option value="">{t('users.placeholders.select_department')}</option>
+              <option value="">{t('admin.users.placeholders.select_department')}</option>
               {depts.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
@@ -727,35 +730,35 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, companies, load
         <details className="group border-t border-gray-100 pt-4">
           <summary className="list-none flex items-center gap-2 cursor-pointer text-[10px] font-bold text-gray-400 uppercase hover:text-primary transition-colors">
             <Plus size={14} className="group-open:rotate-45 transition-transform" />
-            {t('users.create.advanced')}
+            {t('admin.users.create.advanced')}
           </summary>
           <div className="grid grid-cols-2 gap-4 mt-4 animate-in slide-in-from-top-2 duration-300">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('users.labels.seniority')}</label>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('admin.users.labels.seniority')}</label>
               <select 
                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20"
                 value={data.seniority || ''}
                 onChange={e => setData({ ...data, seniority: e.target.value })}
               >
-                <option value="">{t('common:select')}</option>
-                <option value="0-1">0-1 {t('common:year')}</option>
-                <option value="1-3">1-3 {t('common:year')}</option>
-                <option value="3-5">3-5 {t('common:year')}</option>
-                <option value="5-10">5-10 {t('common:year')}</option>
-                <option value="10+">10+ {t('common:year')}</option>
+                <option value="">{t('common.select')}</option>
+                <option value="0-1">0-1 {t('common.year')}</option>
+                <option value="1-3">1-3 {t('common.year')}</option>
+                <option value="3-5">3-5 {t('common.year')}</option>
+                <option value="5-10">5-10 {t('common.year')}</option>
+                <option value="10+">10+ {t('common.year')}</option>
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('users.labels.location')}</label>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('admin.users.labels.location')}</label>
               <input 
                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20"
                 value={data.location || ''}
                 onChange={e => setData({ ...data, location: e.target.value })}
-                placeholder={t('users.placeholders.location_hint')}
+                placeholder={t('admin.users.placeholders.location_hint')}
               />
             </div>
             <div className="col-span-2 space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('users.labels.start_date')}</label>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('admin.users.labels.start_date')}</label>
               <input 
                 type="date"
                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20"
@@ -769,13 +772,13 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, companies, load
         {!isEdit && (
           <div className="p-3 bg-amber-50 rounded-lg flex gap-3 text-amber-700">
             <AlertCircle size={18} className="shrink-0 mt-0.5" />
-            <p className="text-[10px] font-medium leading-relaxed">{t('users.create.invite_note')}</p>
+            <p className="text-[10px] font-medium leading-relaxed">{t('admin.users.create.invite_note')}</p>
           </div>
         )}
 
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
           <Button variant="ghost" type="button" onClick={onClose}>{t('common.cancel')}</Button>
-          <Button loading={loading} type="submit">{isEdit ? t('common.save') : t('users.create.submit')}</Button>
+          <Button loading={loading} type="submit">{isEdit ? t('common.save') : t('admin.users.create.submit')}</Button>
         </div>
       </form>
     </Modal>
@@ -797,16 +800,16 @@ function AssignCompanyModal({ isOpen, onClose, onSubmit, user, companies, loadin
   if (!isOpen) return null
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('users.assign.title')} maxWidth="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('admin.users.assign.title')} maxWidth="sm">
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onSubmit(data) }}>
         <div className="p-3 bg-gray-50 rounded-xl flex items-center justify-between">
-           <span className="text-[10px] font-bold text-gray-500 uppercase">{t('users.assign.current_company')}</span>
+           <span className="text-[10px] font-bold text-gray-500 uppercase">{t('admin.users.assign.current_company')}</span>
            <span className="text-xs font-bold text-navy">{user?.company?.name || '-'}</span>
         </div>
 
         <div className="space-y-4 pt-2">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('users.assign.new_company')}*</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('admin.users.assign.new_company')}*</label>
             <select 
               required
               className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20"
@@ -817,7 +820,7 @@ function AssignCompanyModal({ isOpen, onClose, onSubmit, user, companies, loadin
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('users.columns.department')}</label>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{t('admin.users.columns.department')}</label>
             <select 
               className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
               disabled={!data.company_id}
@@ -831,12 +834,12 @@ function AssignCompanyModal({ isOpen, onClose, onSubmit, user, companies, loadin
 
         <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl flex gap-3 text-amber-700">
            <AlertCircle size={20} className="shrink-0" />
-           <p className="text-[10px] font-medium leading-relaxed">{t('users.assign.warning')}</p>
+           <p className="text-[10px] font-medium leading-relaxed">{t('admin.users.assign.warning')}</p>
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Button variant="ghost" type="button" onClick={onClose}>{t('common.cancel')}</Button>
-          <Button loading={loading} type="submit" variant="primary">{t('users.assign.submit')}</Button>
+          <Button loading={loading} type="submit" variant="primary">{t('admin.users.assign.submit')}</Button>
         </div>
       </form>
     </Modal>

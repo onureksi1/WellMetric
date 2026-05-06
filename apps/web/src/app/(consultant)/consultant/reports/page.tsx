@@ -1,249 +1,414 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { 
-  FileBarChart2, 
-  Download, 
-  Calendar, 
-  Clock, 
-  FileText,
-  Filter,
-  ArrowRight,
-  Loader2
-} from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import client from '@/lib/api/client';
+import { toast } from 'react-hot-toast';
+import { 
+  FileText, 
+  Plus, 
+  Bot, 
+  Calendar, 
+  Building2, 
+  Globe, 
+  Zap, 
+  Clock, 
+  ChevronRight,
+  MoreVertical,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Trash2,
+  Send,
+  EyeOff
+} from 'lucide-react';
+
+const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: any }> = {
+  draft:      { label: 'Taslak',      color: '#475569', bg: '#f1f5f9', icon: Clock },
+  processing: { label: 'Hazırlanıyor', color: '#2563eb', bg: '#eff6ff', icon: Loader2 },
+  published:  { label: 'Yayında',     color: '#059669', bg: '#ecfdf5', icon: CheckCircle2 },
+  archived:   { label: 'Arşiv',       color: '#94a3b8', bg: '#f8fafc', icon: AlertCircle },
+};
 
 export default function ConsultantReportsPage() {
-  const { t } = useTranslation('consultant');
   const router = useRouter();
-  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
-  const [reportType, setReportType] = useState('comparative');
-  const [period, setPeriod] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  });
-  const [format, setFormat] = useState('PDF');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [reports, setReports] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [genForm, setGenForm] = useState({
+    company_id: '',
+    period: new Date().toISOString().slice(0, 7),
+    language: 'tr' as 'tr' | 'en',
+  });
 
+  const fetchData = async () => {
+    try {
+      const [rRes, cRes] = await Promise.all([
+        client.get('/consultant/reports'),
+        client.get('/consultant/companies'),
+      ]);
+      setReports(Array.isArray(rRes.data?.data || rRes.data) ? (rRes.data?.data || rRes.data) : []);
+      setCompanies(Array.isArray(cRes.data?.data || cRes.data) ? (cRes.data?.data || cRes.data) : []);
+    } catch (err) {
+      console.error('Veri yükleme hatası:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  // Polling for processing reports
   useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const response = await client.get('/consultant/companies');
-        setCompanies(Array.isArray(response.data) ? response.data : (response.data.data || []));
-      } catch (error) {
-        console.error('Error fetching companies for reports:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompanies();
-  }, []);
+    let interval: any;
+    if (reports.some(r => r.status === 'processing')) {
+      interval = setInterval(() => {
+        fetchData();
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [reports]);
 
   const handleGenerate = async () => {
-    if (selectedCompanies.length === 0) {
-      toast.error(t('common.select_at_least_one', 'Lütfen en az bir firma seçin.'));
-      return;
-    }
-
-    setIsGenerating(true);
+    if (!genForm.company_id) { toast.error('Lütfen bir firma seçin'); return; }
+    setGenerating(true);
     try {
-      const endpoint = reportType === 'single' 
-        ? `/consultant/reports/company/${selectedCompanies[0]}`
-        : `/consultant/reports/comparative`;
-
-      const payload = reportType === 'single'
-        ? { period, format: format.toLowerCase() }
-        : { period, company_ids: selectedCompanies, format: format.toLowerCase() };
-
-      const response = await client.post(endpoint, payload);
-      toast.success(t('common.report_success', 'Rapor kuyruğa alındı. Hazır olunca mail gelecek.'));
+      await client.post('/consultant/reports/generate', genForm);
+      setModal(false);
+      toast.success('Rapor talebi alındı. Hazırlandığında e-posta ile bildireceğiz.', { duration: 5000 });
+      fetchData(); // Listeyi yenile (mevcutları görsün)
     } catch (err: any) {
-      if (err.response?.status === 402) {
-        toast.error('Krediniz yetersiz, lütfen satın alın.', {
-          action: {
-            label: 'Kredi Al',
-            onClick: () => router.push('/consultant/billing?tab=purchase'),
-          },
-        });
-      } else {
-        toast.error(err.response?.data?.error?.message || t('common.error', 'Rapor oluşturulamadı.'));
-      }
+      toast.error(err.response?.data?.error?.message || 'Rapor talebi iletilemedi');
     } finally {
-      setIsGenerating(false);
+      setGenerating(false);
     }
   };
 
-  const toggleCompany = (id: string) => {
-    setSelectedCompanies(prev => 
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Bu raporu silmek istediğinize emin misiniz?')) return;
+    
+    try {
+      await client.delete(`/consultant/reports/${id}`);
+      toast.success('Rapor başarıyla silindi');
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error?.message || 'Rapor silinemedi');
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        <p className="text-slate-500 font-medium">Firmalar yükleniyor...</p>
-      </div>
-    );
-  }
+  const handlePublish = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      await client.post(`/consultant/reports/${id}/publish`);
+      toast.success('Rapor başarıyla yayınlandı');
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error?.message || 'Rapor yayınlanamadı');
+    }
+  };
+
+  const handleUnpublish = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      await client.post(`/consultant/reports/${id}/unpublish`);
+      toast.success('Rapor yayından kaldırıldı');
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error?.message || 'İşlem başarısız');
+    }
+  };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">{t('reports.title')}</h1>
-        <p className="text-slate-500">{t('reports.subtitle')}</p>
+    <div style={{ position: 'relative', width: '100%', minHeight: '100vh', padding: '2rem 1.5rem', background: '#fcfcfd', fontFamily: '"Outfit", sans-serif' }}>
+      
+      {/* Header Section */}
+      <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+        <div>
+          <h1 style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>Raporlarım & Arşiv</h1>
+          <p style={{ color: '#64748b', marginTop: '6px', fontSize: '16px' }}>Oluşturduğunuz tüm analiz raporlarını buradan yönetebilir ve takip edebilirsiniz.</p>
+        </div>
+        <button 
+          onClick={() => setModal(true)}
+          style={{ 
+            background: '#2563eb', color: '#ffffff', padding: '14px 28px', 
+            borderRadius: '16px', border: 'none', fontWeight: 700, fontSize: '15px',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
+            boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.2)', transition: 'all 0.2s'
+          }}
+        >
+          <Bot size={20} /> <span>Yeni AI Rapor</span>
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <FileBarChart2 size={18} />
+      {/* Main Content Area */}
+      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
+          <Clock size={20} color="#64748b" />
+          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b', margin: 0 }}>Rapor Arşivi</h2>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: '100px', textAlign: 'center' }}>
+            <Loader2 className="animate-spin" size={40} color="#2563eb" style={{ margin: '0 auto 16px' }} />
+            <p style={{ color: '#64748b', fontWeight: 500 }}>Raporlar listeleniyor...</p>
+          </div>
+        ) : reports.length === 0 ? (
+          <div style={{ 
+            padding: '100px 40px', textAlign: 'center', background: '#ffffff', 
+            borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{ width: '80px', height: '80px', background: '#f8fafc', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+              <FileText size={40} color="#cbd5e1" />
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>Henüz Rapor Oluşturulmadı</h3>
+            <p style={{ color: '#64748b', marginBottom: '32px', maxWidth: '400px', margin: '12px auto 32px' }}>
+              Firmalarınızın verilerini yapay zeka ile analiz ederek dakikalar içinde profesyonel raporlar hazırlayabilirsiniz.
+            </p>
+            <button 
+              onClick={() => setModal(true)}
+              style={{ 
+                padding: '14px 32px', borderRadius: '16px', border: '1px solid #e2e8f0', 
+                background: '#ffffff', fontWeight: 700, cursor: 'pointer', fontSize: '14px',
+                color: '#1e293b', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+              }}
+            >
+              İlk Raporu Şimdi Oluştur
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '16px' }}>
+            {reports.map((report) => {
+              const status = STATUS_LABELS[report.status] || STATUS_LABELS.draft;
+              const StatusIcon = status.icon;
+              
+              return (
+                <div 
+                  key={report.id} 
+                  style={{ 
+                    background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '24px', 
+                    padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.02)', transition: 'all 0.2s, box-shadow 0.2s',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.04)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.02)';
+                  }}
+                  onClick={() => router.push(`/consultant/reports/${report.id}/edit`)}
+                >
+                  <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                    <div style={{ 
+                      width: '56px', height: '56px', background: '#f8fafc', borderRadius: '16px', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center' 
+                    }}>
+                      <FileText size={24} color="#64748b" />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '17px', color: '#1e293b' }}>{report.title}</span>
+                        <div style={{ 
+                          display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', 
+                          padding: '4px 10px', borderRadius: '8px', fontWeight: 800,
+                          color: status.color, background: status.bg, textTransform: 'uppercase'
+                        }}>
+                          <StatusIcon size={12} className={report.status === 'processing' ? 'animate-spin' : ''} /> {status.label}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Building2 size={14} /> {report.company?.name}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {report.period}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {new Date(report.createdAt || report.created_at).toLocaleDateString('tr-TR')}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {report.status === 'draft' && (
+                      <button
+                        onClick={(e) => handlePublish(e, report.id)}
+                        title="Yayınla"
+                        style={{
+                          padding: '10px', borderRadius: '12px', border: 'none', background: '#f0fdf4',
+                          color: '#16a34a', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#dcfce7'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#f0fdf4'}
+                      >
+                        <Send size={18} />
+                      </button>
+                    )}
+                    {report.status === 'published' && (
+                      <button
+                        onClick={(e) => handleUnpublish(e, report.id)}
+                        title="Yayından Kaldır"
+                        style={{
+                          padding: '10px', borderRadius: '12px', border: 'none', background: '#fef2f2',
+                          color: '#991b1b', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#fef2f2'}
+                      >
+                        <EyeOff size={18} />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => handleDelete(e, report.id)}
+                      title="Sil"
+                      style={{
+                        padding: '10px', borderRadius: '12px', border: 'none', background: '#fff1f2',
+                        color: '#e11d48', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#ffe4e6'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = '#fff1f2'}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                    <ChevronRight size={20} color="#cbd5e1" style={{ marginLeft: '4px' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* AI Report Wizard Modal */}
+      {modal && (
+        <div style={{ 
+          position: 'fixed', inset: 0, zIndex: 99999, 
+          background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+        }}>
+          <div style={{ 
+            background: '#ffffff', width: '100%', maxWidth: '520px', borderRadius: '32px',
+            overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            display: 'flex', flexDirection: 'column', position: 'relative'
+          }}>
+            {/* Modal Header */}
+            <div style={{ padding: '32px 32px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>AI Rapor Sihirbazı</h2>
+                <p style={{ color: '#64748b', fontSize: '14px', marginTop: '4px' }}>Firma verilerini analiz ederek kapsamlı rapor üretir.</p>
               </div>
-              <h3 className="font-bold text-slate-900">{t('reports.comparative')}</h3>
+              <button 
+                onClick={() => setModal(false)} 
+                style={{ background: '#f8fafc', border: 'none', width: '40px', height: '40px', borderRadius: '12px', cursor: 'pointer', color: '#94a3b8', fontSize: '18px' }}
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="p-8 space-y-8">
-              <div className="space-y-4">
-                <label className="text-sm font-bold text-slate-700">{t('reports.format')}</label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    { id: 'comparative', title: t('reports.comparative'), icon: FileBarChart2 },
-                    { id: 'single', title: 'Firma Bazlı', icon: FileText },
-                    { id: 'benchmark', title: 'Benchmark', icon: Filter },
-                  ].map((type) => (
-                    <button
-                      key={type.id}
-                      onClick={() => setReportType(type.id)}
-                      className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                        reportType === type.id 
-                          ? 'border-emerald-500 bg-emerald-50/30 ring-4 ring-emerald-500/10' 
-                          : 'border-slate-100 bg-slate-50 hover:border-slate-200'
-                      }`}
+            {/* Modal Body */}
+            <div style={{ padding: '32px', overflowY: 'auto', maxHeight: '65vh' }}>
+              
+              {/* Company Selection */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '12px', color: '#1e293b' }}>Hangi firma için rapor üretilecek?</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {companies.map(c => (
+                    <div 
+                      key={c.id} 
+                      onClick={() => setGenForm({...genForm, company_id: c.id})}
+                      style={{ 
+                        padding: '16px', borderRadius: '18px', cursor: 'pointer', transition: 'all 0.2s',
+                        border: genForm.company_id === c.id ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: genForm.company_id === c.id ? '#eff6ff' : '#ffffff'
+                      }}
                     >
-                      <type.icon size={20} className={reportType === type.id ? 'text-emerald-600' : 'text-slate-400'} />
-                      <p className={`font-bold text-sm mt-3 ${reportType === type.id ? 'text-emerald-700' : 'text-slate-700'}`}>{type.title}</p>
-                    </button>
+                      <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{c.name}</div>
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', display: 'flex', gap: '10px' }}>
+                        <span>{c.industry || 'Genel'}</span>
+                        <span>•</span>
+                        <span>{c.employee_count} çalışan</span>
+                      </div>
+                    </div>
                   ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-slate-700">{t('reports.select_companies')}</label>
-                  <button 
-                    onClick={() => setSelectedCompanies(companies.map(c => c.id))}
-                    className="text-xs text-blue-600 font-bold hover:underline"
-                  >
-                    {t('common.select_all', 'Tümünü Seç')}
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {companies.length > 0 ? (
-                    companies.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => toggleCompany(c.id)}
-                        className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                          selectedCompanies.includes(c.id)
-                            ? 'bg-blue-600 border-blue-600 text-white shadow-md'
-                            : 'bg-white border-slate-200 text-slate-600 hover:border-blue-400'
-                        }`}
-                      >
-                        {c.name}
-                      </button>
-                    ))
-                  ) : (
-                    <p className="col-span-full text-center py-4 text-slate-400 text-xs italic">Seçilebilecek firma bulunamadı.</p>
+                  {companies.length === 0 && (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px', background: '#f8fafc', borderRadius: '18px', border: '1px dashed #e2e8f0' }}>
+                      Henüz firma eklenmemiş.
+                    </div>
                   )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">{t('reports.period')}</label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              {/* Parameters */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '8px', color: '#1e293b' }}>Rapor Dönemi</label>
+                  <div style={{ position: 'relative' }}>
                     <input 
-                      type="month"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm appearance-none"
-                      value={period}
-                      onChange={(e) => setPeriod(e.target.value)}
+                      type="month" 
+                      value={genForm.period} 
+                      onChange={e => setGenForm({...genForm, period: e.target.value})} 
+                      style={{ 
+                        width: '100%', padding: '14px 14px 14px 40px', borderRadius: '14px', 
+                        border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none', background: '#ffffff' 
+                      }} 
                     />
+                    <Calendar size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">{t('reports.format')}</label>
-                  <div className="flex gap-2">
-                    {['PDF', 'Excel'].map((f) => (
-                      <button 
-                        key={f}
-                        onClick={() => setFormat(f)}
-                        className={`flex-1 py-2.5 rounded-xl border font-bold text-xs transition-all ${format === f ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/10' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                      >
-                        {f}
-                      </button>
-                    ))}
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '8px', color: '#1e293b' }}>Rapor Dili</label>
+                  <div style={{ position: 'relative' }}>
+                    <select 
+                      value={genForm.language} 
+                      onChange={e => setGenForm({...genForm, language: e.target.value as any})} 
+                      style={{ 
+                        width: '100%', padding: '14px 14px 14px 40px', borderRadius: '14px', 
+                        border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none', background: '#ffffff', appearance: 'none' 
+                      }}
+                    >
+                      <option value="tr">Türkçe</option>
+                      <option value="en">English</option>
+                    </select>
+                    <Globe size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
                   </div>
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <Clock size={14} />
-                  {t('reports.email_notice')}
-                </div>
-                <button
-                  onClick={handleGenerate}
-                  disabled={isGenerating || companies.length === 0}
-                  className="px-10 py-3.5 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2 disabled:opacity-50"
-                >
-                  {isGenerating ? t('common.generating') : <><Download size={18} /> {t('reports.create')}</>}
-                </button>
+              <div style={{ 
+                background: '#fff7ed', padding: '16px', borderRadius: '16px', border: '1px solid #ffedd5',
+                display: 'flex', gap: '12px', alignItems: 'flex-start'
+              }}>
+                <Zap size={20} color="#f59e0b" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#9a3412', lineHeight: '1.5' }}>
+                  Bu işlem <strong>20 AI kredisi</strong> kullanacaktır. Analiz süreci arka planda gerçekleştirilecek ve bittiğinde kayıtlı e-posta adresinize bir bildirim gönderilecektir.
+                </p>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <h3 className="font-bold text-slate-900 mb-6 flex items-center justify-between">
-              {t('reports.history')}
-              <span className="px-2 py-1 bg-slate-100 rounded text-[10px] text-slate-500">{t('common.all')}</span>
-            </h3>
-            <div className="space-y-4">
-              <p className="text-center py-8 text-slate-400 text-xs italic">Henüz oluşturulmuş raporunuz bulunmuyor.</p>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 text-white overflow-hidden relative shadow-lg shadow-blue-900/20 group">
-            <div className="relative z-10 space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-2">
-                <Clock className="text-white" size={24} />
-              </div>
-              <h4 className="text-xl font-bold tracking-tight">{t('reports.auto_reporting')}</h4>
-              <p className="text-sm text-white/80 leading-relaxed font-medium">
-                {t('reports.auto_reporting_desc')}
-              </p>
+            {/* Modal Footer */}
+            <div style={{ padding: '24px 32px 32px', background: '#f8fafc', borderTop: '1px solid #f1f5f9' }}>
               <button 
-                onClick={() => router.push('/consultant/settings?tab=auto-reporting')}
-                className="flex items-center gap-2 text-sm font-bold bg-white text-blue-600 px-6 py-2.5 rounded-xl hover:bg-blue-50 transition-all group/btn shadow-sm"
+                onClick={handleGenerate}
+                disabled={generating || !genForm.company_id}
+                style={{ 
+                  width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
+                  background: (generating || !genForm.company_id) ? '#cbd5e1' : '#2563eb', 
+                  color: '#ffffff', fontWeight: 800, fontSize: '16px', 
+                  cursor: (generating || !genForm.company_id) ? 'not-allowed' : 'pointer',
+                  boxShadow: (generating || !genForm.company_id) ? 'none' : '0 10px 15px -3px rgba(37, 99, 235, 0.3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
+                  transition: 'all 0.2s'
+                }}
               >
-                {t('settings.configure_settings')} <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                {generating ? (
+                  <><Loader2 className="animate-spin" size={20} /> Analiz Ediliyor...</>
+                ) : (
+                  <>Raporu Şimdi Oluştur</>
+                )}
               </button>
             </div>
-            <FileText className="absolute -bottom-6 -right-6 text-white/10 rotate-12" size={160} />
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

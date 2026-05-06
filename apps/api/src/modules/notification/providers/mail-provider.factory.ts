@@ -18,20 +18,25 @@ export class MailProviderFactory {
     console.log('[MailFactory] Provider:', provider);
 
     // mail_config decrypt et
-    const config = await this.settingsService.getDecryptedMailConfig();
-    console.log('[MailFactory] Decrypted config keys:', Object.keys(config || {}));
-    if (provider === 'resend') {
-      console.log('[MailFactory] Resend API Key present:', !!config?.api_key);
-      if (config?.api_key) {
-        console.log('[MailFactory] Resend API Key start:', config.api_key.substring(0, 5));
-      }
+    let config = await this.settingsService.getDecryptedMailConfig();
+    
+    // Diagnostic logging - yazılabilir bir yere logla
+    const logPath = '/Users/onureksi/Desktop/wellanalytics/apps/api/mail_diag.log';
+    const logMsg = `[${new Date().toISOString()}] Provider: ${provider} | Config: ${JSON.stringify(config)}\n`;
+    try { require('fs').appendFileSync(logPath, logMsg); } catch (e) {}
+
+    // Handle nested structure if still present
+    if (config?.provider_specific?.[provider]) {
+      config = config.provider_specific[provider];
     }
 
     switch (provider) {
       case 'resend':
-        if (!config?.api_key)
-          throw new Error('Resend API key missing');
-        return new ResendProvider(config.api_key);
+        const apiKey = config?.api_key || config?.apiKey;
+        if (!apiKey) {
+          throw new Error(`Resend API key missing. Config keys: ${Object.keys(config || {}).join(',')}`);
+        }
+        return new ResendProvider(apiKey);
 
       case 'sendgrid':
         if (!config?.api_key)

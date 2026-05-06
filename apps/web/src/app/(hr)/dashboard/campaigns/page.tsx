@@ -75,17 +75,17 @@ export default function HrCampaignsPage() {
       case 'scheduled': return (
         <Badge variant="blue">
           <Clock size={12} className="mr-1" /> 
-          {t('campaigns.scheduled', 'Zamanlandı')}: {scheduledAt ? format(new Date(scheduledAt), 'dd MMM HH:mm', { locale: t('common.date_locale', 'tr') === 'tr' ? tr : undefined }) : '-'}
+          {t('dashboard.campaigns.scheduled', 'Zamanlandı')}: {scheduledAt ? format(new Date(scheduledAt), 'dd MMM HH:mm', { locale: t('common.date_locale', 'tr') === 'tr' ? tr : undefined }) : '-'}
         </Badge>
       );
       case 'sending': return (
         <Badge variant="yellow">
           <Loader2 size={12} className="mr-1 animate-spin" /> 
-          {t('campaigns.sending', 'Gönderiliyor')}
+          {t('dashboard.campaigns.sending', 'Gönderiliyor')}
         </Badge>
       );
-      case 'sent': return <Badge variant="green">{t('campaigns.sent', 'Gönderildi')}</Badge>;
-      case 'cancelled': return <Badge variant="red">{t('campaigns.cancelled', 'İptal Edildi')}</Badge>;
+      case 'sent': return <Badge variant="green">{t('dashboard.campaigns.sent', 'Gönderildi')}</Badge>;
+      case 'cancelled': return <Badge variant="red">{t('dashboard.campaigns.cancelled', 'İptal Edildi')}</Badge>;
       default: return <Badge variant="gray">{status}</Badge>;
     }
 
@@ -96,11 +96,11 @@ export default function HrCampaignsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-black text-navy">{t('campaigns.title')}</h1>
-          <p className="text-gray-500">{t('campaigns.subtitle')}</p>
+          <h1 className="text-2xl font-black text-navy">{t('dashboard.campaigns.title')}</h1>
+          <p className="text-gray-500">{t('dashboard.campaigns.subtitle')}</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-          <Plus size={20} /> {t('campaigns.new_distribution', 'Yeni Dağıtım')}
+          <Plus size={20} /> {t('dashboard.campaigns.new_distribution', 'Yeni Dağıtım')}
         </Button>
 
       </div>
@@ -123,8 +123,8 @@ export default function HrCampaignsPage() {
              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
            >
              <option value="">{t('common.all_statuses', 'Tüm Durumlar')}</option>
-             <option value="sent">{t('campaigns.sent', 'Gönderildi')}</option>
-             <option value="scheduled">{t('campaigns.scheduled', 'Zamanlandı')}</option>
+             <option value="sent">{t('dashboard.campaigns.sent', 'Gönderildi')}</option>
+             <option value="scheduled">{t('dashboard.campaigns.scheduled', 'Zamanlandı')}</option>
              <option value="pending">{t('common.waiting', 'Bekliyor')}</option>
 
            </select>
@@ -164,10 +164,10 @@ export default function HrCampaignsPage() {
               </div>
 
               <div className="grid grid-cols-4 gap-2">
-                <StatBox label={t('campaigns.sent_short', 'Gönder.')} value={campaign.sent_count} />
-                <StatBox label={t('campaigns.open_rate', 'Açılma')} value={`%${campaign.open_rate}`} />
-                <StatBox label={t('campaigns.click_rate', 'Tıklama')} value={`%${campaign.click_rate}`} />
-                <StatBox label={t('campaigns.completion_short', 'Tamam.')} value={`%${campaign.completion_rate}`} />
+                <StatBox label={t('dashboard.campaigns.sent_short', 'Gönder.')} value={campaign.sent_count} />
+                <StatBox label={t('dashboard.campaigns.open_rate', 'Açılma')} value={`%${campaign.open_rate}`} />
+                <StatBox label={t('dashboard.campaigns.click_rate', 'Tıklama')} value={`%${campaign.click_rate}`} />
+                <StatBox label={t('dashboard.campaigns.completion_short', 'Tamam.')} value={`%${campaign.completion_rate}`} />
               </div>
 
 
@@ -181,12 +181,12 @@ export default function HrCampaignsPage() {
                     variant="outline" 
                     className="flex-1 text-xs py-2"
                     onClick={() => {
-                       if (confirm(t('campaigns.remind_confirm', 'Anketi tamamlamayanlara hatırlatma gönderilsin mi?'))) {
+                       if (confirm(t('dashboard.campaigns.remind_confirm', 'Anketi tamamlamayanlara hatırlatma gönderilsin mi?'))) {
                          remidMutation.mutate(campaign.id);
                        }
                     }}
                   >
-                    {t('campaigns.remind', 'Hatırlat')}
+                    {t('dashboard.campaigns.remind', 'Hatırlat')}
                   </Button>
 
                 )}
@@ -199,10 +199,10 @@ export default function HrCampaignsPage() {
       {data?.items.length === 0 && !isLoading && (
         <div className="text-center py-20 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200">
            <Mail size={48} className="mx-auto text-gray-300 mb-4" />
-           <h3 className="text-xl font-bold text-navy">{t('campaigns.no_campaigns', 'Henüz kampanya yok')}</h3>
-           <p className="text-gray-500 max-w-xs mx-auto mt-2">{t('campaigns.no_campaigns_desc', 'Anketlerinizi çalışanlarınıza ulaştırmak için yeni bir dağıtım başlatın.')}</p>
+           <h3 className="text-xl font-bold text-navy">{t('dashboard.campaigns.no_campaigns', 'Henüz kampanya yok')}</h3>
+           <p className="text-gray-500 max-w-xs mx-auto mt-2">{t('dashboard.campaigns.no_campaigns_desc', 'Anketlerinizi çalışanlarınıza ulaştırmak için yeni bir dağıtım başlatın.')}</p>
            <Button onClick={() => setIsModalOpen(true)} className="mt-6 gap-2">
-             <Plus size={20} /> {t('campaigns.create_first', 'İlk Dağıtımı Oluştur')}
+             <Plus size={20} /> {t('dashboard.campaigns.create_first', 'İlk Dağıtımı Oluştur')}
            </Button>
         </div>
       )}

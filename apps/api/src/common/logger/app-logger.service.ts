@@ -11,7 +11,7 @@ export interface LogContext {
   role?:       string;
   requestId?:  string;
   duration?:   number;   // ms
-  provider?:   string;   // 'iyzico' | 'stripe'
+  provider?:   string;   // 'stripe' | 'paytr'
   extra?:      Record<string, unknown>;
 }
 
@@ -21,7 +21,7 @@ export class AppLogger implements LoggerService {
   private readonly sensitiveKeys = [
     'password', 'password_hash', 'cardNumber', 'cvc', 'cvv',
     'expireMonth', 'expireYear', 'api_key', 'secret', 'token',
-    'authorization', 'cookie', 'STRIPE_SECRET', 'IYZICO_SECRET',
+    'authorization', 'cookie', 'STRIPE_SECRET',
   ];
 
   constructor(private config: ConfigService) {

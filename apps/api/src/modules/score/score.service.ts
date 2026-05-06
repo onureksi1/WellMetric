@@ -122,6 +122,7 @@ export class ScoreService {
     if (overallScoreRes && overallScoreRes.avg_score) {
       resultsToUpsert.push({
         company_id: companyId,
+        survey_id: surveyId,
         period,
         segment_type: null,
         segment_value: null,
@@ -180,7 +181,7 @@ export class ScoreService {
         .values(resultsToUpsert)
         .orUpdate(
           ['score', 'response_count', 'calculated_at'],
-          ['company_id', 'period', 'segment_type', 'segment_value', 'dimension']
+          ['company_id', 'survey_id', 'period', 'dimension', 'segment_type', 'segment_value', 'department_id']
         )
         .execute();
     }
@@ -188,64 +189,92 @@ export class ScoreService {
     this.logger.log(`Upserted ${resultsToUpsert.length} score records.`);
 
     // 3. Calculate Segment Scores (location, seniority, age_group, gender)
-    const company = await this.dataSource.query(`SELECT settings FROM companies WHERE id = $1`, [companyId]);
-    const threshold = company[0]?.settings?.anonymity_threshold || 5;
-    const SEGMENT_TYPES = ['location', 'seniority', 'age_group', 'gender'] as const;
+    const companyRes = await this.dataSource.query(`SELECT settings FROM companies WHERE id = $1`, [companyId]);
+    const company = companyRes[0];
+    const threshold = company?.settings?.anonymity_threshold ?? 5;
+
+    const SEGMENT_TYPES = [
+      'location',
+      'seniority',
+      'age_group',
+      'gender',
+    ] as const;
+
+    const DIMENSIONS = [
+      'physical', 'mental', 'social',
+      'financial', 'work', 'overall',
+    ] as const;
 
     for (const segmentType of SEGMENT_TYPES) {
       // Find distinct values for this segment
-      const segmentValues = await this.dataSource.query(
-        `SELECT DISTINCT ${segmentType} as value FROM survey_responses 
-         WHERE company_id = $1 AND survey_id = $2 AND period = $3 AND ${segmentType} IS NOT NULL`,
+      const segmentValues: { value: string }[] = await this.dataSource.query(
+        `SELECT DISTINCT sr.${segmentType} as value
+         FROM survey_responses sr
+         WHERE sr.company_id  = $1
+           AND sr.survey_id   = $2
+           AND sr.period      = $3
+           AND sr.${segmentType} IS NOT NULL
+           AND sr.${segmentType} != ''`,
         [companyId, surveyId, period]
       );
 
       for (const { value } of segmentValues) {
-        // Fetch responses for this segment value
-        const responses = await this.dataSource.getRepository(SurveyResponse).find({
-          where: {
-            company_id: companyId,
-            survey_id: surveyId,
-            period,
-            [segmentType]: value,
-          },
-          relations: ['answers'],
-        });
-
         // Anonymity threshold check
+        const responses = await this.dataSource.getRepository(SurveyResponse)
+          .createQueryBuilder('r')
+          .leftJoinAndSelect('r.answers', 'a')
+          .leftJoinAndSelect('a.question', 'q')
+          .where('r.company_id = :cid', { cid: companyId })
+          .andWhere('r.survey_id = :sid', { sid: surveyId })
+          .andWhere(`r.${segmentType} = :val`, { val: value })
+          .getMany();
+
         if (responses.length < threshold) {
-          continue; 
+          this.logger.debug('Segment eşik altı — atlanıyor', { segmentType, value, count: responses.length });
+          continue;
         }
 
-        const segmentResults: Partial<WellbeingScore>[] = [];
-        const dimensions = ['physical', 'mental', 'social', 'financial', 'work'];
-        
-        for (const dimension of [...dimensions, 'overall']) {
-          const score = this.calculateDimensionScore(responses, dimension);
-          if (score === null) continue;
+        // Calculate scores for each dimension
+        for (const dimension of DIMENSIONS) {
+          const answers = responses.flatMap(r =>
+            r.answers.filter(a =>
+              dimension === 'overall'
+                ? a.score !== null && a.score !== undefined
+                : a.dimension === dimension &&
+                  a.score !== null && a.score !== undefined
+            )
+          );
 
-          segmentResults.push({
-            company_id: companyId,
+          if (answers.length === 0) continue;
+
+          const avgScore = answers.reduce(
+            (sum, a) => sum + Number(a.score), 0
+          ) / answers.length;
+
+          // Save to wellbeing_scores table
+          await this.scoreRepository.upsert({
+            company_id:       companyId,
+            survey_id:        surveyId,
+            department_id:    null,
             period,
             dimension,
-            segment_type: segmentType,
-            segment_value: value,
-            score,
-            response_count: responses.length,
-          });
+            segment_type:     segmentType,
+            segment_value:    value,
+            score:            Math.round(avgScore * 100) / 100,
+            response_count:   responses.length,
+            calculated_at:    new Date(),
+          }, [
+            'company_id',
+            'survey_id',
+            'period',
+            'dimension',
+            'segment_type',
+            'segment_value',
+            'department_id',
+          ]);
         }
 
-        if (segmentResults.length > 0) {
-          await this.scoreRepository.createQueryBuilder()
-            .insert()
-            .into(WellbeingScore)
-            .values(segmentResults)
-            .orUpdate(
-              ['score', 'response_count', 'calculated_at'],
-              ['company_id', 'period', 'segment_type', 'segment_value', 'dimension']
-            )
-            .execute();
-        }
+        this.logger.debug('Segment skoru hesaplandı', { segmentType, value, count: responses.length });
       }
     }
 
