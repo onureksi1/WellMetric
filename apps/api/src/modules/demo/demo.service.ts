@@ -31,24 +31,27 @@ export class DemoService {
     const request = this.demoRepository.create(dto);
     const saved = await this.demoRepository.save(request);
 
-    // Notify Super Admin
-    const settings = await this.settingsService.getSettings();
-    const adminEmail = settings?.admin_email || process.env.SUPER_ADMIN_EMAIL || 'admin@wellanalytics.io';
-    
+    // Post-save side effects — must not throw 500 back to the user
     try {
+      const settings = await this.settingsService.getSettings();
+      const adminEmail = settings?.admin_email || process.env.SUPER_ADMIN_EMAIL || 'admin@wellanalytics.io';
       await this.notificationService.sendDemoRequest(adminEmail, saved);
     } catch (e) {
       console.error('Demo request notification failed', e);
     }
 
-    await this.auditService.logAction(
-      'system',
-      null,
-      'demo_request.create',
-      'demo_requests',
-      saved.id,
-      { email: saved.email }
-    );
+    try {
+      await this.auditService.logAction(
+        'system',
+        null,
+        'demo_request.create',
+        'demo_requests',
+        saved.id,
+        { email: saved.email }
+      );
+    } catch (e) {
+      console.error('Demo request audit log failed', e);
+    }
 
     return { success: true };
   }
