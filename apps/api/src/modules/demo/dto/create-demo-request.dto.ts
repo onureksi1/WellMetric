@@ -19,7 +19,7 @@ export class CreateDemoRequestDto {
   company_name: string;
 
   @IsOptional()
-  @IsEnum(['1-50', '51-250', '251-1000', '1000+'])
+  @IsEnum(['1-50', '51-250', '251-500', '501-1000', '1000+'])
   company_size?: string;
 
   @IsOptional()
@@ -31,6 +31,10 @@ export class CreateDemoRequestDto {
   @IsString()
   @MaxLength(50)
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  user_type_category?: string;
 
   @IsOptional()
   @IsString()
