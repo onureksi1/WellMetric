@@ -13,6 +13,7 @@ import {
   Plus, 
   Calendar,
   Send,
+  RotateCcw,
   AlertCircle,
   Loader2
 } from 'lucide-react';
@@ -127,12 +128,27 @@ export default function HrSurveysPage() {
                     </Button>
                   )}
                   {survey.campaign_count > 0 && (
-                    <Link href={`/dashboard/campaigns?survey_id=${survey.survey_id}`} className="flex-1 sm:flex-none sm:w-auto">
-                      <Button variant="ghost" size="sm" className="w-full gap-2 border border-gray-100 text-[10px] font-bold py-2.5">
-                        <Eye size={14} />
-                        {t('dashboard.surveys.campaign_details')}
+                    <div className="flex gap-2 flex-1 sm:flex-none">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex-1 gap-2 border border-gray-100 text-[10px] font-bold py-2.5"
+                        onClick={() => setWizardData({
+                          survey_id: survey.survey_id,
+                          assignment_id: survey.id,
+                          period: survey.period
+                        })}
+                      >
+                        <RotateCcw size={14} />
+                        {t('dashboard.surveys.resend', 'Tekrar Gönder')}
                       </Button>
-                    </Link>
+                      <Link href={`/dashboard/campaigns?survey_id=${survey.survey_id}`}>
+                        <Button variant="ghost" size="sm" className="gap-2 border border-gray-100 text-[10px] font-bold py-2.5">
+                          <Eye size={14} />
+                          {t('dashboard.surveys.campaign_details')}
+                        </Button>
+                      </Link>
+                    </div>
                   )}
                 </div>
               </Card>
