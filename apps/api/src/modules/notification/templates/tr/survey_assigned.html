@@ -36,11 +36,23 @@
 
       <p>Herhangi bir sorunuz olursa danışmanınızla veya bizimle iletişime geçebilirsiniz.</p>
     </div>
-    <div class="footer">
+    <div class="footer" style="text-align:center;padding:30px 0 20px; border-top: 1px solid #eee;">
       {{#if brand_logo_url}}
-      <img src="{{brand_logo_url}}" alt="{{brand_name}}" style="height:28px; opacity:0.75; margin-bottom:8px;" />
+      <a href="{{platform_url}}" target="_blank" style="text-decoration:none;">
+        <img
+          src="{{brand_logo_url}}"
+          alt="{{brand_name}}"
+          style="height:32px;width:auto;object-fit:contain;
+                 margin-bottom:12px;display:block;margin-left:auto;
+                 margin-right:auto;"
+        />
+      </a>
+      {{else}}
+      <p style="font-weight:bold;font-size:16px;color:#2E865A;margin-bottom:12px;">
+        {{brand_name}}
+      </p>
       {{/if}}
-      <p style="margin:0;">{{brand_name}} — Esenlik Odaklı Karar Destek Platformu</p>
+      <p style="font-size:11px;color:#999;margin:0;">{{brand_name}} — Esenlik Odaklı Karar Destek Platformu</p>
     </div>
   </div>
 </body>

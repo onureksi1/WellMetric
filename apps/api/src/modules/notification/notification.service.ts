@@ -82,6 +82,7 @@ export class NotificationService {
       const finalVariables = {
         platform_url: platformUrl,
         platform_logo_url: platformLogoUrl,
+        brand_logo_url: platformLogoUrl, // Add this for template compatibility
         brand_name: settings?.platform_name || 'Wellbeing Metric',
         ...variables,
       };

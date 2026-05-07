@@ -34,19 +34,21 @@
         <a href="{{dashboard_link}}" class="btn">Dashboard'a Git →</a>
       </div>
     </div>
-        <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee;"><img src="{{platform_logo_url}}" alt="Wellbeing Metric" style="height: 40px; object-fit: contain;"></div>
-    <div class="footer" style="text-align:center;padding:20px 0 10px;">
+            </div>
+    
+    <div class="footer" style="text-align:center;padding:30px 0 20px; border-top: 1px solid #eee;">
       {{#if brand_logo_url}}
-      <img
-        src="{{brand_logo_url}}"
-        alt="{{brand_name}}"
-        style="height:28px;width:auto;object-fit:contain;
-               margin-bottom:8px;display:block;margin-left:auto;
-               margin-right:auto;opacity:0.75;"
-      />
+      <a href="{{platform_url}}" target="_blank" style="text-decoration:none;">
+        <img
+          src="{{brand_logo_url}}"
+          alt="{{brand_name}}"
+          style="height:32px;width:auto;object-fit:contain;
+                 margin-bottom:12px;display:block;margin-left:auto;
+                 margin-right:auto;"
+        />
+      </a>
       {{else}}
-      <p style="font-weight:500;font-size:13px;
-                 color:#666;margin-bottom:8px;">
+      <p style="font-weight:bold;font-size:16px;color:#2E865A;margin-bottom:12px;">
         {{brand_name}}
       </p>
       {{/if}}
