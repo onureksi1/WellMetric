@@ -25,6 +25,9 @@ export class DemoRequest {
   phone: string | null;
 
   @Column({ length: 50, nullable: true })
+  user_type_category: string | null;
+
+  @Column({ length: 50, nullable: true })
   user_type: string | null;
 
   @Column({ type: 'text', nullable: true })
