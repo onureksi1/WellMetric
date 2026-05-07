@@ -5,6 +5,19 @@ import { logger } from '../logger';
 
 const getBaseURL = () => {
   const url = process.env.NEXT_PUBLIC_API_URL || '';
+  
+  // Smart detection for production environments
+  if (typeof window !== 'undefined' && 
+      window.location.hostname !== 'localhost' && 
+      window.location.hostname !== '127.0.0.1') {
+    
+    // If the configured URL is localhost or empty, but we are on a real domain
+    if (!url || url.includes('localhost')) {
+      const rootDomain = window.location.hostname.replace(/^www\./, '');
+      return `https://api.${rootDomain}/api/v1`;
+    }
+  }
+
   if (!url) return '/api/v1';
   return url.endsWith('/api/v1') ? url : `${url}/api/v1`;
 };

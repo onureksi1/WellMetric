@@ -14,7 +14,14 @@ export const DebugOverlay = () => {
     // Check if debug mode is enabled
     const checkSettings = async () => {
       try {
-        const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+        const url = process.env.NEXT_PUBLIC_API_URL || '';
+        let apiUrl = url;
+        
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && (!url || url.includes('localhost'))) {
+          apiUrl = `https://api.${window.location.hostname.replace(/^www\./, '')}`;
+        }
+        
+        apiUrl = (apiUrl || 'http://localhost:3001').replace(/\/$/, '');
         const res = await fetch(`${apiUrl}/api/v1/settings`).then(r => r.json()).catch(() => null);
         if (res) {
           setIsEnabled(res.debug_mode ?? true);
@@ -41,7 +48,14 @@ export const DebugOverlay = () => {
     // Check API health
     const checkApi = async () => {
       try {
-        const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+        const url = process.env.NEXT_PUBLIC_API_URL || '';
+        let apiUrl = url;
+        
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && (!url || url.includes('localhost'))) {
+          apiUrl = `https://api.${window.location.hostname.replace(/^www\./, '')}`;
+        }
+
+        apiUrl = (apiUrl || 'http://localhost:3001').replace(/\/$/, '');
         const healthUrl = apiUrl.endsWith('/api/v1') 
           ? `${apiUrl}/health` 
           : `${apiUrl}/api/v1/health`;
