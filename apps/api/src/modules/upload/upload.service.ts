@@ -39,6 +39,12 @@ export class UploadService {
     private readonly dataSource: DataSource,
   ) {}
 
+  private async getPlatformUrl(): Promise<string> {
+    const settings = await this.settingsService.getSettings();
+    const url = process.env.NEXT_PUBLIC_APP_URL || settings?.platform_url || 'https://wellbeingmetric.com';
+    return url.replace(/\/$/, ''); // Remove trailing slash
+  }
+
   async getPresignedPutUrl(dto: PresignedUrlDto, companyId: string) {
     const limits = FILE_LIMITS[dto.file_type];
     
@@ -71,7 +77,16 @@ export class UploadService {
     }
 
     const { provider } = await this.providerFactory.getProvider();
-    const url = await provider.getPresignedPutUrl(s3Key, dto.mime_type, 900);
+    let url = await provider.getPresignedPutUrl(s3Key, dto.mime_type, 900);
+
+    // EMERGENCY FIX: If URL contains localhost but we are on a real domain, fix it
+    if (url.includes('localhost')) {
+      const platformUrl = await this.getPlatformUrl();
+      if (platformUrl && !platformUrl.includes('localhost')) {
+        const apiUrl = platformUrl.replace('://', '://api.').replace(/\/$/, '');
+        url = url.replace(/http:\/\/localhost:\d+/, apiUrl);
+      }
+    }
 
     return {
       presigned_url: url,
@@ -96,6 +111,15 @@ export class UploadService {
       cdnUrl = `${settings.storage_endpoint}/${dto.s3_key}`;
     } else {
       cdnUrl = await provider.getPresignedGetUrl(dto.s3_key, 3600); // 1 hour
+      
+      // EMERGENCY FIX: If URL contains localhost but we have a platform URL, fix it
+      if (cdnUrl.includes('localhost')) {
+        const platformUrl = await this.getPlatformUrl();
+        if (platformUrl && !platformUrl.includes('localhost')) {
+          const apiUrl = platformUrl.replace('://', '://api.').replace(/\/$/, '');
+          cdnUrl = cdnUrl.replace(/http:\/\/localhost:\d+/, apiUrl);
+        }
+      }
     }
 
     if (dto.context === 'logo') {
