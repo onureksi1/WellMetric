@@ -227,6 +227,11 @@ export class CompanyService {
         slug = `${slug}-${c + 1}`;
       }
 
+      // Fetch creator role to auto-assign consultant_id if needed
+      const creator = await manager.query(`SELECT role FROM users WHERE id = $1 LIMIT 1`, [adminUserId]);
+      const creatorRole = creator[0]?.role;
+      const autoConsultantId = creatorRole === 'consultant' ? adminUserId : (dto.consultant_id || null);
+
       // Create company
       const companyRes = await manager.query(`
         INSERT INTO companies (name, slug, industry, size_band, plan, contact_email, settings, created_by, consultant_id)
@@ -240,7 +245,7 @@ export class CompanyService {
           default_language: dto.default_language || 'tr',
         }),
         adminUserId || null,
-        dto.consultant_id || null
+        autoConsultantId
       ]);
 
       const companyId = companyRes[0].id;
