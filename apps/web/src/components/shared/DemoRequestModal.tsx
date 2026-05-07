@@ -43,6 +43,7 @@ export function DemoRequestModal({ isOpen, onClose }: DemoRequestModalProps) {
     company_size: z.string().min(1, t('common.errors.required')),
     industry: z.string().min(1, t('common.errors.required')),
     phone: z.string().optional(),
+    user_type_category: z.string().min(1, t('common.errors.required')),
     user_type: z.string().optional(),
     message: z.string().max(1000, t('demo.error_message_max')).optional(),
   });
@@ -50,6 +51,7 @@ export function DemoRequestModal({ isOpen, onClose }: DemoRequestModalProps) {
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
+      user_type_category: 'company',
       user_type: 'needs_consultant'
     }
   });
@@ -57,7 +59,15 @@ export function DemoRequestModal({ isOpen, onClose }: DemoRequestModalProps) {
   const onSubmit = async (data: any) => {
     setLoading(true);
     try {
-      await client.post('/demo-requests', data);
+      // Merge category and status for backend
+      const finalData = {
+        ...data,
+        user_type: data.user_type_category === 'company' 
+          ? `company_${data.user_type}` 
+          : data.user_type_category
+      };
+      
+      await client.post('/demo-requests', finalData);
       setIsSuccess(true);
       
       // Trigger soft confetti
@@ -202,35 +212,41 @@ export function DemoRequestModal({ isOpen, onClose }: DemoRequestModalProps) {
             </div>
           </div>
 
-          {/* User Type Selection */}
+          {/* User Type Selection - Level 1: Category */}
           <div className="space-y-3">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
               {t('demo.i_am')}
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {[
                 { id: 'trainer', label: t('demo.i_am_trainer'), icon: User, color: 'emerald' },
-                { id: 'has_consultant', label: t('demo.has_consultant'), icon: CheckCircle2, color: 'blue' },
-                { id: 'needs_consultant', label: t('demo.needs_consultant'), icon: Sparkles, color: 'indigo' },
+                { id: 'company', label: t('demo.i_am_company'), icon: Building2, color: 'blue' },
                 { id: 'individual', label: t('demo.individual'), icon: Users2, color: 'slate' },
               ].map((type) => (
                 <button
                   key={type.id}
                   type="button"
-                  onClick={() => setValue('user_type', type.id)}
-                  className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 gap-2 group relative overflow-hidden ${
-                    watch('user_type') === type.id
+                  onClick={() => {
+                    setValue('user_type_category', type.id);
+                    if (type.id === 'company') {
+                      setValue('user_type', 'needs_consultant');
+                    } else {
+                      setValue('user_type', type.id);
+                    }
+                  }}
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-300 gap-2 group relative overflow-hidden ${
+                    watch('user_type_category') === type.id
                       ? `bg-${type.color}-500/5 border-${type.color}-500 shadow-md`
                       : 'bg-white border-slate-100 hover:border-slate-200'
                   }`}
                 >
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center transition-colors ${
-                    watch('user_type') === type.id ? `bg-${type.color}-500 text-white` : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                    watch('user_type_category') === type.id ? `bg-${type.color}-500 text-white` : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'
                   }`}>
-                    <type.icon size={18} className="sm:size-5" />
+                    <type.icon size={16} />
                   </div>
-                  <span className={`text-[9px] sm:text-[10px] font-bold text-center leading-tight px-1 ${
-                    watch('user_type') === type.id ? 'text-slate-900' : 'text-slate-400'
+                  <span className={`text-[9px] font-bold text-center leading-tight ${
+                    watch('user_type_category') === type.id ? 'text-slate-900' : 'text-slate-400'
                   }`}>
                     {type.label}
                   </span>
@@ -238,6 +254,43 @@ export function DemoRequestModal({ isOpen, onClose }: DemoRequestModalProps) {
               ))}
             </div>
           </div>
+
+          {/* User Type Selection - Level 2: Consultant Status (Shown for Company) */}
+          {watch('user_type_category') === 'company' && (
+            <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                {t('demo.consultant_status')}
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { id: 'has_consultant', label: t('demo.has_consultant'), icon: CheckCircle2, color: 'blue' },
+                  { id: 'needs_consultant', label: t('demo.needs_consultant'), icon: Sparkles, color: 'indigo' },
+                ].map((type) => (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => setValue('user_type', type.id)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-300 gap-2 group relative overflow-hidden ${
+                      watch('user_type') === type.id
+                        ? `bg-${type.color}-500/5 border-${type.color}-500 shadow-md`
+                        : 'bg-white border-slate-100 hover:border-slate-200'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                      watch('user_type') === type.id ? `bg-${type.color}-500 text-white` : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'
+                    }`}>
+                      <type.icon size={16} />
+                    </div>
+                    <span className={`text-[9px] font-bold text-center leading-tight ${
+                      watch('user_type') === type.id ? 'text-slate-900' : 'text-slate-400'
+                    }`}>
+                      {type.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Message */}
           <div className="space-y-1.5">
