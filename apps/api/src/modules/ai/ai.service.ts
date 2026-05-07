@@ -73,7 +73,7 @@ export class AIService {
     if (!taskCost) {
       totalDeducted = TASK_CREDITS[taskType] ?? 1;
     } else {
-      totalDeducted = Object.values(taskCost).reduce((a: number, b: any) => a + Number(b), 0);
+      totalDeducted = Object.values(taskCost).reduce((a: number, b: any) => a + Number(b), 0) as number;
     }
 
     // Find consultant for this company
@@ -166,7 +166,6 @@ export class AIService {
       consultantId,
       companyId,
       taskType:     AITaskEnum.OPEN_TEXT_SUMMARY,
-      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
@@ -227,7 +226,6 @@ export class AIService {
       consultantId,
       companyId,
       taskType:     AITaskEnum.RISK_ALERT,
-      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
@@ -276,7 +274,6 @@ export class AIService {
       consultantId,
       companyId,
       taskType:     AITaskEnum.ACTION_SUGGESTION,
-      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
@@ -465,7 +462,6 @@ export class AIService {
       consultantId,
       companyId,
       taskType:     AITaskEnum.INTELLIGENCE_REPORT,
-      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
       inputTokens:  aiResult.inputTokens,
       outputTokens: aiResult.outputTokens,
@@ -509,7 +505,6 @@ export class AIService {
       consultantId,
       companyId,
       taskType:     AITaskEnum.TREND_ANALYSIS,
-      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
@@ -551,7 +546,6 @@ export class AIService {
       consultantId: null, // HR chat is currently not charged to consultant in this call
       companyId,
       taskType:     AITaskEnum.HR_CHAT,
-      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
@@ -724,7 +718,6 @@ export class AIService {
     await this.apiCostService.logAiCall({
       consultantId,
       taskType:     options.taskType,
-      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
@@ -751,7 +744,6 @@ export class AIService {
     await this.apiCostService.logAiCall({
       consultantId,
       taskType:     AITaskEnum.CONTENT_SUGGESTION,
-      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
