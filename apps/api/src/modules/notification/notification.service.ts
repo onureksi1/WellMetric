@@ -137,7 +137,7 @@ export class NotificationService {
     const subject = language === 'tr' ? '🌱 Wellbeing Anketiniz Hazır' : '🌱 Your Wellbeing Survey is Ready';
 
     const surveyLink = logId
-      ? `${platformUrl}/api/v1/track/click/${logId}`
+      ? `${await this.getApiUrl()}/api/v1/track/click/${logId}`
       : `${platformUrl}/surveys/${token}`;
 
     const variables: Record<string, string> = {
