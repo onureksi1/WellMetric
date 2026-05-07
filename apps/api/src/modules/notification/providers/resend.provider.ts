@@ -24,7 +24,7 @@ export class ResendProvider implements IMailProvider {
       body: JSON.stringify({
         from: options.from_name
           ? `${options.from_name} <${options.from}>`
-          : (options.from || 'noreply@wellanalytics.io'),
+          : (options.from || 'no-reply@mg.wellbeingmetric.com'),
         to: options.to,
         subject: options.subject,
         html: options.html,

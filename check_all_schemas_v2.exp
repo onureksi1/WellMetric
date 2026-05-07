@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no root@131.222.130.80 "docker exec -i coolify-db psql -U wellanalytics -d wellanalytics_db -c \"SELECT table_schema, table_name FROM information_schema.tables WHERE table_name = 'platform_settings';\""
+expect {
+    "password:" {
+        send "2KTt*RJqaH\r"
+        exp_continue
+    }
+    eof
+}

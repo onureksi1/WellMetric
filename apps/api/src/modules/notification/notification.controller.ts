@@ -35,7 +35,7 @@ export class NotificationController {
     console.log('[TestPipeline] Using provider implementation:', provider.constructor.name);
 
     // 3. Send
-    const fromAddr = settings?.mail_from_address || 'noreply@wellanalytics.io';
+    const fromAddr = settings?.mail_from_address || 'no-reply@mg.wellbeingmetric.com';
     const fromName = settings?.mail_from_name || 'Wellbeing Metric Test';
 
     try {
