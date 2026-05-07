@@ -45,12 +45,14 @@ export class AIProviderFactory {
     }
 
     const taskConfig = settings.ai_task_models?.[task];
-    if (!taskConfig) {
+    const providerName = taskConfig?.provider || settings.ai_provider_default;
+    const model = taskConfig?.model || settings.ai_model_default;
+
+    if (!providerName || !model) {
+      console.error('[DEBUG] AI configuration NOT FOUND for task:', task, 'Available tasks:', Object.keys(settings.ai_task_models || {}));
       throw new InternalServerErrorException(`AI configuration for task ${task} not found`);
     }
-
-    const providerName = taskConfig.provider;
-    const model = taskConfig.model;
+    console.log('[DEBUG] Task config found:', { task, providerName, model });
     const provider = this.resolveProvider(providerName);
     
     // Get decrypted config/API key for the provider

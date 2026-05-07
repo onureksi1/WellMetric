@@ -299,5 +299,13 @@
   "global_survey": "GLOBAL SURVEY",
   "company_specific": "COMPANY SPECIFIC",
   "due_date": "Due Date",
-  "date_locale": "en-US"
+  "date_locale": "en-US",
+  "languages": {
+    "tr": "Turkish",
+    "en": "English"
+  },
+  "select_industry": "Select Industry",
+  "start_new": "Start New",
+  "load_draft": "Load Draft",
+  "question": "Question"
 }

@@ -41,21 +41,35 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const isDev = process.env.NODE_ENV !== 'production';
 
-    const errorResponse = exception instanceof HttpException
+    let errorBody: any = exception instanceof HttpException
       ? exception.getResponse()
       : { 
           error: { 
             code: (exception as any)?.code || 'INTERNAL_ERROR', 
             message: (exception as any)?.message || 'Sunucu hatası oluştu',
-            // Geliştirme aşamasında hatanın detayını (örn. SQL hatası) frontend'e geç
             detail: isDev ? (exception as any)?.detail || (exception as any)?.stack : undefined
           } 
         };
 
+    // ValidationPipe hatalarını (message dizisi) yakala ve güzelleştir
+    if (typeof errorBody === 'object' && Array.isArray(errorBody.message)) {
+      const messages = errorBody.message as string[];
+      // "questions.8.dimension must be..." -> "8. Soru: Dimension alanı geçerli değil" gibi çevrilebilir
+      // Ama şimdilik en azından tek bir string haline getirip frontend'e verelim
+      errorBody = {
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: messages.length > 1 
+            ? `Birden fazla hata var:\n• ${messages.join('\n• ')}`
+            : messages[0],
+          details: messages
+        }
+      };
+    }
+
     response.status(status).json({
-      ...(typeof errorResponse === 'object' ? errorResponse : { message: errorResponse }),
+      ...(typeof errorBody === 'object' ? errorBody : { message: errorBody }),
       request_id: reqId,
-      // Debug bilgisi (sadece dev)
       _debug: isDev ? {
         exception_name: (exception as any)?.name,
         stack: (exception as any)?.stack?.split('\n').slice(0, 3)

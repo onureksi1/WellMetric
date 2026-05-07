@@ -16,6 +16,7 @@ import { NotificationService } from '../../notification/notification.service';
 import { AppLogger } from '../../../common/logger/app-logger.service';
 import { ServiceDebugger } from '../../../common/logger/debug.helper';
 import { ConsultantPlan } from '../../consultant/entities/consultant-plan.entity';
+import { InAppNotificationService } from '../../notification/in-app-notification.service';
 
 @Injectable()
 export class BillingService {
@@ -40,6 +41,7 @@ export class BillingService {
     private readonly logger: AppLogger,
     private readonly invoiceService: InvoiceService,
     private readonly notificationService: NotificationService,
+    private readonly inAppNotifService: InAppNotificationService,
   ) {
     this.debug = new ServiceDebugger(logger, 'BillingService');
   }
@@ -405,6 +407,27 @@ export class BillingService {
         amount,
         description || `AI Hizmet Kullanımı: ${typeKey}`
       );
+
+      // Bakiye kontrolü ve bildirim (Opsiyonel: %20 altına düşünce uyar)
+      const balances = await this.creditService.getBalances(consultantId);
+      const balance  = balances.find(b => b.key === typeKey);
+      
+      if (balance && balance.balance !== -1 && balance.package_amount > 0) {
+        const ratio = balance.balance / balance.package_amount;
+        if (ratio < 0.2) {
+          await this.inAppNotifService.create({
+            userId:  consultantId,
+            type:    'low_credit_warning',
+            titleTr: `Kredi uyarısı: ${balance.label_tr}`,
+            titleEn: `Credit warning: ${balance.label_en}`,
+            bodyTr:  `Kalan krediniz %20'nin altına düştü (${balance.balance}).`,
+            bodyEn:  `Remaining credits below 20% (${balance.balance}).`,
+            link:    `/consultant/billing`,
+            metadata: { type_key: typeKey, balance: balance.balance },
+          });
+        }
+      }
+
       this.debug.done('consumeCredits', ctx, { success: true });
       return result;
     } catch (err) {

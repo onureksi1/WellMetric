@@ -62,8 +62,9 @@ export const ConsultantAssignSurveyModal: React.FC<ConsultantAssignSurveyModalPr
       toast.success('Anket başarıyla atandı!');
       onSuccess?.();
       onClose();
-    } catch (error) {
-      toast.error('Atama sırasında bir hata oluştu.');
+    } catch (error: any) {
+      const msg = error.response?.data?.error?.message || error.response?.data?.message || 'Atama sırasında bir hata oluştu.';
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

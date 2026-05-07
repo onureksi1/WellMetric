@@ -365,7 +365,13 @@
       "invite_hr": "HR Admin Davet Et"
     },
     "export_filename": "firmalar_listesi",
-    "user_search_placeholder": "İsim veya e-posta ile ara..."
+    "user_search_placeholder": "İsim veya e-posta ile ara...",
+    "import_modal": {
+      "title": "Kullanıcı İçe Aktar",
+      "step1_title": "ADIM 1: Şablonu Hazırlayın",
+      "step1_desc": "Kullanıcıları toplu olarak eklemek için aşağıdaki CSV şablonunu kullanın. Rol, departman ve diğer alanların doğru formatta olduğundan emin olun.",
+      "format_info": "Lütfen virgül (,) veya noktalı virgül (;) ile ayrılmış bir CSV dosyası kullanın. Başlıklar şunlar olmalıdır: email, full_name, role, department_name, position, location, seniority, age_group, gender, start_date, language."
+    }
   },
   "surveys": {
     "title": "Değerlendirme Formları",

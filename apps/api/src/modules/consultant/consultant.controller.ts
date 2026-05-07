@@ -46,10 +46,6 @@ export class ConsultantController {
     return this.consultantService.getCompanyStats(user.id, id);
   }
 
-  @Post('surveys/assign')
-  assignSurvey(@CurrentUser() user: any, @Body() dto: any) {
-    return this.consultantService.assignSurvey(user.id, dto);
-  }
 
   @Post('ai/comparative-insight')
   getComparativeInsight(@CurrentUser() user: any, @Body() dto: any) {

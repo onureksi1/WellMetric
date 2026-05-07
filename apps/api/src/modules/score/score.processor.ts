@@ -3,6 +3,7 @@ import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import { ScoreService } from './score.service';
 import { NotificationService } from '../notification/notification.service';
+import { InAppNotificationService } from '../notification/in-app-notification.service';
 import { DataSource } from 'typeorm';
 
 @Processor('score-queue')
@@ -12,6 +13,7 @@ export class ScoreProcessor {
   constructor(
     private readonly scoreService: ScoreService,
     private readonly notificationService: NotificationService,
+    private readonly inAppNotifService: InAppNotificationService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -54,6 +56,20 @@ export class ScoreProcessor {
           admin.language || 'tr'
         );
       }
+
+      // In-app bildirim gönder
+      await this.inAppNotifService.createForUsers(
+        admins.map(u => u.id),
+        {
+          type:    'low_score_alert',
+          titleTr: `⚠️ Düşük skor: ${dimension} (${score.toFixed(1)})`,
+          titleEn: `⚠️ Low score: ${dimension} (${score.toFixed(1)})`,
+          bodyTr:  `${dimension} boyutunda kritik düşüş tespit edildi.`,
+          bodyEn:  `Critical drop detected in ${dimension} dimension.`,
+          link:    `/dashboard/departments`,
+          metadata: { dimension, score, company_id, department_id },
+        }
+      );
     } catch (error) {
       this.logger.error(`Failed to process risk alert: ${error.message}`);
     }

@@ -22,6 +22,7 @@ export default function EditSurveyPage() {
   const { t } = useTranslation(['consultant', 'common']);
   const [companies, setCompanies] = useState<any[]>([]);
   const [industries, setIndustries] = useState<any[]>([]);
+  const [isIndustriesLoading, setIsIndustriesLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -66,6 +67,7 @@ export default function EditSurveyPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsIndustriesLoading(true);
         const [compRes, indRes, surveyRes] = await Promise.all([
           client.get('/consultant/companies'),
           client.get('/industries'),
@@ -73,7 +75,7 @@ export default function EditSurveyPage() {
         ]);
         
         setCompanies(compRes.data.data || compRes.data);
-        setIndustries(indRes.data);
+        setIndustries(indRes.data || []);
         
         const survey = surveyRes.data.data || surveyRes.data;
         
@@ -103,6 +105,7 @@ export default function EditSurveyPage() {
         toast.error('Veriler yüklenirken bir hata oluştu.');
       } finally {
         setLoading(false);
+        setIsIndustriesLoading(false);
       }
     };
     fetchData();
@@ -226,7 +229,7 @@ export default function EditSurveyPage() {
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold bg-navy text-white hover:bg-navy/90 transition-all shadow-lg shadow-navy/10"
             >
               <Sparkles size={18} className="text-yellow-400" />
-              AI ile Soru Ekle
+              {t('surveys.ai_generate', 'AI ile Soru Ekle')}
             </button>
             <button 
               type="submit" 
@@ -349,7 +352,7 @@ export default function EditSurveyPage() {
                 <Wand2 size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-navy">AI Soru Asistanı</h2>
+                <h2 className="text-xl font-black text-navy">{t('surveys.ai_generate', 'AI Soru Asistanı')}</h2>
                 <p className="text-sm text-gray-400 font-medium">Ankete yeni sorular ekleyin.</p>
               </div>
             </div>
@@ -360,13 +363,26 @@ export default function EditSurveyPage() {
                 <div className="relative">
                   <select 
                     id="ai-industry" 
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-bold outline-none focus:ring-4 focus:ring-navy/5 transition-all appearance-none cursor-pointer text-navy"
+                    defaultValue=""
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all text-slate-900 cursor-pointer shadow-sm relative z-50"
                   >
-                    {industries.map((ind) => (
-                      <option key={ind.id} value={ind.name}>{ind.name}</option>
+                    <option value="" disabled>Sektör Seçin</option>
+                    
+                    {/* Fetched Industries */}
+                    {industries.length > 0 && industries.map((ind) => (
+                      <option key={ind.value} value={ind.value}>{ind.label}</option>
                     ))}
-                    <option value="Teknoloji">Teknoloji & Yazılım</option>
-                    <option value="Hizmet">Hizmet Sektörü</option>
+
+                    {/* Hardcoded Fallbacks */}
+                    {(industries.length === 0 && !isIndustriesLoading) && (
+                      <>
+                        <option value="technology">Teknoloji & Yazılım</option>
+                        <option value="service">Hizmet Sektörü</option>
+                        <option value="manufacturing">Üretim & Sanayi</option>
+                        <option value="healthcare">Sağlık & İlaç</option>
+                        <option value="finance">Finans & Bankacılık</option>
+                      </>
+                    )}
                   </select>
                   <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -397,7 +413,7 @@ export default function EditSurveyPage() {
                 }}
                 className="flex-1 py-3 rounded-xl font-bold bg-navy text-white hover:bg-navy/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {aiLoading ? 'Oluşturuyor...' : 'Oluştur ve Ekle'}
+                {aiLoading ? 'Oluşturuyor...' : t('common.generate', 'Oluştur ve Ekle')}
               </button>
             </div>
           </div>

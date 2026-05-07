@@ -8,6 +8,7 @@ import { LanguageSwitcher } from '../shared/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 import '@/lib/i18n';
 
+import { NotificationDrawer } from '../shared/NotificationDrawer';
 import { Menu } from 'lucide-react';
 import { useSidebar } from '@/lib/contexts/SidebarContext';
 
@@ -43,12 +44,7 @@ export default function TopBar() {
       <div className="flex items-center gap-6">
         <LanguageSwitcher />
         
-        <button className="relative text-gray-400 hover:text-navy transition-colors">
-          <Bell size={20} />
-          <span className="absolute -top-1 -right-1 h-4 w-4 bg-danger text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white">
-            3
-          </span>
-        </button>
+        <NotificationDrawer />
 
         <div className="h-8 w-px bg-gray-100" />
 

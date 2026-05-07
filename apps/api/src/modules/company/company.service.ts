@@ -134,11 +134,12 @@ export class CompanyService {
   }
 
   async findOne(id: string, requestingUser?: any) {
-    let whereClause = 'WHERE c.id = $1';
+    const isUuid = id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    let whereClause = isUuid ? 'WHERE c.id = $1' : 'WHERE c.slug = $1';
     const params: any[] = [id];
 
     if (requestingUser?.role === 'consultant') {
-      whereClause += ' AND c.consultant_id = $2';
+      whereClause += ` AND c.consultant_id = $2`;
       params.push(requestingUser.id);
     }
 
@@ -312,8 +313,9 @@ export class CompanyService {
   }
 
   async update(id: string, dto: UpdateCompanyDto, requestingUser: any) {
-    // Ownership check
-    await this.findOne(id, requestingUser);
+    // Ownership check & resolve real ID
+    const { company } = await this.findOne(id, requestingUser);
+    const companyId = company.id;
     
     const { name, plan, contact_email, industry, size_band } = dto;
     
@@ -336,9 +338,9 @@ export class CompanyService {
         industry = COALESCE($4, industry),
         size_band = COALESCE($5, size_band)
       WHERE id = $6
-    `, [name || null, plan || null, contact_email || null, industry || null, size_band || null, id]);
+    `, [name || null, plan || null, contact_email || null, industry || null, size_band || null, companyId]);
 
-    await this.auditService.logAction(requestingUser.id || null, id, 'company.update', 'company', id, dto);
+    await this.auditService.logAction(requestingUser.id || null, companyId, 'company.update', 'company', companyId, dto);
 
     return { success: true };
   }
@@ -398,12 +400,13 @@ export class CompanyService {
   }
 
   async delete(id: string, requestingUser: any) {
-    // Ownership check
-    await this.findOne(id, requestingUser);
+    // Ownership check & resolve real ID
+    const { company } = await this.findOne(id, requestingUser);
+    const companyId = company.id;
 
     return this.dataSource.transaction(async (manager) => {
       // 1. Check for active users
-      const usersCount = await manager.query(`SELECT COUNT(*)::int as count FROM users WHERE company_id = $1 AND is_active = true`, [id]);
+      const usersCount = await manager.query(`SELECT COUNT(*)::int as count FROM users WHERE company_id = $1 AND is_active = true`, [companyId]);
       const count = usersCount[0]?.count || 0;
       
       if (count > 0) {
@@ -415,19 +418,19 @@ export class CompanyService {
       }
 
       // 2. Full Cleanup (Hard Delete related records)
-      await manager.query(`DELETE FROM invitations WHERE company_id = $1`, [id]);
-      await manager.query(`DELETE FROM survey_tokens WHERE company_id = $1`, [id]);
-      await manager.query(`DELETE FROM survey_responses WHERE company_id = $1`, [id]);
-      await manager.query(`DELETE FROM survey_assignments WHERE company_id = $1`, [id]);
-      await manager.query(`DELETE FROM wellbeing_scores WHERE company_id = $1`, [id]);
-      await manager.query(`DELETE FROM ai_insights WHERE company_id = $1`, [id]);
-      await manager.query(`DELETE FROM departments WHERE company_id = $1`, [id]);
-      await manager.query(`DELETE FROM users WHERE company_id = $1`, [id]);
+      await manager.query(`DELETE FROM invitations WHERE company_id = $1`, [companyId]);
+      await manager.query(`DELETE FROM survey_tokens WHERE company_id = $1`, [companyId]);
+      await manager.query(`DELETE FROM survey_responses WHERE company_id = $1`, [companyId]);
+      await manager.query(`DELETE FROM survey_assignments WHERE company_id = $1`, [companyId]);
+      await manager.query(`DELETE FROM wellbeing_scores WHERE company_id = $1`, [companyId]);
+      await manager.query(`DELETE FROM ai_insights WHERE company_id = $1`, [companyId]);
+      await manager.query(`DELETE FROM departments WHERE company_id = $1`, [companyId]);
+      await manager.query(`DELETE FROM users WHERE company_id = $1`, [companyId]);
       
       // 3. Final: Delete the company itself
-      await manager.query(`DELETE FROM companies WHERE id = $1`, [id]);
+      await manager.query(`DELETE FROM companies WHERE id = $1`, [companyId]);
       
-      await this.auditService.logAction(requestingUser.id || null, id, 'company.hard_delete', 'company', id);
+      await this.auditService.logAction(requestingUser.id || null, companyId, 'company.hard_delete', 'company', companyId);
 
       return { success: true };
     });

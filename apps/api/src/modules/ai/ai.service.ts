@@ -14,6 +14,7 @@ import { buildContextNarrative } from './helpers/context-narrative.builder';
 import { ReportService } from '../report/report.service';
 import { CreditService } from '../billing/services/credit.service';
 import { SettingsService } from '../settings/settings.service';
+import { AiGenerateSurveyDto } from '../survey/dto/ai-generate-survey.dto';
 import { Anonymizer } from '../../common/utils/anonymizer.util';
 import { AppLogger } from '../../common/logger/app-logger.service';
 import { ServiceDebugger } from '../../common/logger/debug.helper';
@@ -610,7 +611,9 @@ export class AIService {
     return { response: result.response, tokens_used: result.totalTokens };
   }
 
-  async generateSurveyQuestions(industry: string, dimensions: string[], questionCount: number, language: string = 'tr') {
+  async generateSurveyQuestions(dto: AiGenerateSurveyDto) {
+    const { industry, dimensions, question_count: questionCount, language = 'tr' } = dto;
+    console.log('[DEBUG] AIService.generateSurveyQuestions entered', { industry, dimensions, questionCount, language });
     const systemPrompt = 'Sen bir wellbeing uzmanısın.';
     const userPrompt = `
       "${industry}" sektöründe çalışan bir şirket için ${dimensions.join(', ')} boyutlarını ölçen ${questionCount} adet soru öner. 
@@ -625,8 +628,12 @@ export class AIService {
       Sadece JSON döndür, başka metin ekleme.
     `;
 
+    console.log('[DEBUG] Calling AI provider for survey generation...');
     const { provider, model, config, settings } = await this.providerFactory.getProvider(AITaskEnum.SURVEY_GENERATION);
+    console.log('[DEBUG] Provider resolved:', { provider: provider.constructor.name, model });
+    
     const result = await provider.complete(userPrompt, systemPrompt, 2000, 0.7, model, config);
+    console.log('[DEBUG] AI provider raw response:', result.response);
 
     try {
       // Find JSON array in response

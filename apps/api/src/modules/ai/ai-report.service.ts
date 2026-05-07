@@ -4,6 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import { Company } from '../company/entities/company.entity';
 import { AIService } from './ai.service';
 import { NotificationService } from '../notification/notification.service';
+import { InAppNotificationService } from '../notification/in-app-notification.service';
 
 @Injectable()
 export class AIReportService {
@@ -13,6 +14,7 @@ export class AIReportService {
     private readonly aiService: AIService,
     private readonly dataSource: DataSource,
     private readonly notificationService: NotificationService,
+    private readonly inAppNotifService: InAppNotificationService,
   ) {}
 
   private readonly logger = new Logger(AIReportService.name);
@@ -282,6 +284,18 @@ profesyonel bir dil kullan. Klişelerden kaçın. Şirkete özel içerik üret.
           company_name:    company.name,
           period:          params.period,
           report_url:      `${process.env.APP_URL || 'http://localhost:3000'}/consultant/reports/${reportId}`
+        });
+
+        // In-app bildirim gönder
+        await this.inAppNotifService.create({
+          userId:  params.consultantId,
+          type:    'ai_report_ready',
+          titleTr: `Rapor hazır: ${company.name}`,
+          titleEn: `Report ready: ${company.name}`,
+          bodyTr:  'AI raporu oluşturuldu, inceleyebilirsiniz.',
+          bodyEn:  'AI report generated, ready for review.',
+          link:    `/consultant/reports`,
+          metadata: { report_id: reportId, company_id: params.companyId },
         });
       }
 

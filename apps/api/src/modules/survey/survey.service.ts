@@ -558,12 +558,7 @@ export class SurveyService {
   // ------------------------------------------------------------------------
 
   async generateWithAI(dto: AiGenerateSurveyDto) {
-    return this.aiService.generateSurveyQuestions(
-      dto.industry,
-      dto.dimensions,
-      dto.question_count,
-      dto.language
-    );
+    return this.aiService.generateSurveyQuestions(dto);
   }
 
   async saveDraft(userId: string, draftData: any) {

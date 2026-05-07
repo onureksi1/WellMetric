@@ -74,7 +74,7 @@
       "mental": "Zihinsel",
       "social": "Sosyal",
       "financial": "Finansal",
-      "work": "İş&Anlam",
+      "work": "İş & Anlam",
       "status": "Durum"
     },
     "detail": {
@@ -162,6 +162,7 @@
       "title": "Toplu CSV Yükle",
       "step1_title": "CSV Formatı",
       "step1_desc": "Aşağıdaki formatta hazırlayın:",
+      "format_desc": "Lütfen standart Virgül (,) ile ayrılmış bir CSV dosyası kullanın. Excel'den dışa aktarırken virgül seçeneğini kullandığınızdan emin olun. Başlıklar: email, full_name, department_name, position, location, seniority, age_group, gender, start_date, language.",
       "download_template": "Şablon İndir",
       "step2_title": "Dosya Yükle",
       "step3_title": "Sonuç",
@@ -204,6 +205,10 @@
       "open_answers": "Açık Yanıtlar",
       "ai_summary": "AI Özeti",
       "no_open_answers": "Açık uçlu soru yanıtı yok."
+    },
+    "badges": {
+      "mine": "Benim Oluşturduğum",
+      "company_specific": "Firmaya Özel"
     }
   },
   "actions": {

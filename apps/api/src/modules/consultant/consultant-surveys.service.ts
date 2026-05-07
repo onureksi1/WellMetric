@@ -9,6 +9,8 @@ import { Company } from '../company/entities/company.entity';
 import { CreateConsultantSurveyDto } from './dto/create-consultant-survey.dto';
 import { UpdateConsultantSurveyDto } from './dto/update-consultant-survey.dto';
 import { AssignConsultantSurveyDto } from './dto/assign-consultant-survey.dto';
+import { NotificationService } from '../notification/notification.service';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class ConsultantSurveysService {
@@ -18,6 +20,8 @@ export class ConsultantSurveysService {
     @InjectRepository(SurveyAssignment) private assignmentRepo: Repository<SurveyAssignment>,
     @InjectRepository(SurveyDraft) private draftRepo: Repository<SurveyDraft>,
     @InjectRepository(Company) private companyRepo: Repository<Company>,
+    @InjectRepository(User) private userRepo: Repository<User>,
+    private notificationService: NotificationService,
   ) {}
 
   // ── findAll ──────────────────────────────────────────────────────
@@ -31,6 +35,7 @@ export class ConsultantSurveysService {
     const ownCompanyIds = ownCompanies.map(c => c.id);
 
     const query = this.surveyRepo.createQueryBuilder('s')
+      .leftJoinAndSelect('s.company', 'company')
       .where('s.company_id IS NULL'); // global anketler
 
     if (ownCompanyIds.length > 0) {
@@ -161,6 +166,34 @@ export class ConsultantSurveysService {
     );
 
     await this.assignmentRepo.save(assignments as any);
+
+    // Send notifications to HR for each company
+    const survey = await this.surveyRepo.findOne({ where: { id: dto.survey_id } });
+    if (survey) {
+      for (const company of companies) {
+        if (dto.company_ids.includes(company.id)) {
+          // Find HR user for this company
+          const hrUser = await this.userRepo.findOne({
+            where: { company_id: company.id, role: 'hr_admin', is_active: true }
+          });
+          
+          if (hrUser || company.contact_email) {
+            await this.notificationService.sendSurveyAssigned(
+              hrUser?.email || company.contact_email,
+              hrUser?.full_name || 'HR Yöneticisi',
+              company.name,
+              survey.title_tr,
+              dto.period,
+              new Date(dto.due_at),
+              hrUser?.language || (company.settings as any)?.language || 'tr',
+              company.id,
+              consultantId
+            );
+          }
+        }
+      }
+    }
+
     return { success: true, count: assignments.length };
   }
 

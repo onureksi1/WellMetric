@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+    .header { background: #2E865A; padding: 40px 32px; text-align: center; color: white; }
+    .body { padding: 32px; color: #333; line-height: 1.6; }
+    .btn { display: inline-block; background: #2E865A; color: white !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 16px 0; }
+    .footer { background: #f5f5f5; padding: 16px; text-align: center; color: #888; font-size: 12px; }
+    .info-box { background: #f9f9f9; border: 1px solid #eee; padding: 16px; border-radius: 6px; margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin:0; font-size: 24px;">Yeni Değerlendirme Atandı</h1>
+    </div>
+    <div class="body">
+      <h2>Merhaba {{hr_name}},</h2>
+      <p>Danışmanınız tarafından <b>{{company_name}}</b> firması için yeni bir esenlik değerlendirmesi atandı.</p>
+      
+      <div class="info-box">
+        <p style="margin: 5px 0;"><b>Değerlendirme:</b> {{survey_title}}</p>
+        <p style="margin: 5px 0;"><b>Dönem:</b> {{period}}</p>
+        <p style="margin: 5px 0;"><b>Son Tarih:</b> {{due_date}}</p>
+      </div>
+
+      <p>Bu değerlendirmeyi çalışanlarınıza ulaştırmak için paneliniz üzerinden bir dağıtım süreci başlatabilirsiniz.</p>
+      
+      <div style="text-align: center;">
+        <a href="{{dashboard_link}}" class="btn">Panele Git ve Başlat →</a>
+      </div>
+
+      <p>Herhangi bir sorunuz olursa danışmanınızla veya bizimle iletişime geçebilirsiniz.</p>
+    </div>
+    <div class="footer">
+      {{#if brand_logo_url}}
+      <img src="{{brand_logo_url}}" alt="{{brand_name}}" style="height:28px; opacity:0.75; margin-bottom:8px;" />
+      {{/if}}
+      <p style="margin:0;">{{brand_name}} — Esenlik Odaklı Karar Destek Platformu</p>
+    </div>
+  </div>
+</body>
+</html>

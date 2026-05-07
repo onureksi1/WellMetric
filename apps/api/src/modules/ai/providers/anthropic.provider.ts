@@ -16,9 +16,16 @@ export class AnthropicProvider implements AIProvider {
   ): Promise<{ response: string; inputTokens: number; outputTokens: number; totalTokens: number; durationMs: number }> {
     const start = Date.now();
     try {
-      const apiKey = config.api_key;
+      const apiKey = typeof config === 'string' ? config : config?.api_key;
       this.logger.debug(`Anthropic API Key (masked): ${apiKey ? apiKey.substring(0, 5) + '...' : 'MISSING'}`);
-      
+
+      if (!apiKey) {
+        throw new ServiceUnavailableException({
+          code: 'AI_KEY_MISSING',
+          message: 'Anthropic API anahtarı yapılandırılmamış.',
+        });
+      }
+
       const anthropic = new Anthropic({ apiKey });
       const message = await anthropic.messages.create({
         model,

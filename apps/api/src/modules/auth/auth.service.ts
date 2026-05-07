@@ -350,15 +350,13 @@ export class AuthService {
   async getMe(userId: string) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['consultant', 'company'],
+      select: ['id', 'email', 'full_name', 'role', 'language', 'company_id'],
+      relations: ['company'],
     });
 
     if (!user) {
       throw new UnprocessableEntityException('Kullanıcı bulunamadı');
     }
-
-    // Hassas bilgileri sil
-    delete user.password_hash;
     
     return user;
   }

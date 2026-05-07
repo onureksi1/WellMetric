@@ -72,7 +72,11 @@
     "view_details": "Detayları Gör",
     "total_departments": "Toplam Departman",
     "wellbeing": "Wellbeing",
-    "last": "Son"
+    "last": "Son",
+    "no_data": "Veri yok",
+    "no_survey": "Anket yok",
+    "employee_unit": "çalışan",
+    "department_unit": "departman"
   },
   "surveys": {
     "title": "Değerlendirme Yönetimi",
@@ -99,7 +103,15 @@
     "assign_global_desc": "Platform değerlendirmelerini hızlıca müşterilerinize atayın.",
     "empty": "Henüz bir değerlendirme bulunamadı.",
     "badges": {
-      "company": "Firma"
+      "company": "Firma",
+      "mine": "Benim Oluşturduğum",
+      "global": "Global Şablon"
+    },
+    "types": {
+      "global": "Global",
+      "company_specific": "Firmaya Özel",
+      "onboarding": "Onboarding",
+      "pulse": "Nabız"
     },
     "new": {
       "title": "Değerlendirme Sihirbazı",

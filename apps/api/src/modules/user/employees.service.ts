@@ -184,16 +184,21 @@ export class EmployeesService {
     const lines = content.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) throw new BadRequestException('CSV boş veya başlık satırı yok');
 
-    // Detect delimiter (comma or semicolon)
-    const firstLine = lines[0];
-    const delimiter = firstLine.includes(';') ? ';' : ',';
+    // Clean BOM and detect delimiter
+    const firstLine = lines[0].replace(/^\uFEFF/, '');
+    const semiCount = (firstLine.match(/;/g) || []).length;
+    const commaCount = (firstLine.match(/,/g) || []).length;
+    const delimiter = semiCount > commaCount ? ';' : ',';
 
-    const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase()
-      .replace(/ad soyad|ad_soyad|fullname|isim soyisim|ad soyisim/g, 'full_name')
-      .replace(/e-posta|eposta|email_address|mail/g, 'email')
+    const rawHeaders = firstLine.split(delimiter).map(h => h.trim().toLowerCase());
+    
+    // Map headers to standard keys
+    const headers = rawHeaders.map(h => h
+      .replace(/ad soyad|ad_soyad|fullname|isim soyisim|ad soyisim|full_name|isim/g, 'full_name')
+      .replace(/e-posta|eposta|email_address|mail|email/g, 'email')
       .replace(/departman|department_name|department|bölüm|bolum/g, 'department')
-      .replace(/pozisyon|job_title|unvan|görev/g, 'position')
-      .replace(/başlangıç tarihi|baslangic_tarihi|startdate|is_basi/g, 'start_date')
+      .replace(/pozisyon|job_title|unvan|görev|position/g, 'position')
+      .replace(/başlangıç tarihi|baslangic_tarihi|startdate|is_basi|start_date/g, 'start_date')
     );
 
     return lines.slice(1).map(line => {

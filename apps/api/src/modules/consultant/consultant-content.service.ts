@@ -19,6 +19,7 @@ import { UpdateContentItemDto } from './dto/update-content-item.dto';
 import { AssignContentDto } from './dto/assign-content.dto';
 import { AIService } from '../ai/ai.service';
 import { BillingService } from '../billing/services/billing.service';
+import { InAppNotificationService } from '../notification/in-app-notification.service';
 
 @Injectable()
 export class ConsultantContentService {
@@ -37,6 +38,7 @@ export class ConsultantContentService {
     private readonly logger: AppLogger,
     private readonly aiService: AIService,
     private readonly billingService: BillingService,
+    private readonly inAppNotifService: InAppNotificationService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -446,9 +448,22 @@ Hangi firmalara neden önerdiğini açıkla.
         department_name:  assignment.department?.name ?? 'Tüm firma',
         notes:            assignment.notes ?? '',
         dashboard_url:    `${process.env.APP_URL || 'http://localhost:3000'}/dashboard/content`,
-        platform_url:     process.env.APP_URL || 'http://localhost:3000',
       });
     }
+
+    // In-app bildirim gönder
+    await this.inAppNotifService.createForUsers(
+      hrAdmins.map(u => u.id),
+      {
+        type:    'content_assigned',
+        titleTr: `Yeni içerik paylaşıldı: ${assignment.content_item.title_tr}`,
+        titleEn: `New content shared: ${assignment.content_item.title_en || assignment.content_item.title_tr}`,
+        bodyTr:  `Danışmanınız yeni bir içerik paylaştı.`,
+        bodyEn:  `Your consultant shared new content.`,
+        link:    `/dashboard/content`,
+        metadata: { content_id: assignment.content_item_id },
+      }
+    );
 
     // Atama güncelle
     await this.assignmentRepo.update(assignmentId, {

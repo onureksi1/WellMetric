@@ -182,18 +182,38 @@ export const UsersTab: React.FC<UsersTabProps> = ({ companyId, departments, filt
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
+      const lines = text.split(/\r?\n/);
+      // Detect delimiter and clean BOM
+      const firstLine = lines[0].replace(/^\uFEFF/, '');
+      const semiCount = (firstLine.match(/;/g) || []).length;
+      const commaCount = (firstLine.match(/,/g) || []).length;
+      const delimiter = semiCount > commaCount ? ';' : ',';
+      
+      const rawHeaders = firstLine.split(delimiter).map(h => h.trim().toLowerCase());
       
       const parsed = lines.slice(1)
         .filter(line => line.trim() !== '')
         .map(line => {
-          const values = line.split(',').map(v => v.trim());
-          const obj: any = {};
-          headers.forEach((h, i) => {
-            obj[h] = values[i];
+          const values = line.split(delimiter).map(v => v.trim());
+          const rawRow: any = {};
+          rawHeaders.forEach((h, i) => {
+            rawRow[h] = values[i];
           });
-          return obj;
+
+          // Flexible mapping
+          return {
+            email: rawRow.email || rawRow['e-posta'] || rawRow['eposta'] || rawRow['mail'],
+            full_name: rawRow.full_name || rawRow['ad soyad'] || rawRow['isim'] || rawRow['ad_soyad'],
+            role: rawRow.role || rawRow['rol'] || 'employee',
+            department_name: rawRow.department_name || rawRow['departman'] || rawRow['bolum'] || rawRow['department'],
+            position: rawRow.position || rawRow['pozisyon'] || rawRow['unvan'] || rawRow['gorev'],
+            location: rawRow.location || rawRow['lokasyon'] || rawRow['konum'],
+            seniority: rawRow.seniority || rawRow['kıdem'] || rawRow['kidem'],
+            age_group: rawRow.age_group || rawRow['yas_grubu'] || rawRow['yaş grubu'],
+            gender: rawRow.gender || rawRow['cinsiyet'],
+            start_date: rawRow.start_date || rawRow['baslangic_tarihi'] || rawRow['başlangıç tarihi'],
+            language: rawRow.language || rawRow['dil'] || 'tr'
+          };
         });
       
       setImportPreview(parsed);
@@ -205,12 +225,17 @@ export const UsersTab: React.FC<UsersTabProps> = ({ companyId, departments, filt
   const downloadTemplate = () => {
     const headers = 'email,full_name,role,department_name,position,location,seniority,age_group,gender,start_date,language';
     const example = 'ali@firma.com,Ali Yılmaz,employee,Yazılım,Backend Developer,İstanbul,senior,26-35,male,2023-01-15,tr';
-    const blob = new Blob([`${headers}\n${example}`], { type: 'text/csv' });
+    const csvContent = `${headers}\n${example}`;
+    // Add BOM for Excel UTF-8 compatibility
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'wellbeing_metric_user_template.csv';
+    a.setAttribute('download', 'wellbeing_metric_user_template.csv');
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const toggleUserSelection = (userId: string) => {
@@ -538,7 +563,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({ companyId, departments, filt
       <Modal 
         isOpen={isImportModalOpen} 
         onClose={() => { setIsImportModalOpen(false); setImportStep(1); setImportResults(null); }} 
-        title="Kullanıcı İçe Aktar"
+        title={t('companies.import_modal.title')}
         maxWidth="xl"
       >
         <div className="space-y-6">
@@ -557,11 +582,13 @@ export const UsersTab: React.FC<UsersTabProps> = ({ companyId, departments, filt
           {importStep === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
               <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10">
-                 <h4 className="font-bold text-navy mb-2">ADIM 1: Şablonu Hazırlayın</h4>
-                 <p className="text-sm text-gray-500 leading-relaxed">
-                   Kullanıcıları toplu olarak eklemek için aşağıdaki CSV şablonunu kullanın. 
-                   Rol, departman ve diğer alanların doğru formatta olduğundan emin olun.
+                 <h4 className="font-bold text-navy mb-2">{t('companies.import_modal.step1_title')}</h4>
+                 <p className="text-sm text-gray-500 leading-relaxed mb-4">
+                    {t('companies.import_modal.step1_desc')}
                  </p>
+                 <div className="bg-white p-3 rounded-lg border border-primary/20 text-[10px] text-primary font-bold leading-relaxed mb-4">
+                    ℹ️ {t('companies.import_modal.format_info')}
+                 </div>
                  <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-[10px] bg-white rounded-lg border border-gray-100">
                       <thead>
@@ -586,9 +613,9 @@ export const UsersTab: React.FC<UsersTabProps> = ({ companyId, departments, filt
               <div className="flex gap-3">
                  <Button variant="ghost" className="flex-1" onClick={() => setIsImportModalOpen(false)}>İptal</Button>
                  <Button className="flex-1 gap-2" onClick={downloadTemplate}>
-                    <Download size={18} /> Şablon İndir
+                    <Download size={18} /> {t('dashboard.employees.csv_modal.download_template')}
                  </Button>
-                 <Button className="flex-1" onClick={() => setImportStep(2)}>Sonraki Adım</Button>
+                 <Button className="flex-1" onClick={() => setImportStep(2)}>{t('common.next', 'Sonraki Adım')}</Button>
               </div>
             </div>
           )}

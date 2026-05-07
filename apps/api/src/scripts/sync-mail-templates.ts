@@ -22,7 +22,7 @@ const subjectsTr: Record<string, string> = {
   survey_closed: '📊 Wellbeing Sonuçları Hazır',
   survey_reminder: '⏰ Anketinizi Tamamlamayı Unutmayın',
   survey_token_invite: '🌱 Wellbeing Anketiniz Hazır',
-  welcome_hr: 'Wellbeing Platformuna Hoş Geldiniz'
+  welcome_hr: 'Wellbeing Metric Hoş Geldiniz'
 };
 
 const subjectsEn: Record<string, string> = {
@@ -40,7 +40,7 @@ const subjectsEn: Record<string, string> = {
   survey_closed: '📊 Wellbeing Results are Ready',
   survey_reminder: "⏰ Don't Forget to Complete Your Survey",
   survey_token_invite: '🌱 Your Wellbeing Survey is Ready',
-  welcome_hr: 'Welcome to Wellbeing Platform'
+  welcome_hr: 'Welcome to Wellbeing Metric'
 };
 
 const variablesMap: Record<string, string[]> = {

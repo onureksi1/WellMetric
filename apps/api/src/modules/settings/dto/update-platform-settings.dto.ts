@@ -62,9 +62,8 @@ export class UpdatePlatformSettingsDto {
   @IsOptional()
   mail_provider?: MailProvider;
 
-  @IsEmail()
+  @IsString()
   @IsOptional()
-  @ValidateIf((o, v) => v !== '' && v !== null)
   mail_from_address?: string;
 
   @IsString()
@@ -121,9 +120,8 @@ export class UpdatePlatformSettingsDto {
   @IsOptional()
   gdpr_text_en?: string;
 
-  @IsEmail()
+  @IsString()
   @IsOptional()
-  @ValidateIf((o, v) => v !== '' && v !== null)
   admin_email?: string;
 
   @IsBoolean()

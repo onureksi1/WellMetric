@@ -23,7 +23,7 @@ import client from '@/lib/api/client';
 import { ConsultantAssignSurveyModal } from '@/components/surveys/ConsultantAssignSurveyModal';
 
 export default function ConsultantSurveysPage() {
-  const { t, tc } = useT('consultant');
+  const { t, tc, i18n } = useT('consultant');
   const { user } = useAuthStore();
   const { data: surveysData, loading, refresh } = useApi<any>('/consultant/surveys');
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -124,19 +124,24 @@ export default function ConsultantSurveysPage() {
                     <div>
                       <div className="flex items-center flex-wrap gap-2 mb-1">
                         <Link href={`/consultant/surveys/${survey.id}`}>
-                          <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors hover:underline cursor-pointer">{survey.title_tr}</h4>
+                          <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors hover:underline cursor-pointer">
+                            {i18n.language === 'en' ? (survey.title_en || survey.title_tr) : survey.title_tr}
+                          </h4>
                         </Link>
                         {survey.company_id === null ? (
                           <Badge variant="gray" className="text-[10px]">{t('surveys.badges.global')}</Badge>
-                        ) : survey.created_by === user?.id ? (
-                          <Badge variant="purple" className="text-[10px]">{t('surveys.badges.mine')}</Badge>
                         ) : (
-                          <Badge variant="gray" className="text-[10px]">{t('surveys.badges.company')}</Badge>
+                          <Badge variant={survey.created_by === user?.id ? "purple" : "gray"} className="text-[10px]">
+                            {survey.company?.name || t('surveys.badges.company')}
+                          </Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
-                        <span className="flex items-center gap-1"><BrainCircuit size={14} /> {survey.question_count || survey.questions?.length} {tc('question')}</span>
-                        <span className="flex items-center gap-1 uppercase tracking-wider">{survey.type}</span>
+                        <span className="flex items-center gap-1"><BrainCircuit size={14} /> {survey.question_count || survey.questions?.length || 0} {tc('question')}</span>
+                        <span className="flex items-center gap-1 uppercase tracking-wider">
+                          {t(`surveys.types.${survey.type?.toLowerCase()}`)}
+                          {survey.company?.name && ` (${survey.company.name})`}
+                        </span>
                       </div>
                       
 
@@ -191,7 +196,7 @@ export default function ConsultantSurveysPage() {
           isOpen={isAssignModalOpen}
           onClose={() => setIsAssignModalOpen(false)}
           surveyId={selectedSurvey?.id}
-          surveyTitle={selectedSurvey?.title_tr}
+          surveyTitle={i18n.language === 'en' ? (selectedSurvey?.title_en || selectedSurvey?.title_tr) : selectedSurvey?.title_tr}
           onSuccess={refresh}
         />
       )}

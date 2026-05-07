@@ -18,9 +18,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="header" style="background: white; border-bottom: 1px solid #eee;">
-      <img src="{{platform_url}}/images/logo.png" alt="Wellbeing Metric" style="height: 50px; object-fit: contain;">
-    </div>
+    <div class="header" style="background: #2E865A; padding: 40px 32px; text-align: center; color: white;"><h1 style="margin:0; font-size: 24px;">Wellbeing Metric</h1></div>
     <div class="body">
       <h2>Merhaba {{hr_name}},</h2>
       <p><b>{{company_name}}</b> verilerinde <b>{{dimension}}</b> boyutunda kritik bir skor düşüşü tespit edildi. Bu durum çalışan esenliği için dikkat gerektiriyor olabilir.</p>
@@ -36,7 +34,8 @@
         <a href="{{dashboard_link}}" class="btn">Dashboard'a Git →</a>
       </div>
     </div>
-        <div class="footer" style="text-align:center;padding:20px 0 10px;">
+        <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee;"><img src="{{platform_url}}/images/logo.png" alt="Wellbeing Metric" style="height: 40px; object-fit: contain;"></div>
+    <div class="footer" style="text-align:center;padding:20px 0 10px;">
       {{#if brand_logo_url}}
       <img
         src="{{brand_logo_url}}"

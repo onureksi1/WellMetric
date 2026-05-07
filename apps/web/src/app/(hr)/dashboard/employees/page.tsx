@@ -265,12 +265,16 @@ export default function EmployeesPage() {
   const downloadTemplate = () => {
     const headers = ['email', 'full_name', 'department_name', 'position', 'location', 'seniority', 'age_group', 'gender', 'start_date', 'language'];
     const csvContent = headers.join(',') + '\n' + 'test@example.com,Test User,Software,Developer,Istanbul,Senior,26-35,male,2024-01-01,tr';
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    // Add BOM for Excel UTF-8 compatibility
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'wellbeing_metric_employee_template.csv';
+    a.setAttribute('download', 'wellbeing_metric_employee_template.csv');
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -590,6 +594,9 @@ export default function EmployeesPage() {
                 <Download size={16} />
                 {t('dashboard.employees.csv_modal.download_template')}
               </Button>
+              <p className="text-[10px] text-primary font-bold bg-primary/5 p-3 rounded-lg border border-primary/10 leading-relaxed">
+                ℹ️ {t('dashboard.employees.csv_modal.format_desc')}
+              </p>
               <Button className="w-full" onClick={() => {
                 if (fileInputRef.current) fileInputRef.current.value = '';
                 fileInputRef.current?.click();

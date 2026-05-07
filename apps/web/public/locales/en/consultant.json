@@ -72,7 +72,11 @@
     "view_details": "View Details",
     "total_departments": "Total Departments",
     "wellbeing": "Wellbeing",
-    "last": "Last"
+    "last": "Last",
+    "no_data": "No data",
+    "no_survey": "No survey",
+    "employee_unit": "employees",
+    "department_unit": "departments"
   },
   "surveys": {
     "title": "Survey Management",
@@ -102,6 +106,12 @@
       "global": "Global",
       "mine": "Mine",
       "company": "Company"
+    },
+    "types": {
+      "global": "Global",
+      "company_specific": "Company Specific",
+      "onboarding": "Onboarding",
+      "pulse": "Pulse"
     },
     "new": {
       "title": "Survey Wizard",

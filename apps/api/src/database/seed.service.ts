@@ -60,6 +60,18 @@ export class SeedService implements OnApplicationBootstrap {
         ai_enabled: true,
         ai_provider_default: 'anthropic',
         ai_model_default: 'claude-sonnet-4-6',
+        ai_task_models: {
+          survey_generation: { provider: 'anthropic', model: 'claude-3-5-sonnet-20240620' },
+          intelligence_report: { provider: 'anthropic', model: 'claude-3-5-sonnet-20240620' },
+          open_text_summary: { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
+          risk_alert: { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
+          action_suggestion: { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
+          trend_analysis: { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
+          hr_chat: { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
+          admin_anomaly: { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
+          admin_chat: { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
+          benchmark_generation: { provider: 'anthropic', model: 'claude-3-haiku-20240307' }
+        },
         anonymity_threshold: 5,
         score_alert_threshold: 45,
         supported_languages: ['tr', 'en'],

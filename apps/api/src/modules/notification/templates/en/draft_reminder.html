@@ -15,9 +15,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="header" style="background: white; border-bottom: 1px solid #eee;">
-      <img src="{{platform_url}}/images/logo.png" alt="Wellbeing Metric" style="height: 50px; object-fit: contain;">
-    </div>
+    <div class="header" style="background: #2E865A; padding: 40px 32px; text-align: center; color: white;"><h1 style="margin:0; font-size: 24px;">Wellbeing Metric</h1></div>
     <div class="body">
       <h2>Hello {{full_name}},</h2>
       <p>We noticed you haven't yet completed the <b>{{survey_title}}</b> survey. We want to remind you that your progress has been saved, and you can continue whenever you like.</p>
@@ -30,7 +28,8 @@
       
       <p style="font-size: 13px; color: #666; font-style: italic; text-align: center;">"Taking just a few minutes of your time contributes greatly to your company's wellbeing journey."</p>
     </div>
-        <div class="footer" style="text-align:center;padding:20px 0 10px;">
+        <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee;"><img src="{{platform_url}}/images/logo.png" alt="Wellbeing Metric" style="height: 40px; object-fit: contain;"></div>
+    <div class="footer" style="text-align:center;padding:20px 0 10px;">
       {{#if brand_logo_url}}
       <img
         src="{{brand_logo_url}}"

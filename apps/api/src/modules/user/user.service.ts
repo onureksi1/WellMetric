@@ -272,10 +272,18 @@ export class UserService {
 
       const { provider } = await this.uploadService.getProvider();
       const buffer = await provider.getObject(s3Key);
-      const csvData = buffer.toString('utf-8');
-      if (!csvData) throw new BadRequestException('CSV dosyası okunamadı.');
+      const csvStr = buffer.toString('utf-8');
+      const firstLine = csvStr.split('\n')[0];
+      const semiCount = (firstLine.match(/;/g) || []).length;
+      const commaCount = (firstLine.match(/,/g) || []).length;
+      const detectedDelimiter = semiCount > commaCount ? ';' : ',';
 
-      const records = parse(csvData, { columns: true, skip_empty_lines: true, bom: true });
+      const records = parse(csvStr, { 
+        columns: (header) => header.map(h => h.trim().toLowerCase().replace(/^\uFEFF/, '')),
+        skip_empty_lines: true, 
+        bom: true,
+        delimiter: detectedDelimiter 
+      });
       const departments = await this.departmentRepository.find({ where: { company_id: companyId, is_active: true } });
       const deptMap = new Map(departments.map(d => [d.name.toLowerCase(), d.id]));
 
@@ -294,14 +302,21 @@ export class UserService {
 
       for (let i = 0; i < records.length; i++) {
         const row = records[i] as any;
-        const email = row.email?.trim().toLowerCase();
         
+        // Flexible mapping for common headers
+        const email = (row.email || row['e-posta'] || row['eposta'] || row['mail'])?.trim().toLowerCase();
+        const fullName = (row.full_name || row['ad soyad'] || row['isim'] || row['ad_soyad'])?.trim();
+        const deptNameRaw = (row.department_name || row['departman'] || row['bolum'] || row['department'])?.trim();
+
         try {
           if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            throw new Error('Geçersiz email formatı.');
+            throw new Error('Geçersiz email formatı veya eksik email.');
           }
 
-          const deptNameRaw = row.department_name?.trim();
+          if (!fullName) {
+            throw new Error('Ad Soyad zorunludur.');
+          }
+
           const deptNameLower = deptNameRaw?.toLowerCase();
           let department_id = deptMap.get(deptNameLower);
           
@@ -318,15 +333,15 @@ export class UserService {
           }
 
           const userData = {
-            full_name: row.full_name || email.split('@')[0],
+            full_name: fullName || email.split('@')[0],
             department_id: department_id || null,
-            position: row.position || null,
-            location: row.location || null,
-            seniority: row.seniority || null,
-            age_group: row.age_group || null,
-            gender: row.gender || null,
-            start_date: row.start_date || null,
-            language: row.language || 'tr',
+            position: (row.position || row['pozisyon'] || row['unvan'] || row['gorev'] || null)?.trim(),
+            location: (row.location || row['lokasyon'] || row['konum'] || null)?.trim(),
+            seniority: (row.seniority || row['kıdem'] || row['kidem'] || null)?.trim(),
+            age_group: (row.age_group || row['yas_grubu'] || row['yaş grubu'] || null)?.trim(),
+            gender: (row.gender || row['cinsiyet'] || null)?.trim(),
+            start_date: row.start_date || row['baslangic_tarihi'] || row['başlangıç tarihi'] || null,
+            language: (row.language || row['dil'] || 'tr').trim().toLowerCase(),
           };
 
           if (company.settings.employee_accounts) {

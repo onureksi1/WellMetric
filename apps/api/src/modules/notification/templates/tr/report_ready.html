@@ -16,9 +16,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="header" style="background: white; border-bottom: 1px solid #eee;">
-      <img src="{{platform_url}}/images/logo.png" alt="Wellbeing Metric" style="height: 50px; object-fit: contain;">
-    </div>
+    <div class="header" style="background: #2E865A; padding: 40px 32px; text-align: center; color: white;"><h1 style="margin:0; font-size: 24px;">Wellbeing Metric</h1></div>
     <div class="body">
       <h2>Merhaba {{hr_name}},</h2>
       <p>Talep ettiğiniz <b>{{period}}</b> dönemine ait <b>{{format}}</b> formatındaki wellbeing raporu başarıyla oluşturuldu.</p>
@@ -31,7 +29,8 @@
         <p>⚠️ Güvenlik nedeniyle bu indirme bağlantısı <b>{{expires_in}}</b> (15 dakika) süreyle geçerlidir.</p>
       </div>
     </div>
-        <div class="footer" style="text-align:center;padding:20px 0 10px;">
+        <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee;"><img src="{{platform_url}}/images/logo.png" alt="Wellbeing Metric" style="height: 40px; object-fit: contain;"></div>
+    <div class="footer" style="text-align:center;padding:20px 0 10px;">
       {{#if brand_logo_url}}
       <img
         src="{{brand_logo_url}}"

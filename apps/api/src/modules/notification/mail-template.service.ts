@@ -63,6 +63,13 @@ export class MailTemplateService {
         subject_en: 'Your Wellbeing Analysis Report is Ready',
         variables: ['consultant_name', 'company_name', 'period', 'report_url', 'platform_url'],
         description: 'AI raporu hazır olduğunda danışmana giden mail'
+      },
+      {
+        slug: 'survey_assigned',
+        subject_tr: 'Yeni Değerlendirme Atandı',
+        subject_en: 'New Survey Assigned',
+        variables: ['hr_name', 'company_name', 'survey_title', 'period', 'due_date', 'dashboard_link', 'platform_url'],
+        description: 'Danışman anket atadığında HR\'a giden mail'
       }
     ];
 

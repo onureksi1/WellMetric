@@ -38,6 +38,7 @@ export default function NewSurveyPage() {
   const [showAnonWarning, setShowAnonWarning] = useState(false);
   const [hasDraft, setHasDraft] = useState<any>(null);
   const [industries, setIndustries] = useState<any[]>([]);
+  const [isIndustriesLoading, setIsIndustriesLoading] = useState(true);
 
   const methods = useForm({
     resolver: zodResolver(schema),
@@ -96,10 +97,15 @@ export default function NewSurveyPage() {
   React.useEffect(() => {
     const fetchIndustries = async () => {
       try {
+        setIsIndustriesLoading(true);
         const { data } = await client.get('/industries');
-        setIndustries(data);
+        console.log('[DEBUG] Industries data:', data);
+        setIndustries(data || []);
       } catch (e) {
         console.error('Failed to fetch industries', e);
+        setIndustries([]);
+      } finally {
+        setIsIndustriesLoading(false);
       }
     };
     fetchIndustries();
@@ -275,7 +281,7 @@ export default function NewSurveyPage() {
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold bg-navy text-white hover:bg-navy/90 transition-all shadow-lg shadow-navy/10"
             >
               <Sparkles size={18} className="text-yellow-400" />
-              {t('admin.ai_generate', 'AI ile Oluştur')}
+              {t('admin.surveys.ai_generate', 'AI ile Oluştur')}
             </button>
             <button 
               type="submit" 
@@ -318,9 +324,9 @@ export default function NewSurveyPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Anket Tipi*</label>
                 <select {...methods.register('type')} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium outline-none">
-                  <option value="global">Global Şablon</option>
-                  <option value="company_specific">Firmaya Özel</option>
-                  <option value="pulse">Nabız Anketi</option>
+                  <option value="global">{t('common.survey_types.global')}</option>
+                  <option value="company_specific">{t('common.company_specific')}</option>
+                  <option value="pulse">{t('common.survey_types.pulse')}</option>
                 </select>
               </div>
 
@@ -461,7 +467,7 @@ export default function NewSurveyPage() {
                 <Wand2 size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-navy">{t('admin.ai_generate', 'AI Soru Asistanı')}</h2>
+                <h2 className="text-xl font-black text-navy">{t('admin.surveys.ai_generate', 'AI Soru Asistanı')}</h2>
                 <p className="text-sm text-gray-400 font-medium">{t('admin.surveys.new.ai_assistant_subtitle', 'Sektörünüze özel sorular oluşturun.')}</p>
               </div>
             </div>
@@ -472,18 +478,24 @@ export default function NewSurveyPage() {
                 <div className="relative">
                   <select 
                     id="ai-industry" 
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-bold outline-none focus:ring-4 focus:ring-navy/5 transition-all appearance-none cursor-pointer text-navy"
+                    defaultValue=""
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all text-slate-900 cursor-pointer shadow-sm relative z-50"
                   >
-                    {industries.map((ind) => (
-                      <option key={ind.id} value={ind.name}>{ind.name}</option>
+                    <option value="" disabled>{t('common.select_industry', 'Sektör Seçin')}</option>
+                    
+                    {/* Fetched Industries */}
+                    {industries.length > 0 && industries.map((ind) => (
+                      <option key={ind.value} value={ind.value}>{ind.label}</option>
                     ))}
-                    {industries.length === 0 && (
+
+                    {/* Hardcoded Fallbacks (Always show if loading failed or empty) */}
+                    {(industries.length === 0 && !isIndustriesLoading) && (
                       <>
-                        <option value="Teknoloji">{t('common.industries.technology', 'Teknoloji & Yazılım')}</option>
-                        <option value="Üretim">{t('common.industries.manufacturing', 'Üretim & Sanayi')}</option>
-                        <option value="Hizmet">{t('common.industries.service', 'Hizmet Sektörü')}</option>
-                        <option value="Sağlık">{t('common.industries.health', 'Sağlık & İlaç')}</option>
-                        <option value="Finans">{t('common.industries.finance', 'Finans & Bankacılık')}</option>
+                        <option key="fallback-tech" value="technology">{t('common.industries.technology', 'Teknoloji & Yazılım')}</option>
+                        <option key="fallback-man" value="manufacturing">{t('common.industries.manufacturing', 'Üretim & Sanayi')}</option>
+                        <option key="fallback-srv" value="service">{t('common.industries.service', 'Hizmet Sektörü')}</option>
+                        <option key="fallback-health" value="healthcare">{t('common.industries.health', 'Sağlık & İlaç')}</option>
+                        <option key="fallback-fin" value="finance">{t('common.industries.finance', 'Finans & Bankacılık')}</option>
                       </>
                     )}
                   </select>
@@ -503,7 +515,7 @@ export default function NewSurveyPage() {
                     { key: 'mental', label: 'Zihinsel' },
                     { key: 'social', label: 'Sosyal' },
                     { key: 'financial', label: 'Finansal' },
-                    { key: 'occupational', label: 'İş & Anlam' }
+                    { key: 'work', label: 'İş & Anlam' }
                   ].map((dim) => (
                     <label key={dim.key} className="flex items-center gap-3 p-3 bg-gray-50/50 border border-transparent rounded-2xl cursor-pointer hover:bg-gray-50 hover:border-gray-100 transition-all group">
                       <div className="relative flex items-center justify-center">
@@ -519,8 +531,20 @@ export default function NewSurveyPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase">{t('admin.surveys.new.question_count', 'Soru Sayısı')}</label>
                 <div className="flex items-center gap-4">
-                  <input id="ai-count" type="range" min="5" max="30" defaultValue="10" className="flex-1 accent-navy" />
-                  <span className="text-sm font-black text-navy w-12">10</span>
+                  <input 
+                    id="ai-count" 
+                    type="range" 
+                    min="5" 
+                    max="30" 
+                    defaultValue="10" 
+                    className="flex-1 accent-navy cursor-pointer" 
+                    onInput={(e) => {
+                      const val = (e.target as HTMLInputElement).value;
+                      const span = document.getElementById('ai-count-display');
+                      if (span) span.innerText = val;
+                    }}
+                  />
+                  <span id="ai-count-display" className="text-sm font-black text-navy w-12">10</span>
                 </div>
                 <div className="flex justify-between text-[10px] font-bold text-gray-400">
                   <span>5 {t('admin.surveys.new.questions_unit', 'SORU')}</span>
@@ -559,12 +583,23 @@ export default function NewSurveyPage() {
                   const count = parseInt((document.getElementById('ai-count') as HTMLInputElement).value);
                   const dims = Array.from(document.querySelectorAll('.ai-dim:checked')).map((el: any) => el.value);
                   const lang = (document.querySelector('input[name="ai-lang"]:checked') as HTMLInputElement).value;
+                  
+                  if (!industry) {
+                    toast.error(t('common.select_industry', 'Lütfen bir sektör seçin'));
+                    return;
+                  }
+
+                  if (dims.length === 0) {
+                    toast.error(t('common.select_dimension', 'Lütfen en az bir boyut seçin'));
+                    return;
+                  }
+
                   handleAiGenerate({ industry, dimensions: dims, question_count: count, language: lang });
                 }}
                 className="flex-1 py-3 rounded-xl font-bold bg-navy text-white hover:bg-navy/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {aiLoading ? (
-                  <>{t('admin.ai_generating', 'AI Oluşturuyor...')}</>
+                  <>{t('admin.surveys.ai_generating', 'AI Oluşturuyor...')}</>
                 ) : (
                   <>{t('common.generate', 'Oluştur')}</>
                 )}

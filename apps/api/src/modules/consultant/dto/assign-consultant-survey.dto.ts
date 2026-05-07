@@ -7,7 +7,7 @@ export class AssignConsultantSurveyDto {
   @IsArray() @IsUUID('4', { each: true })
   company_ids: string[];
 
-  @IsString() @Matches(/^\d{4}-\d{2}$/)
+  @IsString() @Matches(/^\d{4}-(?:[01]\d|Q[1-4])$/)
   period: string;
 
   @IsDateString()

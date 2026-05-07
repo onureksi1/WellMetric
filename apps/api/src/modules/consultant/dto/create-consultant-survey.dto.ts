@@ -6,7 +6,7 @@ export class CreateConsultantSurveyQuestionDto {
   @IsOptional()
   dimension?: string;
 
-  @IsString() @MinLength(5)
+  @IsString() @MinLength(1)
   question_text_tr: string;
 
   @IsString() @IsOptional()
@@ -48,7 +48,7 @@ export class CreateConsultantSurveyQuestionDto {
 }
 
 export class CreateConsultantSurveyDto {
-  @IsString() @MinLength(3)
+  @IsString() @MinLength(1)
   title_tr: string;
 
   @IsString() @IsOptional()

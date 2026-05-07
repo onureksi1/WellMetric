@@ -158,6 +158,7 @@
       "title": "Bulk Upload CSV",
       "step1_title": "CSV Format",
       "step1_desc": "Prepare in the following format:",
+      "format_desc": "Please use a standard Comma (,) separated CSV file. Ensure you select the comma option when exporting from Excel. Headers: email, full_name, department_name, position, location, seniority, age_group, gender, start_date, language.",
       "download_template": "Download Template",
       "step2_title": "Upload File",
       "step3_title": "Result",
@@ -200,6 +201,10 @@
       "open_answers": "Open Answers",
       "ai_summary": "AI Summary",
       "no_open_answers": "No open-ended question responses."
+    },
+    "badges": {
+      "mine": "Created by Me",
+      "company_specific": "Company Specific"
     }
   },
   "actions": {

@@ -319,5 +319,14 @@
   "global_survey": "GLOBAL DEĞERLENDİRME",
   "company_specific": "FİRMAYA ÖZEL",
   "due_date": "Son Tarih",
-  "date_locale": "tr-TR"
+  "date_locale": "tr-TR",
+  "languages": {
+    "tr": "Türkçe",
+    "en": "İngilizce"
+  },
+  "generate": "Oluştur",
+  "select_industry": "Sektör Seçin",
+  "start_new": "Yeni Başlat",
+  "load_draft": "Taslağı Yükle",
+  "question": "Soru"
 }

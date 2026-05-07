@@ -37,6 +37,7 @@ export default function NewSurveyPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasDraft, setHasDraft] = useState<any>(null);
   const [industries, setIndustries] = useState<any[]>([]);
+  const [isIndustriesLoading, setIsIndustriesLoading] = useState(true);
 
   const methods = useForm({
     resolver: zodResolver(schema),
@@ -90,18 +91,22 @@ export default function NewSurveyPage() {
     checkDraft();
   }, []);
 
-  // Load Industries
+  // Load Data
   React.useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsIndustriesLoading(true);
         const [compRes, indRes] = await Promise.all([
           client.get('/consultant/companies'),
           client.get('/industries')
         ]);
         setCompanies(compRes.data.data || compRes.data);
-        setIndustries(indRes.data);
+        setIndustries(indRes.data || []);
       } catch (e) {
         console.error('Failed to fetch data', e);
+        setIndustries([]);
+      } finally {
+        setIsIndustriesLoading(false);
       }
     };
     fetchData();
@@ -201,7 +206,8 @@ export default function NewSurveyPage() {
       router.push('/consultant/surveys');
     } catch (err: any) {
       console.error(err);
-      toast.error(err.response?.data?.message || t('surveys.new.error'));
+      const msg = err.response?.data?.error?.message || err.response?.data?.message || t('surveys.new.error');
+      toast.error(msg, { duration: 5000 });
     } finally {
       setLoading(false);
     }
@@ -278,7 +284,7 @@ export default function NewSurveyPage() {
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold bg-navy text-white hover:bg-navy/90 transition-all shadow-lg shadow-navy/10"
             >
               <Sparkles size={18} className="text-yellow-400" />
-              {tc('ai_generate')}
+              {tc('surveys.ai_generate', 'AI ile Oluştur')}
             </button>
             <button 
               type="submit" 
@@ -418,18 +424,35 @@ export default function NewSurveyPage() {
                 <Wand2 size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-navy">{t('surveys.new.ai_assistant_title')}</h2>
-                <p className="text-sm text-gray-400 font-medium">{t('surveys.new.ai_assistant_subtitle')}</p>
+                <h2 className="text-xl font-black text-navy">{tc('surveys.ai_generate', 'AI Soru Asistanı')}</h2>
+                <p className="text-sm text-gray-400 font-medium">Sektörünüze özel sorular oluşturun.</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">{t('common.industry', 'Sektör')}</label>
-                <select id="ai-industry" className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-navy/10 transition-all">
-                  {industries.map((ind) => (
-                    <option key={ind.id} value={ind.id}>{ind.name}</option>
+                <select 
+                  id="ai-industry" 
+                  defaultValue=""
+                  className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all text-slate-900 cursor-pointer shadow-sm relative z-50"
+                >
+                  <option value="" disabled>{tc('select_industry', 'Sektör Seçin')}</option>
+                  
+                  {/* Fetched Industries */}
+                  {industries.length > 0 && industries.map((ind) => (
+                    <option key={ind.value} value={ind.value}>{ind.label}</option>
                   ))}
+
+                  {/* Hardcoded Fallbacks */}
+                  {(industries.length === 0 && !isIndustriesLoading) && (
+                    <>
+                      <option key="fallback-tech" value="technology">{tc('industries.technology', 'Teknoloji & Yazılım')}</option>
+                      <option key="fallback-man" value="manufacturing">{tc('industries.manufacturing', 'Üretim & Sanayi')}</option>
+                      <option key="fallback-srv" value="service">{tc('industries.service', 'Hizmet Sektörü')}</option>
+                      <option key="fallback-health" value="healthcare">{tc('industries.health', 'Sağlık & İlaç')}</option>
+                      <option key="fallback-fin" value="finance">{tc('industries.finance', 'Finans & Bankacılık')}</option>
+                    </>
+                  )}
                 </select>
               </div>
 
@@ -441,7 +464,7 @@ export default function NewSurveyPage() {
                     { key: 'mental', label: tc('dimensions.mental') },
                     { key: 'social', label: tc('dimensions.social') },
                     { key: 'financial', label: tc('dimensions.financial') },
-                    { key: 'occupational', label: tc('dimensions.work') }
+                    { key: 'work', label: tc('dimensions.work') }
                   ].map((dim) => (
                     <label key={dim.key} className="flex items-center gap-2 p-2 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
                       <input type="checkbox" className="w-4 h-4 accent-navy ai-dim" value={dim.key} defaultChecked={['physical', 'mental', 'social'].includes(dim.key)} />
@@ -454,8 +477,20 @@ export default function NewSurveyPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase">{t('surveys.new.question_count', 'Soru Sayısı')}</label>
                 <div className="flex items-center gap-4">
-                  <input id="ai-count" type="range" min="5" max="30" defaultValue="10" className="flex-1 accent-navy" />
-                  <span className="text-sm font-black text-navy w-12">10</span>
+                  <input 
+                    id="ai-count" 
+                    type="range" 
+                    min="5" 
+                    max="30" 
+                    defaultValue="10" 
+                    className="flex-1 accent-navy cursor-pointer" 
+                    onInput={(e) => {
+                      const val = (e.target as HTMLInputElement).value;
+                      const span = document.getElementById('ai-count-display');
+                      if (span) span.innerText = val;
+                    }}
+                  />
+                  <span id="ai-count-display" className="text-sm font-black text-navy w-12">10</span>
                 </div>
                 <div className="flex justify-between text-[10px] font-bold text-gray-400">
                   <span>5 {t('surveys.new.questions_unit', 'SORU')}</span>
@@ -494,14 +529,25 @@ export default function NewSurveyPage() {
                   const count = parseInt((document.getElementById('ai-count') as HTMLInputElement).value);
                   const dims = Array.from(document.querySelectorAll('.ai-dim:checked')).map((el: any) => el.value);
                   const lang = (document.querySelector('input[name="ai-lang"]:checked') as HTMLInputElement).value;
+                  
+                  if (!industry) {
+                    toast.error(tc('select_industry', 'Lütfen bir sektör seçin'));
+                    return;
+                  }
+                  
+                  if (dims.length === 0) {
+                    toast.error(tc('select_dimension', 'Lütfen en az bir boyut seçin'));
+                    return;
+                  }
+
                   handleAiGenerate({ industry, dimensions: dims, question_count: count, language: lang });
                 }}
                 className="flex-1 py-3 rounded-xl font-bold bg-navy text-white hover:bg-navy/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {aiLoading ? (
-                  <>{tc('ai_generating')}</>
+                  <>{tc('ai_generating', 'AI Oluşturuyor...')}</>
                 ) : (
-                  <>{tc('generate')}</>
+                  <>{tc('generate', 'Oluştur')}</>
                 )}
               </button>
             </div>

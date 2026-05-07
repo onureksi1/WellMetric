@@ -57,7 +57,7 @@ export class PdfTemplateHelper {
   static getTranslations(language: string) {
     return language === 'tr' ? {
       title: 'Wellbeing Analiz Raporu',
-      preparedBy: 'Wellbeing Platformu tarafından hazırlanmıştır',
+      preparedBy: 'Wellbeing Metric tarafından hazırlanmıştır',
       executiveSummary: 'Yönetici Özeti',
       overallScore: 'Genel Wellbeing Skoru',
       participationRate: 'Katılım Oranı',
@@ -73,7 +73,7 @@ export class PdfTemplateHelper {
       contactTitle: 'Dernek İletişim',
     } : {
       title: 'Wellbeing Analysis Report',
-      preparedBy: 'Prepared by Wellbeing Platform',
+      preparedBy: 'Prepared by Wellbeing Metric',
       executiveSummary: 'Executive Summary',
       overallScore: 'Overall Wellbeing Score',
       participationRate: 'Participation Rate',

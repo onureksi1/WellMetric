@@ -156,13 +156,18 @@ export class UploadService {
   async parseCsv(s3Key: string, companyId: string) {
     const { provider } = await this.providerFactory.getProvider();
     const buffer = await provider.getObject(s3Key);
-    const content = buffer.toString('utf-8');
+    const csvStr = buffer.toString('utf-8');
+    const firstLine = csvStr.split('\n')[0];
+    const semiCount = (firstLine.match(/;/g) || []).length;
+    const commaCount = (firstLine.match(/,/g) || []).length;
+    const detectedDelimiter = semiCount > commaCount ? ';' : ',';
 
-    const records = parse(content, {
-      columns: true,
+    const records = parse(csvStr, {
+      columns: (header) => header.map(h => h.trim().toLowerCase().replace(/^\uFEFF/, '')),
       skip_empty_lines: true,
       trim: true,
       bom: true,
+      delimiter: detectedDelimiter
     });
 
     const validRows: any[] = [];
@@ -176,27 +181,43 @@ export class UploadService {
       const row = records[i] as any;
       const rowNum = i + 1;
 
-      if (!row.email || !isEmail(row.email)) {
-        errorRows.push({ row_number: rowNum, email: row.email, reason: 'Geçersiz email formatı' });
+      // Flexible mapping for common headers
+      const email = (row.email || row['e-posta'] || row['eposta'] || row['mail'])?.trim().toLowerCase();
+      const fullName = (row.full_name || row['ad soyad'] || row['isim'] || row['ad_soyad'])?.trim();
+      const deptName = (row.department_name || row['departman'] || row['bolum'] || row['department'])?.trim();
+
+      if (!email || !isEmail(email)) {
+        errorRows.push({ row_number: rowNum, email: email || '-', reason: 'Geçersiz email formatı' });
         continue;
       }
 
-      if (!row.full_name || !row.department_name) {
-        errorRows.push({ row_number: rowNum, email: row.email, reason: 'İsim veya departman eksik' });
+      if (!fullName || !deptName) {
+        errorRows.push({ row_number: rowNum, email: email, reason: 'İsim veya departman eksik' });
         continue;
       }
+
+      const rowData = {
+        ...row,
+        email,
+        full_name: fullName,
+        department_name: deptName,
+        seniority: (row.seniority || row['kıdem'] || row['kidem'])?.trim(),
+        age_group: (row.age_group || row['yas_grubu'] || row['yaş grubu'])?.trim(),
+        gender: (row.gender || row['cinsiyet'])?.trim(),
+        language: (row.language || row['dil'] || 'tr').trim().toLowerCase(),
+      };
 
       // Cleanup enums
-      if (row.seniority && !seniorityEnum.includes(row.seniority.toLowerCase())) row.seniority = null;
-      if (row.age_group && !ageEnum.includes(row.age_group)) row.age_group = null;
-      if (row.gender && !genderEnum.includes(row.gender.toLowerCase())) row.gender = null;
-      if (row.language && !['tr', 'en'].includes(row.language.toLowerCase())) row.language = 'tr';
+      if (rowData.seniority && !seniorityEnum.includes(rowData.seniority.toLowerCase())) rowData.seniority = null;
+      if (rowData.age_group && !ageEnum.includes(rowData.age_group)) rowData.age_group = null;
+      if (rowData.gender && !genderEnum.includes(rowData.gender.toLowerCase())) rowData.gender = null;
+      if (rowData.language && !['tr', 'en'].includes(rowData.language)) rowData.language = 'tr';
 
       validRows.push({
-        ...row,
-        seniority: row.seniority?.toLowerCase(),
-        gender: row.gender?.toLowerCase(),
-        language: row.language?.toLowerCase() || 'tr',
+        ...rowData,
+        seniority: rowData.seniority?.toLowerCase(),
+        gender: rowData.gender?.toLowerCase(),
+        language: rowData.language || 'tr',
       });
     }
 

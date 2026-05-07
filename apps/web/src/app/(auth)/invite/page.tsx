@@ -104,7 +104,25 @@ function InviteContent() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-10">
+        <div className="flex items-center gap-2 bg-white/50 backdrop-blur-sm p-1.5 rounded-full border border-gray-200 shadow-sm">
+          <button 
+            onClick={() => i18n.changeLanguage('tr')}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${i18n.language === 'tr' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
+          >
+            TR
+          </button>
+          <button 
+            onClick={() => i18n.changeLanguage('en')}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${i18n.language === 'en' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
+          >
+            EN
+          </button>
+        </div>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="text-center text-3xl font-extrabold text-navy">
           {t('invite.title', 'Hesabınızı Oluşturun')}

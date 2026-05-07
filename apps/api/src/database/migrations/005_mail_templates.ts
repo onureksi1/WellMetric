@@ -5,19 +5,19 @@ export class MailTemplates1746050400000 implements MigrationInterface {
     await queryRunner.query("CREATE TABLE mail_templates (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), slug VARCHAR(50) UNIQUE NOT NULL, subject_tr VARCHAR(300) NOT NULL, subject_en VARCHAR(300), body_tr TEXT NOT NULL, body_en TEXT, variables JSONB NOT NULL DEFAULT '[]', description TEXT, is_active BOOLEAN DEFAULT true, updated_at TIMESTAMPTZ DEFAULT NOW(), updated_by UUID REFERENCES users(id))");
 
     const getBaseHtml = (title: string, content: string, ctaLabel?: string, ctaLink?: string) => {
-      let html = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body { font-family: \'Inter\', -apple-system, sans-serif; line-height: 1.6; color: #334155; margin: 0; padding: 0; background-color: #f8fafc; } .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); } .header { background: #ffffff; padding: 32px; border-bottom: 1px solid #f1f5f9; text-align: center; } .header h1 { color: #2E865A; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; } .content { padding: 40px 32px; } .content h2 { margin-top: 0; color: #0f172a; font-size: 20px; font-weight: 700; } .content p { margin: 16px 0; font-size: 16px; color: #475569; } .cta-container { margin: 32px 0; text-align: center; } .cta-button { background-color: #2E865A; color: #ffffff !important; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block; transition: all 0.2s; } .footer { background: #f8fafc; padding: 32px; text-align: center; border-top: 1px solid #f1f5f9; } .footer p { margin: 4px 0; font-size: 13px; color: #94a3b8; } .footer a { color: #2E865A; text-decoration: none; font-weight: 600; }</style></head><body><div class="wrapper"><div class="header"><h1>🌱 Wellbeing Platformu</h1></div><div class="content"><h2>' + title + '</h2>' + content;
+      let html = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body { font-family: \'Inter\', -apple-system, sans-serif; line-height: 1.6; color: #334155; margin: 0; padding: 0; background-color: #f8fafc; } .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); } .header { background: #2E865A; padding: 40px 32px; text-align: center; color: #ffffff; } .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; } .content { padding: 40px 32px; } .content h2 { margin-top: 0; color: #0f172a; font-size: 20px; font-weight: 700; } .content p { margin: 16px 0; font-size: 16px; color: #475569; } .cta-container { margin: 32px 0; text-align: center; } .cta-button { background-color: #2E865A; color: #ffffff !important; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block; transition: all 0.2s; } .footer { background: #f8fafc; padding: 32px; text-align: center; border-top: 1px solid #f1f5f9; } .footer p { margin: 4px 0; font-size: 13px; color: #94a3b8; } .footer a { color: #2E865A; text-decoration: none; font-weight: 600; } .logo-bottom { text-align: center; padding: 20px 0; border-top: 1px solid #f1f5f9; } .logo-bottom h1 { color: #2E865A; margin: 0; font-size: 20px; font-weight: 800; }</style></head><body><div class="wrapper"><div class="header"><h1>Wellbeing Metric</h1></div><div class="content"><h2>' + title + '</h2>' + content;
       if (ctaLabel && ctaLink) {
         html += '<div class="cta-container"><a href="' + ctaLink + '" class="cta-button">' + ctaLabel + '</a></div>';
       }
-      html += '</div><div class="footer"><p><b>Wellbeing Metric</b></p><p>Sorularınız için <a href="mailto:destek@wellbeingmetric.com">destek@wellbeingmetric.com</a> adresinden bize ulaşabilirsiniz.</p></div></div></body></html>';
+      html += '</div><div class="logo-bottom"><h1>🌱 Wellbeing Metric</h1></div><div class="footer"><p>Sorularınız için <a href="mailto:destek@wellbeingmetric.com">destek@wellbeingmetric.com</a> adresinden bize ulaşabilirsiniz.</p></div></div></body></html>';
       return html;
     };
 
     const templates = [
       {
         slug: 'welcome_hr',
-        subject_tr: 'Wellbeing Platformuna Hoş Geldiniz',
-        subject_en: 'Welcome to Wellbeing Platform',
+        subject_tr: 'Wellbeing Metric Hoş Geldiniz',
+        subject_en: 'Welcome to Wellbeing Metric',
         variables: ['{{hr_name}}', '{{company_name}}', '{{invite_link}}'],
         body_tr: getBaseHtml('Hoş Geldin, {{hr_name}}!', '<p>{{company_name}} için HR Admin olarak davet edildiniz. Hesabınızı oluşturarak şirketinizin wellbeing yolculuğunu başlatabilirsiniz.</p>', 'Hesabımı Oluştur →', '{{invite_link}}'),
         body_en: getBaseHtml('Welcome, {{hr_name}}!', "<p>You have been invited as an HR Admin for {{company_name}}. Create your account to start your company's wellbeing journey.</p>", 'Create My Account →', '{{invite_link}}'),
@@ -46,8 +46,8 @@ export class MailTemplates1746050400000 implements MigrationInterface {
         subject_tr: 'Wellbeing Hesabınızı Oluşturun',
         subject_en: 'Create Your Wellbeing Account',
         variables: ['{{full_name}}', '{{company_name}}', '{{invite_link}}'],
-        body_tr: getBaseHtml('Ekibimize Hoş Geldiniz!', '<p>Merhaba {{full_name}}, {{company_name}} wellbeing platformuna erişiminiz tanımlandı. Aşağıdaki butona tıklayarak kaydınızı tamamlayabilirsiniz.</p>', 'Kayıt Ol', '{{invite_link}}'),
-        body_en: getBaseHtml('Welcome to the Team!', '<p>Hello {{full_name}}, your access to the {{company_name}} wellbeing platform has been defined. Click the button below to complete your registration.</p>', 'Sign Up', '{{invite_link}}'),
+        body_tr: getBaseHtml('Ekibimize Hoş Geldiniz!', '<p>Merhaba {{full_name}}, {{company_name}} wellbeing metric erişiminiz tanımlandı. Aşağıdaki butona tıklayarak kaydınızı tamamlayabilirsiniz.</p>', 'Kayıt Ol', '{{invite_link}}'),
+        body_en: getBaseHtml('Welcome to the Team!', '<p>Hello {{full_name}}, your access to the {{company_name}} wellbeing metric has been defined. Click the button below to complete your registration.</p>', 'Sign Up', '{{invite_link}}'),
         description: 'Çalışan kayıt davetiyesi'
       },
       {

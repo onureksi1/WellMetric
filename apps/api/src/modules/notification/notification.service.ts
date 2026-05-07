@@ -83,7 +83,7 @@ export class NotificationService {
 
   async sendWelcomeHr(to: string, hrName: string, companyName: string, inviteLink: string, language: string = 'tr', companyId?: string, consultantId?: string) {
     const platformUrl = await this.getPlatformUrl();
-    const subject = language === 'tr' ? 'Wellbeing Platformuna Hoş Geldiniz' : 'Welcome to Wellbeing Platform';
+    const subject = language === 'tr' ? 'Wellbeing Metric Hoş Geldiniz' : 'Welcome to Wellbeing Metric';
 
     console.log(`[Notification] Preparing welcome_hr email for: ${to}`);
     await this.addToQueue('welcome_hr', to, subject, {
@@ -153,7 +153,7 @@ export class NotificationService {
 
   async sendEmployeeInvite(to: string, fullName: string, companyName: string, inviteToken: string, language: string = 'tr', companyId?: string, consultantId?: string) {
     const platformUrl = await this.getPlatformUrl();
-    const subject = language === 'tr' ? 'Wellbeing Hesabınızı Oluşturun' : 'Create Your Wellbeing Account';
+    const subject = language === 'tr' ? 'Wellbeing Metric Hesabınızı Oluşturun' : 'Create Your Wellbeing Metric Account';
     const inviteLink = `${platformUrl}/invite?token=${inviteToken}`;
     const expiresIn = language === 'tr' ? '72 saat' : '72 hours';
     await this.addToQueue('employee_invite', to, subject, {
@@ -185,6 +185,21 @@ export class NotificationService {
       dashboard_link: dashboardLink,
       participation_rate: participationRate.toString(),
     }, language);
+  }
+
+  async sendSurveyAssigned(hrEmail: string, hrName: string, companyName: string, surveyTitle: string, period: string, dueDate: Date, language: string = 'tr', companyId?: string, consultantId?: string) {
+    const platformUrl = await this.getPlatformUrl();
+    const subject = language === 'tr' ? `📋 Yeni Değerlendirme Atandı: ${surveyTitle}` : `📋 New Survey Assigned: ${surveyTitle}`;
+    const dashboardLink = `${platformUrl}/dashboard`;
+
+    await this.addToQueue('survey_assigned', hrEmail, subject, {
+      hr_name: hrName,
+      company_name: companyName,
+      survey_title: surveyTitle,
+      period,
+      due_date: dueDate.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US'),
+      dashboard_link: dashboardLink,
+    }, language, companyId, consultantId);
   }
 
   async sendScoreAlert(hrEmail: string, hrName: string, companyName: string, dimension: string, score: number, previousScore: number | null, language: string = 'tr') {
@@ -306,7 +321,7 @@ export class NotificationService {
   // Generic sendEmail for backward compatibility
   async sendEmail(to: string, template: string, variables: Record<string, any>) {
       const language = variables.language || 'tr';
-      const subject = variables.subject || 'Wellbeing Platform Bildirimi';
+      const subject = variables.subject || 'Wellbeing Metric Bildirimi';
       await this.addToQueue(template, to, subject, variables, language);
   }
 

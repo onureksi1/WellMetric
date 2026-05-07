@@ -333,7 +333,13 @@
     "status_passive": "Passive",
     "delete_error_title": "Cannot Delete Company",
     "delete_error_desc": "{{name}} company has {{count}} users registered. You must delete or move users first.",
-    "user_search_placeholder": "Search by name or email..."
+    "user_search_placeholder": "Search by name or email...",
+    "import_modal": {
+      "title": "Import Users",
+      "step1_title": "STEP 1: Prepare Template",
+      "step1_desc": "Use the CSV template below to add users in bulk. Ensure roles, departments, and other fields are in the correct format.",
+      "format_info": "Please use a CSV file separated by comma (,) or semicolon (;). Headers must be: email, full_name, role, department_name, position, location, seniority, age_group, gender, start_date, language."
+    }
   },
   "surveys": {
     "title": "Surveys",

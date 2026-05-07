@@ -17,6 +17,7 @@ import { EmployeesService } from '../user/employees.service';
 import { SubscriptionRenewalService } from '../billing/services/subscription-renewal.service';
 import { CreditAlertService } from '../billing/services/credit-alert.service';
 import { TrainingService } from '../training/training.service';
+import { InAppNotificationService } from '../notification/in-app-notification.service';
 
 @Injectable()
 export class CronService {
@@ -38,6 +39,7 @@ export class CronService {
     private readonly subscriptionRenewalService: SubscriptionRenewalService,
     private readonly creditAlertService: CreditAlertService,
     private readonly trainingService: TrainingService,
+    private readonly inAppNotifService: InAppNotificationService,
     private readonly logger: AppLogger,
   ) {}
 
@@ -534,6 +536,42 @@ export class CronService {
       this.logger.fatal('CRON remindUpcomingTrainingEvents CRASHED', { service: 'CronService' }, err);
     } finally {
       await this.cronLockGuard.releaseLock('remindUpcomingTrainingEvents');
+    }
+  }
+
+  // ── Anket süresi doluyor (3 gün kala bildirim) ───────────────
+  @Cron('0 9 * * *', { timeZone: 'Europe/Istanbul' })
+  async notifyExpiringCampaigns() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.notifyExpiringCampaigns } as any))) return;
+    
+    try {
+      const expiring = await this.dataSource.query(`
+        SELECT sa.id, s.title_tr as title, sa.due_at,
+               u.id as hr_id
+        FROM survey_assignments sa
+        JOIN surveys s ON s.id = sa.survey_id
+        JOIN users u ON u.company_id = sa.company_id
+          AND u.role = 'hr_admin' AND u.is_active = true
+        WHERE sa.status = 'active'
+          AND sa.due_at::date = (NOW() + INTERVAL '3 days')::date
+      `);
+
+      for (const row of expiring) {
+        await this.inAppNotifService.create({
+          userId:  row.hr_id,
+          type:    'survey_expiring',
+          titleTr: `Anket süresi doluyor: ${row.title}`,
+          titleEn: `Survey expiring: ${row.title}`,
+          bodyTr:  '3 gün içinde sona erecek. Hatırlatma gönderin.',
+          bodyEn:  'Expires in 3 days. Send a reminder.',
+          link:    `/dashboard/surveys`,
+          metadata: { assignment_id: row.id },
+        });
+      }
+    } catch (e) {
+      this.logger.error('Error in notifyExpiringCampaigns', e);
+    } finally {
+      await this.cronLockGuard.releaseLock('notifyExpiringCampaigns');
     }
   }
 }

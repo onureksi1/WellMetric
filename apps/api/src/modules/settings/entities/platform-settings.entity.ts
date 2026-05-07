@@ -9,13 +9,18 @@ import {
 import { User } from '../../user/entities/user.entity';
 
 export interface AiTaskModels {
-  open_text_summary: { provider: string; model: string };
-  risk_alert: { provider: string; model: string };
-  action_suggestion: { provider: string; model: string };
-  trend_analysis: { provider: string; model: string };
-  hr_chat: { provider: string; model: string };
-  admin_anomaly: { provider: string; model: string };
-  dimension_weights: Record<string, number>;
+  open_text_summary?: { provider: string; model: string };
+  risk_alert?: { provider: string; model: string };
+  action_suggestion?: { provider: string; model: string };
+  trend_analysis?: { provider: string; model: string };
+  hr_chat?: { provider: string; model: string };
+  admin_anomaly?: { provider: string; model: string };
+  admin_chat?: { provider: string; model: string };
+  survey_generation?: { provider: string; model: string };
+  intelligence_report?: { provider: string; model: string };
+  benchmark_generation?: { provider: string; model: string };
+  content_suggestion?: { provider: string; model: string };
+  dimension_weights?: Record<string, number>;
 }
 
 
@@ -64,7 +69,7 @@ export class PlatformSettings {
   storage_config: any;
 
   // General settings
-  @Column({ type: 'varchar', length: 200, default: 'Wellbeing Platformu' })
+  @Column({ type: 'varchar', length: 200, default: 'Wellbeing Metric' })
   platform_name: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })

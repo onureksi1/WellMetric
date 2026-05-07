@@ -310,17 +310,6 @@ export class ConsultantService {
     };
   }
 
-  async assignSurvey(consultantId: string, dto: any) {
-    const { survey_id, company_ids, period, due_at } = dto;
-    
-    for (const companyId of company_ids) {
-      await this.verifyOwnership(consultantId, companyId);
-      // Logic for assignment would call SurveyService
-      // await this.surveyService.assignToCompany(companyId, survey_id, { period, due_at });
-    }
-
-    return { success: true };
-  }
 
   async getComparativeInsight(consultantId: string, dto: any) {
     const { company_ids, period } = dto;

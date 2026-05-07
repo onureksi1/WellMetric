@@ -18,7 +18,7 @@ export function buildContextNarrative(
   const narratives: string[] = [];
 
   // 1. Significant Drops
-  const dimensions = ['overall', 'mental', 'physical', 'social', 'financial', 'occupational'];
+  const dimensions = ['overall', 'mental', 'physical', 'social', 'financial', 'work'];
   dimensions.forEach(dim => {
     const curr = data.scores[dim];
     const prev = data.prevScores[dim];

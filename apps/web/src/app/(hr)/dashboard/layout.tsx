@@ -8,6 +8,7 @@ import HrSidebar from '@/components/layout/HrSidebar';
 import { PeriodSelector } from '@/components/shared/PeriodSelector';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { Bell, Search, User, Menu } from 'lucide-react';
+import { NotificationDrawer } from '@/components/shared/NotificationDrawer';
 import '@/lib/i18n';
 import { SidebarProvider, useSidebar } from '@/lib/contexts/SidebarContext';
 
@@ -75,14 +76,11 @@ function HrLayoutContent({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-2 md:gap-4">
-               <div className="hidden sm:block">
-                 <LanguageSwitcher />
-               </div>
-               <button className="text-gray-400 hover:text-navy transition-colors relative">
-                  <Bell size={20} />
-                  <span className="absolute -top-1 -right-1 h-3.5 w-3.5 bg-danger text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white">2</span>
-               </button>
-               <div className="h-8 w-px bg-gray-100 hidden sm:block" />
+                <div className="hidden sm:block">
+                  <LanguageSwitcher />
+                </div>
+                <NotificationDrawer />
+                <div className="h-8 w-px bg-gray-100 hidden sm:block" />
                <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
                   <User size={18} />
                </div>

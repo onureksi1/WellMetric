@@ -35,12 +35,14 @@ export class ConsultantSurveysController {
 
   @Post('ai-generate')
   aiGenerate(@Body() dto: AiGenerateSurveyDto, @CurrentUser() user: any) {
-    return this.aiService.generateSurveyQuestions(
-      dto.industry,
-      dto.dimensions,
-      dto.question_count || 10,
-      dto.language || 'tr'
-    );
+    console.log('[DEBUG] ConsultantSurveysController.aiGenerate started', {
+      industry: dto.industry,
+      dimensions: dto.dimensions,
+      count: dto.question_count,
+      lang: dto.language,
+      consultant_id: user.consultant_id
+    });
+    return this.aiService.generateSurveyQuestions(dto);
   }
 
   @Post('assign')

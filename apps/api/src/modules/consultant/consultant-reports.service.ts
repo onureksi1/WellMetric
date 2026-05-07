@@ -9,6 +9,7 @@ import { NotificationService } from '../notification/notification.service';
 import { AppLogger } from '../../common/logger/app-logger.service';
 import { ReportHtmlHelper } from '../report/helpers/report-html.helper';
 import { CreateReportDto, UpdateReportDto } from './dto/report.dto';
+import { InAppNotificationService } from '../notification/in-app-notification.service';
 
 @Injectable()
 export class ConsultantReportsService {
@@ -22,6 +23,7 @@ export class ConsultantReportsService {
     @InjectRepository(AiInsight)
     private readonly insightRepo: Repository<AiInsight>,
     private readonly notificationService: NotificationService,
+    private readonly inAppNotifService: InAppNotificationService,
     private readonly reportHtmlHelper: ReportHtmlHelper,
     private readonly logger: AppLogger,
     @InjectDataSource() private readonly dataSource: DataSource,
@@ -243,6 +245,20 @@ export class ConsultantReportsService {
         report_url: `${process.env.APP_URL || 'http://localhost:3000'}/dashboard/reports/consultant/${id}`,
       });
     }
+
+    // In-app bildirim gönder
+    await this.inAppNotifService.createForUsers(
+      hrAdmins.map(u => u.id),
+      {
+        type:    'report_published',
+        titleTr: `Yeni rapor: ${report.title}`,
+        titleEn: `New report: ${report.title}`,
+        bodyTr:  'Danışmanınız yeni bir rapor yayınladı.',
+        bodyEn:  'Your consultant published a new report.',
+        link:    `/dashboard/reports`,
+        metadata: { report_id: report.id },
+      }
+    );
 
     // notified_at güncelle
     await this.reportRepo.update(id, { notifiedAt: now });

@@ -18,6 +18,9 @@ import { MailTemplate } from './entities/mail-template.entity';
 import { MailTemplateService } from './mail-template.service';
 import { MailTemplateController } from './mail-template.controller';
 import { NotificationController } from './notification.controller';
+import { InAppNotification } from './entities/in-app-notification.entity';
+import { InAppNotificationService } from './in-app-notification.service';
+import { InAppNotificationController } from './in-app-notification.controller';
 
 @Global()
 @Module({
@@ -25,20 +28,21 @@ import { NotificationController } from './notification.controller';
     BullModule.registerQueue({
       name: 'mail-queue',
     }),
-    TypeOrmModule.forFeature([MailTemplate]),
+    TypeOrmModule.forFeature([MailTemplate, InAppNotification]),
     SettingsModule,
     AuditModule,
     forwardRef(() => BillingModule),
     WhiteLabelModule,
   ],
-  controllers: [MailTemplateController, NotificationController],
+  controllers: [MailTemplateController, NotificationController, InAppNotificationController],
   providers: [
     NotificationService,
     NotificationProcessor,
     MailProviderFactory,
     TemplateHelper,
     MailTemplateService,
+    InAppNotificationService,
   ],
-  exports: [NotificationService, MailTemplateService],
+  exports: [NotificationService, MailTemplateService, InAppNotificationService],
 })
 export class NotificationModule {}

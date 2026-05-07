@@ -11,20 +11,34 @@ import {
   Users, 
   Activity,
   ArrowRight,
-  ShieldAlert,
-  Loader2
-} from 'lucide-react';
+   ShieldAlert,
+   Loader2,
+   Edit,
+   Trash2
+ } from 'lucide-react';
 import Link from 'next/link';
 import client from '@/lib/api/client';
+import { toast } from 'react-hot-toast';
 
 export default function MyCompaniesPage() {
   const { t, tc, i18n } = useT('consultant');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [planLimit, setPlanLimit] = useState({ used: 0, max: 5 });
+   const [companies, setCompanies] = useState<any[]>([]);
+   const [planLimit, setPlanLimit] = useState({ used: 0, max: 5 });
+   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  useEffect(() => {
+   useEffect(() => {
+     const handleOutsideClick = (e: MouseEvent) => {
+       if (activeMenu && !(e.target as Element).closest('.company-menu-container')) {
+         setActiveMenu(null);
+       }
+     };
+     document.addEventListener('mousedown', handleOutsideClick);
+     return () => document.removeEventListener('mousedown', handleOutsideClick);
+   }, [activeMenu]);
+ 
+   useEffect(() => {
     const fetchCompanies = async () => {
       try {
         const response = await client.get('/consultant/companies');
@@ -42,9 +56,23 @@ export default function MyCompaniesPage() {
     };
 
     fetchCompanies();
-  }, []);
+   }, []);
 
-  const filteredCompanies = companies.filter(c => 
+   const handleDelete = async (companyId: string) => {
+     if (!window.confirm(t('companies.delete_confirm') || 'Bu firmayı silmek istediğinize emin misiniz?')) {
+       return;
+     }
+
+     try {
+       await client.delete(`/admin/companies/${companyId}`);
+       setCompanies(prev => prev.filter(c => c.id !== companyId));
+       toast.success(t('companies.delete_success') || 'Firma başarıyla silindi.');
+     } catch (err: any) {
+       toast.error(err.response?.data?.message || 'Firma silinemedi.');
+     }
+   };
+
+   const filteredCompanies = companies.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
     c.industry?.toLowerCase().includes(search.toLowerCase())
   );
@@ -121,9 +149,41 @@ export default function MyCompaniesPage() {
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
                     <Building2 size={24} />
                   </div>
-                  <button className="p-1.5 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors">
-                    <MoreVertical size={20} />
-                  </button>
+                   <div className="relative company-menu-container">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveMenu(activeMenu === c.id ? null : c.id);
+                      }}
+                      className={`p-2 rounded-xl transition-all ${
+                        activeMenu === c.id ? 'bg-slate-100 text-slate-900 shadow-inner' : 'hover:bg-slate-50 text-slate-400 hover:text-slate-600'
+                      }`}
+                    >
+                      <MoreVertical size={20} />
+                    </button>
+
+                    {activeMenu === c.id && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                        <Link 
+                          href={`/consultant/companies/${c.id}/edit`}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit size={16} />
+                          {tc('edit', 'Düzenle')}
+                        </Link>
+                        <button 
+                          onClick={() => {
+                            handleDelete(c.id);
+                            setActiveMenu(null);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                          {tc('delete', 'Sil')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Info */}
@@ -149,20 +209,22 @@ export default function MyCompaniesPage() {
                               : 'var(--color-text-danger)' 
                           : 'var(--color-text-tertiary)' 
                       }}>
-                        {c.wellbeing_score ? `${c.wellbeing_score}/100` : 'Veri yok'}
+                        {c.wellbeing_score ? `${c.wellbeing_score}/100` : t('companies.no_data')}
                       </span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ÇALIŞAN / DEPT</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      {t('companies.columns.employees')} / DEPT
+                    </p>
                     <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-1.5 text-slate-600 text-[11px] font-medium">
                         <Users size={12} />
-                        <span>{c.employee_count ?? 0} çalışan</span>
+                        <span>{c.employee_count ?? 0} {t('companies.employee_unit')}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-medium">
                         <Building2 size={12} />
-                        <span>{c.department_count ?? 0} departman</span>
+                        <span>{c.department_count ?? 0} {t('companies.department_unit')}</span>
                       </div>
                     </div>
                   </div>
@@ -175,8 +237,8 @@ export default function MyCompaniesPage() {
                   </span>
                   <span className="text-slate-400 font-medium">
                     {c.last_survey_date 
-                      ? new Date(c.last_survey_date).toLocaleDateString('tr-TR') 
-                      : 'Anket yok'}
+                      ? new Date(c.last_survey_date).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US') 
+                      : t('companies.no_survey')}
                   </span>
                 </div>
               </div>

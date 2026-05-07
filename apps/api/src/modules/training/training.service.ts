@@ -11,6 +11,7 @@ import { Department } from '../department/entities/department.entity';
 import { NotificationService } from '../notification/notification.service';
 import { AppLogger } from '../../common/logger/app-logger.service';
 import { CreateTrainingPlanDto, UpdateTrainingPlanDto, CreateTrainingEventDto, UpdateTrainingEventDto, SendNotificationDto } from './dto/training.dto';
+import { InAppNotificationService } from '../notification/in-app-notification.service';
 
 @Injectable()
 export class TrainingService {
@@ -30,6 +31,7 @@ export class TrainingService {
     @InjectRepository(Department)
     private readonly deptRepo: Repository<Department>,
     private readonly notificationService: NotificationService,
+    private readonly inAppNotifService: InAppNotificationService,
     private readonly logger: AppLogger,
   ) {}
 
@@ -102,6 +104,21 @@ export class TrainingService {
         platform_url: process.env.APP_URL || 'http://localhost:3000',
       });
     }
+
+    // In-app bildirim gönder
+    await this.inAppNotifService.createForUsers(
+      hrAdmins.map(u => u.id),
+      {
+        type:    'training_updated',
+        titleTr: `Eğitim planı güncellendi: ${plan.title}`,
+        titleEn: `Training plan updated: ${plan.title}`,
+        bodyTr:  'Danışmanınız eğitim planını güncelledi.',
+        bodyEn:  'Your consultant updated the training plan.',
+        link:    `/dashboard/training`,
+        metadata: { plan_id: id },
+      }
+    );
+
     return { published: true };
   }
 
