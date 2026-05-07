@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsEnum, IsNumber, IsObject, IsOptional, IsString, Max, Min, IsInt } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNumber, IsObject, IsOptional, IsString, Max, Min, IsInt, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum MailProvider {
@@ -64,6 +64,7 @@ export class UpdatePlatformSettingsDto {
 
   @IsEmail()
   @IsOptional()
+  @ValidateIf((o, v) => v !== '' && v !== null)
   mail_from_address?: string;
 
   @IsString()
@@ -122,6 +123,7 @@ export class UpdatePlatformSettingsDto {
 
   @IsEmail()
   @IsOptional()
+  @ValidateIf((o, v) => v !== '' && v !== null)
   admin_email?: string;
 
   @IsBoolean()
