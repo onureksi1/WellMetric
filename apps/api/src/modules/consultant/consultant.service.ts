@@ -237,25 +237,31 @@ export class ConsultantService {
     const resolvedId = company.id;
 
     // 2. Get latest scores for all dimensions
-    const scores = await this.dataSource.query(`
-      SELECT dimension, score, calculated_at
-      FROM wellbeing_scores ws
-      WHERE ws.company_id = $1
-      AND ws.calculated_at = (SELECT MAX(calculated_at) FROM wellbeing_scores WHERE company_id = ws.company_id)
-    `, [resolvedId]);
+    let scores: any[] = [];
+    try {
+      scores = await this.dataSource.query(`
+        SELECT dimension, score, calculated_at
+        FROM wellbeing_scores ws
+        WHERE ws.company_id = $1
+        AND ws.calculated_at = (SELECT MAX(calculated_at) FROM wellbeing_scores WHERE company_id = ws.company_id)
+      `, [resolvedId]);
+    } catch (e) { /* no scores yet */ }
 
     const overallScore = scores.find((s: any) => s.dimension === 'overall')?.score || 0;
 
     // 3. Get Trend Data — period column is 'YYYY-MM', cannot cast directly to date
-    const trendData = await this.dataSource.query(`
-      SELECT 
-        TO_CHAR(TO_DATE(period || '-01', 'YYYY-MM-DD'), 'Mon') as month,
-        score
-      FROM wellbeing_scores
-      WHERE company_id = $1 AND dimension = 'overall'
-      ORDER BY period ASC
-      LIMIT 6
-    `, [resolvedId]);
+    let trendData: any[] = [];
+    try {
+      trendData = await this.dataSource.query(`
+        SELECT 
+          TO_CHAR(TO_DATE(period || '-01', 'YYYY-MM-DD'), 'Mon') as month,
+          score
+        FROM wellbeing_scores
+        WHERE company_id = $1 AND dimension = 'overall'
+        ORDER BY period ASC
+        LIMIT 6
+      `, [resolvedId]);
+    } catch (e) { /* no trend data yet */ }
 
     // 4. Get Participation
     let participationRes: any[] = [];
@@ -267,22 +273,41 @@ export class ConsultantService {
         WHERE sr.company_id = $1
         GROUP BY sr.survey_id ORDER BY MAX(sr.submitted_at) DESC LIMIT 1
       `, [resolvedId]);
-    } catch (e) {
-      this.logger?.warn?.('[getCompanyStats] participation query failed (non-fatal)', e?.message);
-    }
+    } catch (e) { /* participation query failed (non-fatal) */ }
 
     // 5. Get Departments
-    const departments = await this.dataSource.query(`
-      SELECT d.name, 
-             (SELECT score FROM wellbeing_scores WHERE department_id = d.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1) as score
-      FROM departments d
-      WHERE d.company_id = $1 AND d.is_active = true
-    `, [resolvedId]);
+    let departments: any[] = [];
+    try {
+      departments = await this.dataSource.query(`
+        SELECT d.name, 
+               (SELECT score FROM wellbeing_scores WHERE department_id = d.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1) as score
+        FROM departments d
+        WHERE d.company_id = $1 AND d.is_active = true
+      `, [resolvedId]);
+    } catch (e) { /* no departments yet */ }
 
-    // 6. Get Industry Label
-    const industryInfo = await this.dataSource.query(`
-      SELECT label_tr, label_en FROM industries WHERE slug = $1
-    `, [company?.industry]);
+    // 6. Get Industry Label (industries table may not exist on all envs)
+    let industryInfo: any[] = [];
+    try {
+      industryInfo = await this.dataSource.query(`
+        SELECT label_tr, label_en FROM industries WHERE slug = $1
+      `, [company?.industry]);
+    } catch (e) { /* industries table may not exist */ }
+
+    // 7. Employee count from employees table
+    let employeeCount = 0;
+    try {
+      const res = await this.dataSource.query(
+        `SELECT COUNT(*)::int as count FROM employees WHERE company_id = $1 AND is_active = true`,
+        [resolvedId]
+      );
+      employeeCount = res[0]?.count || 0;
+    } catch (e) {
+      // Fallback to users table
+      try {
+        employeeCount = await this.userRepository.count({ where: { company_id: resolvedId, is_active: true } as any });
+      } catch (_) { /* ignore */ }
+    }
 
     return {
       company: {
@@ -291,7 +316,7 @@ export class ConsultantService {
         participation: Math.round(participationRes[0]?.rate || 0),
         industry_label_tr: industryInfo[0]?.label_tr,
         industry_label_en: industryInfo[0]?.label_en,
-        employee_count: await this.userRepository.count({      where: { company_id: resolvedId, role: 'employee', is_active: true } })
+        employee_count: employeeCount,
       },
       dimensions: [
         { name: 'Zihinsel Sağlık', score: scores.find((s: any) => s.dimension === 'mental')?.score || 0 },
@@ -308,11 +333,12 @@ export class ConsultantService {
         name: d.name,
         score: d.score || 0
       })),
-      alerts: overallScore < 60 ? [
+      alerts: overallScore < 60 && overallScore > 0 ? [
         { title: 'Düşük Esenlik Skoru', message: 'Şirket genel esenlik skoru kritik seviyenin altında. Acil aksiyon planı önerilir.' }
       ] : []
     };
   }
+
 
 
   async getComparativeInsight(consultantId: string, dto: any) {
