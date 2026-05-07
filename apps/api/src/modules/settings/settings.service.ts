@@ -122,8 +122,15 @@ export class SettingsService {
     const fixUrl = (url: string | null) => {
       if (!url || !url.includes('localhost')) return url;
       
-      const platformUrl = settings.platform_url || process.env.PLATFORM_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://wellbeingmetric.com';
-      const apiUrl = platformUrl.replace('://', '://api.').replace(/\/$/, '');
+      let platformUrl = settings.platform_url || process.env.PLATFORM_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://wellbeingmetric.com';
+      platformUrl = platformUrl.replace(/\/$/, '');
+
+      // SMART FIX: If platformUrl already starts with api., don't add it again
+      let apiUrl = platformUrl;
+      if (!platformUrl.includes('://api.')) {
+        apiUrl = platformUrl.replace('://', '://api.');
+      }
+      
       return url.replace(/http:\/\/localhost:\d+/, apiUrl);
     };
 
