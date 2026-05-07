@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, IsNull, In, LessThanOrEqual } from 'typeorm';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
 import { WellbeingScore } from './entities/wellbeing-score.entity';
 import { ResponseAnswer } from '../response/entities/response-answer.entity';
@@ -646,5 +646,24 @@ export class ScoreService {
     }
 
     return result;
+  }
+
+  /**
+   * Triggered immediately when any survey is submitted (single or campaign).
+   * Calculates scores and invalidates dashboard cache so data appears right away.
+   */
+  @OnEvent('survey.submitted')
+  async handleSurveySubmitted(payload: { companyId: string; surveyId: string; period: string }) {
+    this.logger.log(`[survey.submitted] Recalculating scores for company=${payload.companyId} period=${payload.period}`);
+    try {
+      await this.calculateAndStore(payload.companyId, payload.surveyId, payload.period);
+      // Invalidate dashboard cache via event so DashboardService clears Redis
+      this.eventEmitter.emit('score.calculated', {
+        companyId: payload.companyId,
+        period: payload.period,
+      });
+    } catch (err) {
+      this.logger.error('[survey.submitted] Score recalculation failed', err);
+    }
   }
 }

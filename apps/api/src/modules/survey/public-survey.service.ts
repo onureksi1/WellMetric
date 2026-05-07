@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SurveyToken } from '../survey-token/entities/survey-token.entity';
 import { SurveyResponse } from '../response/entities/survey-response.entity';
 import { ResponseAnswer } from '../response/entities/response-answer.entity';
@@ -19,6 +20,7 @@ export class PublicSurveyService {
     @InjectRepository(SurveyQuestion)
     private readonly questionRepo: Repository<SurveyQuestion>,
     private readonly campaignService: CampaignService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getByToken(token: string) {
@@ -109,6 +111,17 @@ export class PublicSurveyService {
       await this.campaignService.markCompleted(surveyToken.id);
     } catch (err) {
       console.error('[PublicSurveyService.submit] Failed to mark campaign completed', err);
+    }
+
+    // 5. Trigger immediate score recalculation so dashboard reflects this answer now
+    try {
+      this.eventEmitter.emit('survey.submitted', {
+        companyId: surveyToken.company_id,
+        surveyId: surveyToken.survey_id,
+        period: response.period,
+      });
+    } catch (err) {
+      console.error('[PublicSurveyService.submit] Failed to emit survey.submitted event', err);
     }
 
     return { submitted: true };
