@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 30
+set user "root"
+set host "131.222.130.80"
+set pass "2KTt*RJqaH"
+
+spawn ssh -tt -o StrictHostKeyChecking=no $user@$host "docker ps --format '{{.Names}}'"
+
+expect {
+    -nocase "password:" {
+        send "$pass\r"
+        exp_continue
+    }
+    eof
+}

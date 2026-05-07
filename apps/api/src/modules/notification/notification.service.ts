@@ -57,17 +57,41 @@ export class NotificationService {
 
   private async getPlatformUrl(): Promise<string> {
     const settings = await this.settingsService.getSettings();
-    return process.env.NEXT_PUBLIC_APP_URL || settings?.platform_url || 'https://app.wellbeingmetric.com';
+    const url = process.env.NEXT_PUBLIC_APP_URL || settings?.platform_url || 'https://wellbeingmetric.com';
+    return url.replace(/\/$/, ''); // Remove trailing slash
+  }
+
+  private async getApiUrl(): Promise<string> {
+    const settings = await this.settingsService.getSettings();
+    return process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || settings?.platform_url?.replace('wellbeingmetric.com', 'api.wellbeingmetric.com') || 'https://api.wellbeingmetric.com';
   }
 
   private async addToQueue(template: string, to: string, subject: string, variables: Record<string, string>, language: string, companyId?: string, consultantId?: string) {
     try {
+      const settings = await this.settingsService.getSettings();
+      const platformUrl = await this.getPlatformUrl();
+      const apiUrl = await this.getApiUrl();
+
+      // Fix logo URL if it contains localhost
+      let platformLogoUrl = settings?.platform_logo_url || `${platformUrl}/images/logo.png`;
+      if (platformLogoUrl.includes('localhost')) {
+        platformLogoUrl = platformLogoUrl.replace(/http:\/\/localhost:\d+/, apiUrl);
+      }
+
+      // Always inject global variables
+      const finalVariables = {
+        platform_url: platformUrl,
+        platform_logo_url: platformLogoUrl,
+        brand_name: settings?.platform_name || 'Wellbeing Metric',
+        ...variables,
+      };
+
       console.log(`[Notification] Adding job to queue: ${template} to ${to}`);
       await this.mailQueue.add('send_mail', {
         template,
         to,
         subject,
-        variables,
+        variables: finalVariables,
         language,
         companyId,
         consultantId,
