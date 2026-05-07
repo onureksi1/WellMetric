@@ -54,10 +54,25 @@ export class NotificationProcessor {
         brandLogoUrl = `${platformUrl}${brandLogoUrl}`;
       }
 
+      // Convert logo to base64 if it's a localhost URL to ensure it shows up in emails
+      let embeddedLogo = brandLogoUrl;
+      try {
+        if (brandLogoUrl.includes('localhost') || brandLogoUrl.includes('127.0.0.1')) {
+          const axios = require('axios');
+          const response = await axios.get(brandLogoUrl, { responseType: 'arraybuffer' });
+          const contentType = response.headers['content-type'] || 'image/png';
+          const base64 = Buffer.from(response.data, 'binary').toString('base64');
+          embeddedLogo = `data:${contentType};base64,${base64}`;
+          console.log(`[MailProcessor] Logo embedded as base64 (${contentType})`);
+        }
+      } catch (e) {
+        console.warn(`[MailProcessor] Could not embed logo: ${e.message}`);
+      }
+
       const mergedVars = { 
         ...variables, 
         platform_url: platformUrl,
-        brand_logo_url: brandLogoUrl,
+        brand_logo_url: embeddedLogo,
         brand_name: settings?.platform_name || 'Wellbeing Metric',
         brand_color: '#2E865A' // Default brand color
       };
@@ -67,7 +82,19 @@ export class NotificationProcessor {
         if (wlConfig?.is_active) {
           fromName = wlConfig.brand_name;
           mergedVars['brand_name'] = wlConfig.brand_name;
-          if (wlConfig.brand_logo_url) mergedVars['brand_logo_url'] = wlConfig.brand_logo_url;
+          if (wlConfig.brand_logo_url) {
+            let consultantLogo = wlConfig.brand_logo_url;
+            try {
+              if (consultantLogo.includes('localhost') || consultantLogo.includes('127.0.0.1')) {
+                const axios = require('axios');
+                const response = await axios.get(consultantLogo, { responseType: 'arraybuffer' });
+                const contentType = response.headers['content-type'] || 'image/png';
+                const base64 = Buffer.from(response.data, 'binary').toString('base64');
+                consultantLogo = `data:${contentType};base64,${base64}`;
+              }
+            } catch (e) {}
+            mergedVars['brand_logo_url'] = consultantLogo;
+          }
           if (wlConfig.brand_color) mergedVars['brand_color'] = wlConfig.brand_color;
         }
       }
