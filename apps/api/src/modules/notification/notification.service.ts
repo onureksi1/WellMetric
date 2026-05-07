@@ -63,7 +63,9 @@ export class NotificationService {
 
   private async getApiUrl(): Promise<string> {
     const settings = await this.settingsService.getSettings();
-    return process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || settings?.platform_url?.replace('wellbeingmetric.com', 'api.wellbeingmetric.com') || 'https://api.wellbeingmetric.com';
+    const raw = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || settings?.platform_url?.replace('wellbeingmetric.com', 'api.wellbeingmetric.com') || 'https://api.wellbeingmetric.com';
+    // Strip trailing /api/v1 so callers can safely append /api/v1/... without doubling
+    return raw.replace(/\/api\/v1\/?$/, '');
   }
 
   private async addToQueue(template: string, to: string, subject: string, variables: Record<string, string>, language: string, companyId?: string, consultantId?: string) {
