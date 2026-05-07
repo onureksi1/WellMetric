@@ -115,6 +115,24 @@ export class SettingsService {
     }
     return decrypted;
   }
+  
+  private sanitizeSettings(settings: any): any {
+    if (!settings) return settings;
+    
+    const fixUrl = (url: string | null) => {
+      if (!url || !url.includes('localhost')) return url;
+      
+      const platformUrl = settings.platform_url || process.env.PLATFORM_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://wellbeingmetric.com';
+      const apiUrl = platformUrl.replace('://', '://api.').replace(/\/$/, '');
+      return url.replace(/http:\/\/localhost:\d+/, apiUrl);
+    };
+
+    if (settings.platform_logo_url) {
+      settings.platform_logo_url = fixUrl(settings.platform_logo_url);
+    }
+
+    return settings;
+  }
 
   async getSettings(mask = true) {
     const cached = await this.redisClient.get(REDIS_KEY);
@@ -162,10 +180,13 @@ export class SettingsService {
     settings.mail_config = this.decryptConfig(settings.mail_config, mask);
     settings.storage_config = this.decryptConfig(settings.storage_config, mask);
 
+    // Self-healing for URLs
+    const sanitized = this.sanitizeSettings(settings);
+
     if (mask) {
-      await this.redisClient.set(REDIS_KEY, JSON.stringify(settings), 'EX', 3600);
+      await this.redisClient.set(REDIS_KEY, JSON.stringify(sanitized), 'EX', 3600);
     }
-    return settings;
+    return sanitized;
   }
   
   async getPublicSettings() {
@@ -181,7 +202,7 @@ export class SettingsService {
     
     if (!result || result.length === 0) return null;
     
-    const settings = result[0];
+    const settings = this.sanitizeSettings(result[0]);
     await this.redisClient.set(PUBLIC_REDIS_KEY, JSON.stringify(settings), 'EX', 3600);
     return settings;
   }
