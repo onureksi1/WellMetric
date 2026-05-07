@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { logger } from '../logger';
 
 const getBaseURL = () => {
-  const url = process.env.NEXT_PUBLIC_API_URL || '';
+  let url = process.env.NEXT_PUBLIC_API_URL || '';
   
   // Smart detection for production environments
   if (typeof window !== 'undefined' && 
@@ -14,7 +14,7 @@ const getBaseURL = () => {
     // If the configured URL is localhost or empty, but we are on a real domain
     if (!url || url.includes('localhost')) {
       const rootDomain = window.location.hostname.replace(/^www\./, '');
-      return `https://api.${rootDomain}/api/v1`;
+      url = `https://api.${rootDomain}`;
     }
   }
 

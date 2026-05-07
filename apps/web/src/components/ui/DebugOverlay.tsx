@@ -14,15 +14,15 @@ export const DebugOverlay = () => {
     // Check if debug mode is enabled
     const checkSettings = async () => {
       try {
-        const url = process.env.NEXT_PUBLIC_API_URL || '';
-        let apiUrl = url;
+        let apiUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
         
-        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && (!url || url.includes('localhost'))) {
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && (!apiUrl || apiUrl.includes('localhost'))) {
           apiUrl = `https://api.${window.location.hostname.replace(/^www\./, '')}`;
         }
         
-        apiUrl = (apiUrl || 'http://localhost:3001').replace(/\/$/, '');
-        const res = await fetch(`${apiUrl}/api/v1/settings`).then(r => r.json()).catch(() => null);
+        // Ensure we don't have a double suffix
+        const baseApiUrl = apiUrl.replace(/\/api\/v1$/, '') || 'http://localhost:3001';
+        const res = await fetch(`${baseApiUrl}/api/v1/settings`).then(r => r.json()).catch(() => null);
         if (res) {
           setIsEnabled(res.debug_mode ?? true);
         }
@@ -48,17 +48,14 @@ export const DebugOverlay = () => {
     // Check API health
     const checkApi = async () => {
       try {
-        const url = process.env.NEXT_PUBLIC_API_URL || '';
-        let apiUrl = url;
+        let apiUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
         
-        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && (!url || url.includes('localhost'))) {
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && (!apiUrl || apiUrl.includes('localhost'))) {
           apiUrl = `https://api.${window.location.hostname.replace(/^www\./, '')}`;
         }
 
-        apiUrl = (apiUrl || 'http://localhost:3001').replace(/\/$/, '');
-        const healthUrl = apiUrl.endsWith('/api/v1') 
-          ? `${apiUrl}/health` 
-          : `${apiUrl}/api/v1/health`;
+        const baseApiUrl = apiUrl.replace(/\/api\/v1$/, '') || 'http://localhost:3001';
+        const healthUrl = `${baseApiUrl}/api/v1/health`;
         const res = await fetch(healthUrl).catch(() => null);
         setApiStatus(res?.ok ? 'online' : 'offline');
       } catch {
