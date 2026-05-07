@@ -217,11 +217,10 @@ export function DemoRequestModal({ isOpen, onClose }: DemoRequestModalProps) {
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
               {t('demo.i_am')}
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {[
                 { id: 'trainer', label: t('demo.i_am_trainer'), icon: User, color: 'emerald' },
                 { id: 'company', label: t('demo.i_am_company'), icon: Building2, color: 'blue' },
-                { id: 'individual', label: t('demo.individual'), icon: Users2, color: 'slate' },
               ].map((type) => (
                 <button
                   key={type.id}
