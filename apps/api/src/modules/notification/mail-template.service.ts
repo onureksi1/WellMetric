@@ -35,76 +35,47 @@ export class MailTemplateService {
   }
 
   private async syncTemplatesFromFiles() {
-    const templatesToSync = [
-      {
-        slug: 'content_shared',
-        subject_tr: 'Yeni İçerik Paylaşıldı',
-        subject_en: 'New Content Shared',
-        variables: ['consultant_name', 'content_title', 'department_name', 'notes', 'platform_url', 'dashboard_url', 'content_url'],
-        description: 'Danışman içerik paylaştığında HR\'a giden mail'
-      },
-      {
-        slug: 'training_plan_published',
-        subject_tr: 'Yeni Eğitim Planı Yayınlandı',
-        subject_en: 'New Training Plan Published',
-        variables: ['consultant_name', 'plan_title', 'event_count', 'starts_at', 'plan_url', 'platform_url'],
-        description: 'Danışman eğitim planı yayınladığında HR\'a giden mail'
-      },
-      {
-        slug: 'content_shared_to_employees',
-        subject_tr: 'Sizin İçin Yeni Bir Esenlik Kaynağı Paylaşıldı',
-        subject_en: 'A New Wellbeing Resource Shared for You',
-        variables: ['employee_name', 'company_name', 'content_title', 'content_type', 'content_url', 'consultant_name', 'notes', 'platform_url'],
-        description: 'HR içeriği çalışanlara duyurduğunda giden mail'
-      },
-      {
-        slug: 'consultant_report_ready',
-        subject_tr: 'Wellbeing Analiz Raporunuz Hazır',
-        subject_en: 'Your Wellbeing Analysis Report is Ready',
-        variables: ['consultant_name', 'company_name', 'period', 'report_url', 'platform_url'],
-        description: 'AI raporu hazır olduğunda danışmana giden mail'
-      },
-      {
-        slug: 'survey_assigned',
-        subject_tr: 'Yeni Değerlendirme Atandı',
-        subject_en: 'New Survey Assigned',
-        variables: ['hr_name', 'company_name', 'survey_title', 'period', 'due_date', 'dashboard_link', 'platform_url'],
-        description: 'Danışman anket atadığında HR\'a giden mail'
-      }
-    ];
-
+    // Automatically sync ALL templates found in the /tr templates directory
     const rootDir = process.cwd().endsWith('apps/api') 
       ? path.join(process.cwd(), '../..') 
       : process.cwd();
     
     const trDir = path.join(rootDir, 'apps/api/src/modules/notification/templates/tr');
-    
-    for (const t of templatesToSync) {
-      const exists = await this.templateRepository.findOne({ where: { slug: t.slug } });
+    const enDir = path.join(rootDir, 'apps/api/src/modules/notification/templates/en');
+
+    let htmlFiles: string[] = [];
+    try {
+      htmlFiles = fs.readdirSync(trDir).filter(f => f.endsWith('.html'));
+    } catch (e) {
+      this.logger.warn(`Could not read template directory: ${trDir}`);
+      return;
+    }
+
+    for (const file of htmlFiles) {
+      const slug = file.replace('.html', '');
+      const exists = await this.templateRepository.findOne({ where: { slug } });
       if (!exists) {
-        this.logger.log(`Syncing new template: ${t.slug}`);
         try {
-          const bodyTrPath = path.join(trDir, `${t.slug}.html`);
-          let bodyTr = '';
-          if (fs.existsSync(bodyTrPath)) {
-            bodyTr = fs.readFileSync(bodyTrPath, 'utf-8');
-          } else {
-            this.logger.warn(`Body file not found for ${t.slug}: ${bodyTrPath}`);
-            continue;
+          const bodyTr = fs.readFileSync(path.join(trDir, file), 'utf-8');
+          let bodyEn: string | undefined;
+          const enPath = path.join(enDir, file);
+          if (fs.existsSync(enPath)) {
+            bodyEn = fs.readFileSync(enPath, 'utf-8');
           }
 
           await this.templateRepository.save({
-            slug: t.slug,
-            subject_tr: t.subject_tr,
-            subject_en: t.subject_en,
+            slug,
+            subject_tr: slug.replace(/_/g, ' '),
+            subject_en: slug.replace(/_/g, ' '),
             body_tr: bodyTr,
-            variables: t.variables,
-            description: t.description,
+            body_en: bodyEn,
+            variables: [],
+            description: `Auto-synced from file: ${file}`,
             is_active: true
           });
-          this.logger.log(`Template ${t.slug} synced to database.`);
+          this.logger.log(`Template '${slug}' auto-synced to database.`);
         } catch (err) {
-          this.logger.error(`Failed to sync template ${t.slug}:`, err.message);
+          this.logger.error(`Failed to sync template ${slug}:`, err.message);
         }
       }
     }
@@ -166,23 +137,47 @@ export class MailTemplateService {
     const cached = await this.redisClient.get(cacheKey);
     
     let body: string;
-    let subject: string;
 
     if (cached) {
       const parsed = JSON.parse(cached);
       body = parsed.body;
     } else {
-      const template = await this.templateRepository.findOne({ where: { slug } });
-      if (!template) throw new Error(`Template ${slug} not found`);
-
-      body = (language === 'en' && template.body_en) ? template.body_en : template.body_tr;
+      let template = await this.templateRepository.findOne({ where: { slug } });
+      
+      // Fallback: read from file if template not in DB
+      if (!template) {
+        this.logger.warn(`Template '${slug}' not found in DB — falling back to file`);
+        const rootDir = process.cwd().endsWith('apps/api') ? path.join(process.cwd(), '../..') : process.cwd();
+        const langDir = language === 'en' ? 'en' : 'tr';
+        let filePath = path.join(rootDir, `apps/api/src/modules/notification/templates/${langDir}/${slug}.html`);
+        if (!fs.existsSync(filePath)) {
+          filePath = path.join(rootDir, `apps/api/src/modules/notification/templates/tr/${slug}.html`);
+        }
+        if (!fs.existsSync(filePath)) {
+          throw new Error(`Template '${slug}' not found in database or filesystem`);
+        }
+        const fileBody = fs.readFileSync(filePath, 'utf-8');
+        // Save to DB so next time it's available
+        try {
+          await this.templateRepository.save({
+            slug,
+            subject_tr: slug.replace(/_/g, ' '),
+            subject_en: slug.replace(/_/g, ' '),
+            body_tr: fileBody,
+            variables: [],
+            is_active: true
+          });
+        } catch (_) { /* already exists race condition, ignore */ }
+        body = fileBody;
+      } else {
+        body = (language === 'en' && template.body_en) ? template.body_en : template.body_tr;
+      }
       
       // Cache for 1 hour
       await this.redisClient.set(cacheKey, JSON.stringify({ body }), 'EX', 3600);
     }
 
     // 1. Handle {{#if key}} ... {{else}} ... {{/if}}
-    // Simple implementation for non-nested blocks
     let rendered = body;
     rendered = rendered.replace(/{{#if\s+([\w\.]+)}}([\s\S]*?)(?:{{else}}([\s\S]*?))?{{\/if}}/g, (match, key, ifContent, elseContent) => {
       const val = variables[key];
