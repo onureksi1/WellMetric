@@ -2,8 +2,8 @@
   "menu": {
     "home": "Ana Sayfa",
     "companies": "Firmalar",
-    "surveys": "Anketler",
-    "survey_pool": "Anket Havuzu",
+    "surveys": "Değerlendirmeler",
+    "survey_pool": "Değerlendirme Havuzu",
     "content": "İçerikler",
     "settings": "Ayarlar",
     "ai_center": "AI Merkezi",
@@ -22,7 +22,7 @@
   },
   "header": {
     "title": "Super Admin Paneli",
-    "search_placeholder": "Firma, anket veya kullanıcı ara...",
+    "search_placeholder": "Firma, değerlendirme veya kullanıcı ara...",
     "notifications": "Bildirimler"
   },
   "consultants": {
@@ -178,7 +178,7 @@
     "delete": {
       "confirm": "Bu kullanıcıyı silmek istiyor musunuz?",
       "confirm_permanent": "{{name}} isimli kullanıcıyı veritabanından kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-      "warning": "Anket geçmişi ve skorlar korunur.",
+      "warning": "Değerlendirme geçmişi ve skorlar korunur.",
       "success": "Kullanıcı silindi."
     },
     "filter_company_all": "Tüm Firmalar",
@@ -190,7 +190,7 @@
       "seniority": "Kıdem",
       "start_date": "Başlangıç Tarihi",
       "registration_date": "Kayıt Tarihi",
-      "no_participation": "Henüz ankete katılmamış"
+      "no_participation": "Henüz değerlendirmee katılmamış"
     },
     "placeholders": {
       "select_company": "Firma Seçin",
@@ -244,7 +244,7 @@
       "participation_rate": "Katılım Oranı",
       "general_avg": "Genel Ortalama",
       "monthly_responses": "Bu Ay Yanıt",
-      "survey_responses": "Anket Yanıtı",
+      "survey_responses": "Değerlendirme Yanıtı",
       "ai_insights": "AI Insight",
       "generated_this_month": "Bu Ay Üretilen"
     },
@@ -267,7 +267,7 @@
     "sector_comparison": "Sektör Karşılaştırması",
     "growth_trend": "Büyüme Trendi (6 Ay)",
     "employees_div_10": "Çalışan / 10",
-    "survey_performance": "Anket Performansı",
+    "survey_performance": "Değerlendirme Performansı",
     "campaign_this_month": "BU AY KAMPANYA",
     "avg_completion": "ORT. TAMAMLAMA",
     "best_performance": "EN BAŞARILI",
@@ -350,14 +350,14 @@
       "info_card": "Firma Bilgileri",
       "settings_card": "Firma Ayarları",
       "employee_accounts": "Çalışan Hesabı",
-      "employee_accounts_hint": "Açıksa çalışanlar login yapabilir, kapalıysa link ile ankete erişir",
+      "employee_accounts_hint": "Açıksa çalışanlar login yapabilir, kapalıysa link ile değerlendirmee erişir",
       "anonymity_threshold": "Anonim Eşiği",
       "anonymity_threshold_hint": "Kaç yanıtın altında skor gösterilmez",
       "benchmark_visible": "Sektör Karşılaştırması",
       "tabs": {
         "departments": "Departmanlar",
         "hr_admins": "HR Adminler",
-        "surveys": "Anketler",
+        "surveys": "Değerlendirmeler",
         "ai_insights": "AI Analizleri"
       },
       "save_settings": "Ayarları Kaydet",
@@ -367,10 +367,10 @@
     "export_filename": "firmalar_listesi"
   },
   "surveys": {
-    "title": "Anketler",
-    "subtitle": "Global ve firmaya özel anketleri yönetin",
+    "title": "Değerlendirmeler",
+    "subtitle": "Global ve firmaya özel değerlendirmeleri yönetin",
     "new": "Yeni Anket",
-    "search_placeholder": "Anket başlığı ile ara...",
+    "search_placeholder": "Değerlendirme başlığı ile ara...",
     "filter_type": "Tip",
     "filter_status": "Durum",
     "columns": {
@@ -404,12 +404,12 @@
       "assign": "Firmaya Ata"
     },
     "create": {
-      "title": "Yeni Anket Oluştur",
+      "title": "Yeni Değerlendirme Oluştur",
       "title_tr": "Türkçe Başlık",
       "title_en": "İngilizce Başlık",
       "description_tr": "Türkçe Açıklama",
       "description_en": "İngilizce Açıklama",
-      "type": "Anket Tipi",
+      "type": "Değerlendirme Tipi",
       "company": "Firma (Firmaya Özel için)",
       "frequency": "Frekans",
       "is_anonymous": "Anonim mi?",
@@ -419,7 +419,7 @@
       "questions_section": "Sorular",
       "questions_count": "{{count}} soru",
       "save": "Anketi Kaydet",
-      "success": "Anket oluşturuldu."
+      "success": "Değerlendirme oluşturuldu."
     },
     "question": {
       "dimension": "Boyut",
@@ -491,16 +491,16 @@
     "link_30": "30 gün",
     "link_custom": "Özel tarih",
     "anonymous_warning_title": "Dikkat",
-    "anonymous_warning_body": "Anonim olmayan anket çalışan hesap modunu zorunlu kılar. Bu anketi alan firmalar için employee_accounts otomatik açılır.",
+    "anonymous_warning_body": "Anonim olmayan değerlendirme çalışan hesap modunu zorunlu kılar. Bu değerlendirmei alan firmalar için employee_accounts otomatik açılır.",
     "draft_banner": "Kaydedilmemiş taslağınız var",
     "draft_continue": "Devam Et",
     "draft_new": "Yeni Başlat",
     "draft_saved": "Otomatik kaydedildi",
-    "hr_cannot_create": "Anket oluşturma yetkisi sadece Super Admin'e aittir."
+    "hr_cannot_create": "Değerlendirme oluşturma yetkisi sadece Super Admin'e aittir."
   },
   "campaigns": {
     "header_title": "Platform Kampanya Analitiği",
-    "header_subtitle": "Tüm şirketlerin anket dağıtım performansını ve katılım oranlarını izleyin.",
+    "header_subtitle": "Tüm şirketlerin değerlendirme dağıtım performansını ve katılım oranlarını izleyin.",
     "global_report": "Global Rapor",
     "trend_title": "Aylık Dağıtım Trendi",
     "comparison_title": "Şirket Kıyaslaması",

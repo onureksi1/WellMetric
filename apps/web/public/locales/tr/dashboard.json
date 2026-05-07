@@ -128,7 +128,7 @@
       "location": "Konum",
       "language": "Dil",
       "invite_status": "Davet Durumu",
-      "survey_count": "Anket",
+      "survey_count": "Değerlendirme",
       "actions": "İşlemler"
     },
     "invite_status": {
@@ -299,7 +299,7 @@
     "insights": {
       "title": "AI Analizleri",
       "recent_title": "Son Analizler",
-      "empty_hint": "Daha fazla analiz için yeni bir anket tamamlanmalı",
+      "empty_hint": "Daha fazla analiz için yeni bir değerlendirme tamamlanmalı",
       "filter": "Analiz Tipi",
       "no_insights": "Henüz analiz yok.",
       "types": {
@@ -330,7 +330,7 @@
     "no_campaigns_desc": "Değerlendirmelerinizi çalışanlarınıza ulaştırmak için yeni bir dağıtım başlatın.",
     "create_first": "İlk Dağıtımı Oluştur",
     "title": "Dağıtım Yönetimi",
-    "subtitle": "Anket dağıtım süreçlerini yönetin",
+    "subtitle": "Değerlendirme dağıtım süreçlerini yönetin",
     "new": "Yeni Dağıtım",
     "metrics": {
       "sent": "Gönderilen",
@@ -342,10 +342,10 @@
     "cancel": "Dağıtımı İptal Et",
     "cancel_confirm": "Bu dağıtımı iptal etmek istiyor musunuz?",
     "wizard": {
-      "step1": "Anket Seç",
+      "step1": "Değerlendirme Seç",
       "step2": "Alıcılar",
       "step3": "Zamanlama",
-      "select_survey": "Anket seçin",
+      "select_survey": "Değerlendirme seçin",
       "use_existing_list": "Mevcut Listeyi Kullan",
       "upload_new_csv": "Yeni CSV Yükle",
       "existing_count": "{{count}} çalışan bu listede",
