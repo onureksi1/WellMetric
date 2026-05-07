@@ -25,11 +25,21 @@ import { NotificationModule } from '../notification/notification.module';
 import { ReportModule } from '../report/report.module';
 import { BillingModule } from '../billing/billing.module';
 import { ProductPackage } from '../billing/entities/product-package.entity';
+import { Subscription } from '../billing/entities/subscription.entity';
+import { PlatformSettings } from '../settings/entities/platform-settings.entity';
 import { Company } from '../company/entities/company.entity';
+import { ExchangeRateService } from '../../common/utils/exchange-rate.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AiInsight, ApiCostLog, ProductPackage, Company]),
+    TypeOrmModule.forFeature([
+      AiInsight, 
+      ApiCostLog, 
+      ProductPackage, 
+      Subscription, 
+      PlatformSettings, 
+      Company
+    ]),
     BullModule.registerQueue({
       name: 'ai-queue',
     }),
@@ -48,6 +58,7 @@ import { Company } from '../company/entities/company.entity';
     ApiCostService,
     AIProcessor,
     AIProviderFactory,
+    ExchangeRateService,
     AnthropicProvider,
     OpenAIProvider,
     GoogleProvider,

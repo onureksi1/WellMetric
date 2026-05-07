@@ -23,6 +23,21 @@ export interface ChatMessage {
   content: string;
 }
 
+const TASK_CREDITS: Record<string, number> = {
+  'intelligence_report':    20,
+  'content_suggestion':      2,
+  'comparative_analysis':    5,
+  'score_analysis':          3,
+  'survey_generation':       5,
+  'insight_generation':      2,
+  'chat':                    1,
+  'onboarding_analysis':     3,
+  'action_recommendation':   2,
+  'open_text_summary':       3,
+  'risk_alert':              3,
+  'trend_analysis':          3,
+};
+
 @Injectable()
 export class AIService {
   private readonly debug: ServiceDebugger;
@@ -47,22 +62,29 @@ export class AIService {
     this.debug = new ServiceDebugger(logger, 'AIService');
   }
 
-  private async handleAiUsage(companyId: string | null, taskType: string) {
-    if (!companyId) return; // System level tasks might not deduct or handled differently
+  private async handleAiUsage(companyId: string | null, taskType: string): Promise<number> {
+    if (!companyId) return 0;
 
     const settings = await this.settingsService.getSettings();
     const costs = settings.credit_costs || {};
     const taskCost = costs[taskType];
 
-    if (!taskCost) return;
+    let totalDeducted = 0;
+    if (!taskCost) {
+      totalDeducted = TASK_CREDITS[taskType] ?? 1;
+    } else {
+      totalDeducted = Object.values(taskCost).reduce((a: number, b: any) => a + Number(b), 0);
+    }
 
     // Find consultant for this company
     const company = await this.dataSource.query(`SELECT consultant_id FROM companies WHERE id = $1`, [companyId]);
     const consultantId = company[0]?.consultant_id;
 
-    if (!consultantId) return;
+    if (!consultantId) return totalDeducted;
 
-    for (const [creditTypeKey, amount] of Object.entries(taskCost)) {
+    const costToUse = taskCost || { ai_credit: totalDeducted };
+
+    for (const [creditTypeKey, amount] of Object.entries(costToUse)) {
       await this.creditService.deductCredits(
         consultantId,
         creditTypeKey,
@@ -71,6 +93,8 @@ export class AIService {
         companyId
       );
     }
+
+    return totalDeducted;
   }
 
   async generateOpenTextSummary(companyId: string, surveyId: string, period: string, language: string = 'tr') {
@@ -133,7 +157,25 @@ export class AIService {
       },
     });
 
-    // 6. Audit log
+    // 6. Cost log
+    // Find consultantId for logging
+    const companyInfo = await this.dataSource.query(`SELECT consultant_id FROM companies WHERE id = $1`, [companyId]);
+    const consultantId = companyInfo[0]?.consultant_id;
+
+    await this.apiCostService.logAiCall({
+      consultantId,
+      companyId,
+      taskType:     AITaskEnum.OPEN_TEXT_SUMMARY,
+      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      model,
+      inputTokens:  result.inputTokens,
+      outputTokens: result.outputTokens,
+      durationMs:   result.durationMs,
+      aiInsightId:  saved.id,
+      creditAmount: TASK_CREDITS[AITaskEnum.OPEN_TEXT_SUMMARY],
+    });
+
+    // 7. Audit log
     await this.auditService.logAction(
       'system',
       companyId,
@@ -178,6 +220,22 @@ export class AIService {
       },
     });
 
+    const companyInfo = await this.dataSource.query(`SELECT consultant_id FROM companies WHERE id = $1`, [companyId]);
+    const consultantId = companyInfo[0]?.consultant_id;
+
+    await this.apiCostService.logAiCall({
+      consultantId,
+      companyId,
+      taskType:     AITaskEnum.RISK_ALERT,
+      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      model,
+      inputTokens:  result.inputTokens,
+      outputTokens: result.outputTokens,
+      durationMs:   result.durationMs,
+      aiInsightId:  saved.id,
+      creditAmount: TASK_CREDITS[AITaskEnum.RISK_ALERT],
+    });
+
     await this.auditService.logAction(
       'system',
       companyId,
@@ -206,8 +264,25 @@ export class AIService {
     const systemPrompt = 'Sen bir wellbeing danışmanı olan bir AI asistanısın.';
     const userPrompt = `${departmentName} ${dimension} boyutu skoru ${score}. Sektör: ${industry}. Mevcut içerikler: ${JSON.stringify(contentItems.slice(0, 5))}. Bu duruma özel 3 aksiyon öner.`;
 
+    const creditAmount = await this.handleAiUsage(companyId, AITaskEnum.ACTION_SUGGESTION);
+
     const { provider, model, config, settings } = await this.providerFactory.getProvider(AITaskEnum.ACTION_SUGGESTION);
     const result = await provider.complete(userPrompt, systemPrompt, settings.ai_max_tokens, parseFloat(settings.ai_temperature), model, config);
+
+    const companyInfo = await this.dataSource.query(`SELECT consultant_id FROM companies WHERE id = $1`, [companyId]);
+    const consultantId = companyInfo[0]?.consultant_id;
+
+    await this.apiCostService.logAiCall({
+      consultantId,
+      companyId,
+      taskType:     AITaskEnum.ACTION_SUGGESTION,
+      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      model,
+      inputTokens:  result.inputTokens,
+      outputTokens: result.outputTokens,
+      durationMs:   result.durationMs,
+      creditAmount: creditAmount,
+    });
 
     await this.auditService.logAction(
       'system',
@@ -382,6 +457,23 @@ export class AIService {
       }
     });
 
+    // 6. Cost Log
+    const companyInfo = await this.dataSource.query(`SELECT consultant_id FROM companies WHERE id = $1`, [companyId]);
+    const consultantId = companyInfo[0]?.consultant_id;
+
+    await this.apiCostService.logAiCall({
+      consultantId,
+      companyId,
+      taskType:     AITaskEnum.INTELLIGENCE_REPORT,
+      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      model,
+      inputTokens:  aiResult.inputTokens,
+      outputTokens: aiResult.outputTokens,
+      durationMs:   aiResult.durationMs,
+      aiInsightId:  insight.id,
+      creditAmount: TASK_CREDITS[AITaskEnum.INTELLIGENCE_REPORT],
+    });
+
     // 7. Generate PDF
     await this.reportService.generateIntelligencePdf(companyId, period, report, language);
 
@@ -408,6 +500,22 @@ export class AIService {
         tokens_used: result.totalTokens,
         duration_ms: result.durationMs,
       },
+    });
+
+    const companyInfo = await this.dataSource.query(`SELECT consultant_id FROM companies WHERE id = $1`, [companyId]);
+    const consultantId = companyInfo[0]?.consultant_id;
+
+    await this.apiCostService.logAiCall({
+      consultantId,
+      companyId,
+      taskType:     AITaskEnum.TREND_ANALYSIS,
+      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      model,
+      inputTokens:  result.inputTokens,
+      outputTokens: result.outputTokens,
+      durationMs:   result.durationMs,
+      aiInsightId:  saved.id,
+      creditAmount: TASK_CREDITS[AITaskEnum.TREND_ANALYSIS],
     });
 
     await this.auditService.logAction(
@@ -439,11 +547,16 @@ export class AIService {
     const { provider, model, config, settings } = await this.providerFactory.getProvider(AITaskEnum.HR_CHAT);
     const result = await provider.complete(fullPrompt, systemPrompt, settings.ai_max_tokens, parseFloat(settings.ai_temperature), model, config);
 
-    await this.insightRepository.save({
-      company_id: companyId,
-      insight_type: 'hr_chat',
-      content: result.response,
-      metadata: { message_count: conversationHistory.length, provider: (provider as any).constructor.name, model },
+    await this.apiCostService.logAiCall({
+      consultantId: null, // HR chat is currently not charged to consultant in this call
+      companyId,
+      taskType:     AITaskEnum.HR_CHAT,
+      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      model,
+      inputTokens:  result.inputTokens,
+      outputTokens: result.outputTokens,
+      durationMs:   result.durationMs,
+      creditAmount: TASK_CREDITS[AITaskEnum.HR_CHAT],
     });
 
     return { response: result.response, tokens_used: result.totalTokens };
@@ -608,14 +721,15 @@ export class AIService {
     );
 
     // Log cost
-    this.apiCostService.logAiCall({
+    await this.apiCostService.logAiCall({
       consultantId,
-      taskType: options.taskType,
-      provider: (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      taskType:     options.taskType,
+      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
-      inputTokens: result.inputTokens,
+      inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
-      durationMs: result.durationMs,
+      durationMs:   result.durationMs,
+      creditAmount: options.creditAmount,
     });
 
     return result.response;
@@ -634,14 +748,15 @@ export class AIService {
     const result = await provider.complete(prompt, 'Sen bir danışmansın.', 500, 0.7, model, config);
     
     // Log call for cost tracking
-    this.apiCostService.logAiCall({
+    await this.apiCostService.logAiCall({
       consultantId,
-      taskType: AITaskEnum.CONTENT_SUGGESTION,
-      provider: (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
+      taskType:     AITaskEnum.CONTENT_SUGGESTION,
+      provider:     (provider as any).constructor.name.replace('Provider', '').toLowerCase(),
       model,
-      inputTokens: result.inputTokens,
+      inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
-      durationMs: result.durationMs,
+      durationMs:   result.durationMs,
+      creditAmount: TASK_CREDITS[AITaskEnum.CONTENT_SUGGESTION],
     });
 
     return result.response;

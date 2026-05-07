@@ -1,118 +1,180 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { ApiCostLog } from './entities/api-cost-log.entity';
-import { AppLogger } from '../../common/logger/app-logger.service';
-import { SettingsService } from '../settings/settings.service';
+import { PlatformSettings } from '../settings/entities/platform-settings.entity';
+import { Subscription } from '../billing/entities/subscription.entity';
 import { ProductPackage } from '../billing/entities/product-package.entity';
+import { ExchangeRateService } from '../../common/utils/exchange-rate.service';
+import { AppLogger } from '../../common/logger/app-logger.service';
 
 @Injectable()
 export class ApiCostService {
   constructor(
     @InjectRepository(ApiCostLog)
     private readonly costLogRepo: Repository<ApiCostLog>,
+    @InjectRepository(PlatformSettings)
+    private readonly settingsRepo: Repository<PlatformSettings>,
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(ProductPackage)
     private readonly packageRepo: Repository<ProductPackage>,
-    @Inject(CACHE_MANAGER)
-    private readonly cacheManager: Cache,
-    private readonly settingsService: SettingsService,
+    private readonly exchangeRateService: ExchangeRateService,
     private readonly logger: AppLogger,
   ) {}
 
-  // Model fiyatlarını platform_settings'ten al (cache'li)
-  private async getModelPrices(): Promise<Record<string, { input: number; output: number }>> {
-    const cacheKey = 'model_prices';
-    const cached   = await this.cacheManager.get<any>(cacheKey);
-    if (cached) return cached;
+  // ── Model fiyatını getir ──────────────────────────────────────
+  async getModelPrice(model: string): Promise<{
+    input: number;
+    output: number;
+    provider: string;
+  } | null> {
+    const settings   = await this.settingsRepo.findOne({ where: {} });
+    const prices     = (settings?.ai_task_models as any)?.model_prices ?? {};
 
-    const settings = await this.settingsService.getSettings(false);
-    const prices   = settings?.ai_task_models?.model_prices ?? {};
+    // Tam eşleşme
+    if (prices[model]) return prices[model];
 
-    // Cache: 1 saat
-    await this.cacheManager.set(cacheKey, prices, 3600 * 1000); // cache-manager v5+ uses ms
-    return prices;
+    // Prefix eşleşme (claude-sonnet-4-6-20251001 → claude-sonnet-4-6)
+    const baseModel = Object.keys(prices).find(k =>
+      model.startsWith(k) || k.startsWith(model)
+    );
+    if (baseModel) return prices[baseModel];
+
+    this.logger.warn('Model fiyatı bulunamadı', {
+      service: 'ApiCostService'
+    }, { model });
+    return null;
   }
 
-  // Maliyet hesapla ve logla
+  // ── Maliyet hesapla ───────────────────────────────────────────
+  calculateCost(
+    modelPrice: { input: number; output: number } | null,
+    inputTokens:  number,
+    outputTokens: number,
+  ): number {
+    if (!modelPrice) return 0;
+    return (inputTokens  * modelPrice.input  / 1_000_000)
+         + (outputTokens * modelPrice.output / 1_000_000);
+  }
+
+  // ── Gelir hesapla ─────────────────────────────────────────────
+  async calculateRevenue(
+    consultantId:  string,
+    creditAmount:  number,
+  ): Promise<number> {
+    if (!consultantId || creditAmount <= 0) return 0;
+
+    const subscription = await this.subscriptionRepo.findOne({
+      where: { consultant_id: consultantId, status: 'active' }
+    });
+    if (!subscription) return 0;
+
+    const pkg = await this.packageRepo.findOne({
+      where: { key: subscription.package_key }
+    });
+    if (!pkg?.price_monthly || !pkg?.credits) return 0;
+
+    const totalCredits   = (pkg.credits as any)?.ai_credit ?? 500;
+    const pricePerCredit = pkg.price_monthly / totalCredits; // USD
+    return pricePerCredit * creditAmount; // USD
+  }
+
+  // ── Ana log metodu ────────────────────────────────────────────
   async logAiCall(params: {
-    consultantId?:  string;
-    companyId?:     string;
-    taskType:       string;
-    provider:       string;
-    model:          string;
-    inputTokens:    number;
-    outputTokens:   number;
-    durationMs?:    number;
-    aiInsightId?:   string;
-    creditTxId?:    string;
-    creditAmount?:  number;  // kaç kredi harcandı
+    model:         string;
+    taskType:      string;
+    consultantId?: string;
+    companyId?:    string;
+    inputTokens:   number;
+    outputTokens:  number;
+    creditAmount?: number;  // kaç AI kredisi harcandı
+    durationMs?:   number;
+    aiInsightId?:  string;
   }): Promise<{ costUsd: number; revenueTry: number }> {
 
-    const prices    = await this.getModelPrices();
-    const modelKey  = params.model;
-    const modelPrice = prices[modelKey];
+    // 1. Model fiyatını al
+    const modelPrice = await this.getModelPrice(params.model);
 
-    // Maliyet hesapla (1,000,000 token başına fiyat)
-    let costUsd = 0;
-    if (modelPrice) {
-      costUsd = (params.inputTokens  / 1000000 * modelPrice.input)
-              + (params.outputTokens / 1000000 * modelPrice.output);
-    } else {
-      this.logger.warn('Model fiyatı bulunamadı', { service: 'ApiCostService' }, {
-        model: params.model
-      });
-    }
+    // 2. Maliyet hesapla
+    const costUsd = this.calculateCost(
+      modelPrice, params.inputTokens, params.outputTokens
+    );
 
-    // Gelir hesapla: consultant'ın ödediği tutar
-    // credit_amount * platform'un AI kredi satış fiyatı
-    // Örn: 10 AI kredi * 0.35 TRY/kredi = 3.50 TRY
-    const aiCreditPriceTry = await this.getAiCreditPriceTry();
-    const revenueTry = (params.creditAmount ?? 0) * aiCreditPriceTry;
+    // 3. USD/TRY kuru
+    const usdTryRate = await this.exchangeRateService.getUsdTry();
+    const costTry    = costUsd * usdTryRate;
 
-    // Log kaydet
-    const log = this.costLogRepo.create({
-      consultant_id:  params.consultantId,
-      company_id:     params.companyId,
-      task_type:      params.taskType,
-      provider:       params.provider,
-      model:          params.model,
-      input_tokens:   params.inputTokens,
-      output_tokens:  params.outputTokens,
-      cost_usd:       costUsd,
-      revenue_try:    revenueTry,
-      ai_insight_id:  params.aiInsightId,
-      credit_tx_id:   params.creditTxId,
-      duration_ms:    params.durationMs,
+    // 4. Gelir hesapla
+    const revenueUsd = params.consultantId && params.creditAmount
+      ? await this.calculateRevenue(params.consultantId, params.creditAmount)
+      : 0;
+    const revenueTry = revenueUsd * usdTryRate;
+
+    // 5. Logla
+    await this.costLogRepo.save({
+      model:         params.model,
+      task_type:     params.taskType,
+      consultant_id: params.consultantId,
+      company_id:    params.companyId,
+      input_tokens:  params.inputTokens,
+      output_tokens: params.outputTokens,
+      cost_usd:      costUsd,
+      cost_try:      costTry,
+      revenue_try:   revenueTry,
+      credit_amount: params.creditAmount ?? 0,
+      usd_try_rate:  usdTryRate,
+      provider:      modelPrice?.provider ?? 'unknown',
+      duration_ms:   params.durationMs,
+      ai_insight_id: params.aiInsightId,
     });
 
-    await this.costLogRepo.save(log);
-
     this.logger.debug('AI maliyet loglandı', { service: 'ApiCostService' }, {
-      taskType:    params.taskType,
       model:       params.model,
-      inputTokens:  params.inputTokens,
-      outputTokens: params.outputTokens,
-      costUsd:      costUsd.toFixed(6),
-      revenueTry:   revenueTry.toFixed(2),
+      costUsd:     costUsd.toFixed(6),
+      revenueTry:  revenueTry.toFixed(2),
+      creditAmount: params.creditAmount ?? 0,
+      margin:      revenueUsd > 0
+        ? `%${((1 - costUsd / revenueUsd) * 100).toFixed(1)}`
+        : 'N/A',
     });
 
     return { costUsd, revenueTry };
   }
 
-  // AI kredi başına TRY fiyatı
-  // Örn: 1000 AI kredi = 349 TRY → 1 kredi = 0.349 TRY
-  private async getAiCreditPriceTry(): Promise<number> {
-    const pkg = await this.packageRepo.findOne({
-      where: { key: 'ai_credit_1000' }
-    });
-    if (!pkg) return 0.35; // fallback
-    const credits = (pkg.credits as any)?.ai_credit ?? 1000;
-    return Number(pkg.price_monthly) / credits;
+  // ── Admin analytics için özet ─────────────────────────────────
+  async getMonthlySummary(year: number, month: number) {
+    const from = new Date(year, month - 1, 1);
+    const to   = new Date(year, month, 0, 23, 59, 59);
+
+    const rows = await this.costLogRepo
+      .createQueryBuilder('l')
+      .select([
+        'l.model                          as model',
+        'l.provider                       as provider',
+        'COUNT(*)                         as calls',
+        'SUM(l.input_tokens + l.output_tokens) as total_tokens',
+        'SUM(l.cost_usd)                  as total_cost_usd',
+        'SUM(l.revenue_try)               as total_revenue_try',
+        'SUM(l.cost_try)                  as total_cost_try',
+        'AVG(l.usd_try_rate)              as avg_rate',
+      ])
+      .where('l.created_at BETWEEN :from AND :to', { from, to })
+      .groupBy('l.model, l.provider')
+      .orderBy('total_cost_usd', 'DESC')
+      .getRawMany();
+
+    const totals = {
+      total_cost_usd:    rows.reduce((s, r) => s + Number(r.total_cost_usd   ?? 0), 0),
+      total_revenue_try: rows.reduce((s, r) => s + Number(r.total_revenue_try ?? 0), 0),
+      total_cost_try:    rows.reduce((s, r) => s + Number(r.total_cost_try   ?? 0), 0),
+      total_calls:       rows.reduce((s, r) => s + Number(r.calls            ?? 0), 0),
+    };
+
+    return { rows, totals };
   }
 
-  // Admin dashboard için özet istatistikler
+  // Keep original getStats for compatibility if needed, or update it
   async getStats(params: {
     startDate?: Date;
     endDate?:   Date;
@@ -164,7 +226,6 @@ export class ApiCostService {
           .getRawMany();
 
       default:
-        // Genel özet
         return qb
           .select('SUM(c.cost_usd)',      'total_cost_usd')
           .addSelect('SUM(c.revenue_try)', 'total_revenue_try')
@@ -175,7 +236,6 @@ export class ApiCostService {
     }
   }
 
-  // Consultant bazlı maliyet
   async getConsultantStats(consultantId: string, month?: string) {
     const qb = this.costLogRepo.createQueryBuilder('c')
       .where('c.consultant_id = :id', { id: consultantId });

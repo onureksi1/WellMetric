@@ -49,6 +49,15 @@ export class ApiCostLog {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   revenue_try: number | null;
 
+  @Column({ type: 'decimal', precision: 12, scale: 4, default: 0 })
+  cost_try: number;
+
+  @Column({ type: 'int', default: 0 })
+  credit_amount: number;
+
+  @Column({ type: 'decimal', precision: 8, scale: 4, default: 0 })
+  usd_try_rate: number;
+
   @Column({ type: 'uuid', nullable: true })
   ai_insight_id: string | null;
 

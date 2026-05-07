@@ -145,7 +145,7 @@ const AiCostDashboard = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--color-background-secondary)' }}>
-                  {['Model', 'Çağrı', 'Token', 'Maliyet (USD)', 'Gelir (TRY)', 'Marj'].map(h => (
+                  {['Model', 'Provider', 'Çağrı', 'Token', 'Maliyet (USD)', 'Gelir (TRY)', 'Marj'].map(h => (
                     <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontWeight: 500, color: 'var(--color-text-secondary)', fontSize: 11, textTransform: 'uppercase' }}>
                       {h}
                     </th>
@@ -162,9 +162,27 @@ const AiCostDashboard = () => {
                     <tr key={idx} style={{ borderBottom: '1px solid var(--color-border-secondary)' }}>
                       <td style={{ padding: '12px 20px' }}>
                         <div style={{ fontWeight: 500 }}>{row.model}</div>
-                        <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', textTransform: 'capitalize' }}>
-                          {row.provider}
-                        </div>
+                      </td>
+                      <td style={{ padding: '12px 20px' }}>
+                        <span style={{
+                          fontSize: 10, padding: '2px 7px',
+                          borderRadius: 4, fontWeight: 600,
+                          textTransform: 'uppercase',
+                          background:
+                            row.provider === 'anthropic' ? '#E8F0FE' :
+                            row.provider === 'openai'    ? '#E6F4EA' :
+                            row.provider === 'google'    ? '#FEF3C7' :
+                            row.provider === 'mistral'   ? '#F3E8FF' :
+                            'var(--color-background-secondary)',
+                          color:
+                            row.provider === 'anthropic' ? '#1A56DB' :
+                            row.provider === 'openai'    ? '#137333' :
+                            row.provider === 'google'    ? '#B45309' :
+                            row.provider === 'mistral'   ? '#6D28D9' :
+                            'var(--color-text-secondary)',
+                        }}>
+                          {row.provider ?? 'unknown'}
+                        </span>
                       </td>
                       <td style={{ padding: '12px 20px' }}>{Number(row.call_count).toLocaleString('tr-TR')}</td>
                       <td style={{ padding: '12px 20px' }}>{Number(row.total_tokens).toLocaleString('tr-TR')}</td>
