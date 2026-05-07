@@ -358,8 +358,8 @@ export class AdminConsultantController {
       // 1. Detach from companies
       await manager.query('UPDATE companies SET consultant_id = NULL WHERE consultant_id = $1', [id]);
       
-      // 2. Clear benchmarks updated_by
-      await manager.query('UPDATE benchmarks SET updated_by = NULL WHERE updated_by = $1', [id]);
+      // 2. Clear industry_benchmark_scores updated_by
+      await manager.query('UPDATE industry_benchmark_scores SET updated_by = NULL WHERE updated_by = $1', [id]);
       
       // 3. Delete billing related records
       await manager.query('DELETE FROM payments WHERE consultant_id = $1', [id]);
