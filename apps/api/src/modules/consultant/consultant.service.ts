@@ -249,11 +249,11 @@ export class ConsultantService {
     // 3. Get Trend Data
     const trendData = await this.dataSource.query(`
       SELECT 
-        TO_CHAR(period, 'Mon') as month,
+        TO_CHAR(period::date, 'Mon') as month,
         score
       FROM wellbeing_scores
       WHERE company_id = $1 AND dimension = 'overall'
-      ORDER BY period ASC
+      ORDER BY period::date ASC
       LIMIT 6
     `, [resolvedId]);
 
