@@ -97,6 +97,9 @@ export class PlatformSettings {
   @Column({ type: 'jsonb', default: () => "'{}'" })
   consultant_packages: any;
 
+  @Column({ type: 'jsonb', default: () => "'{}'" })
+  payment_settings: any;
+
   // Legal Documents
   @Column({ type: 'text', nullable: true })
   terms_of_use_tr: string;
