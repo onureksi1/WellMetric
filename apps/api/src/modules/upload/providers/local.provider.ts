@@ -15,7 +15,17 @@ export class LocalStorageProvider implements StorageProvider {
       fs.mkdirSync(this.baseDir, { recursive: true });
     }
     // Get the API URL from env, or default to localhost
-    this.apiUrl = this.configService.get('NEXT_PUBLIC_API_URL', 'http://localhost:3001');
+    const envApiUrl = this.configService.get('API_URL') || this.configService.get('NEXT_PUBLIC_API_URL');
+    const platformUrl = this.configService.get('PLATFORM_URL');
+
+    if (envApiUrl && !envApiUrl.includes('localhost')) {
+      this.apiUrl = envApiUrl.replace(/\/$/, '');
+    } else if (platformUrl && !platformUrl.includes('localhost')) {
+      // If platform URL is https://wellbeingmetric.com, api is usually https://api.wellbeingmetric.com
+      this.apiUrl = platformUrl.replace('://', '://api.').replace(/\/$/, '');
+    } else {
+      this.apiUrl = (envApiUrl || 'http://localhost:3001').replace(/\/$/, '');
+    }
   }
 
   async getPresignedPutUrl(key: string, mimeType: string, expiresIn: number): Promise<string> {
