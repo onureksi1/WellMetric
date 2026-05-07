@@ -104,7 +104,7 @@ import { LoggerModule } from './common/logger/logger.module';
       {
         name: 'auth',
         ttl: 900000,
-        limit: 5,
+        limit: 20,
       },
       {
         name: 'tracking',
