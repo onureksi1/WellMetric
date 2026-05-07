@@ -37,11 +37,14 @@ export class ConsultantService {
   ) {}
 
   async verifyOwnership(consultantId: string, companyId: string) {
+    const isUuid = companyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    const whereClause = isUuid ? { id: companyId, consultant_id: consultantId } : { slug: companyId, consultant_id: consultantId };
+    
     const company = await this.companyRepository.findOne({
-      where: { id: companyId, consultant_id: consultantId },
-      select: ['id']
+      where: whereClause,
+      select: ['id', 'name', 'industry', 'plan', 'slug']
     });
-
+    
     if (!company) {
       throw new ForbiddenException({
         code: ErrorCode.FORBIDDEN,
@@ -230,13 +233,8 @@ export class ConsultantService {
   }
 
   async getCompanyStats(consultantId: string, companyId: string) {
-    await this.verifyOwnership(consultantId, companyId);
-    
-    // 1. Get Company Info
-    const company = await this.companyRepository.findOne({ 
-      where: { id: companyId },
-      select: ['id', 'name', 'industry', 'plan']
-    });
+    const company = await this.verifyOwnership(consultantId, companyId);
+    const resolvedId = company.id;
 
     // 2. Get latest scores for all dimensions
     const scores = await this.dataSource.query(`
@@ -244,7 +242,7 @@ export class ConsultantService {
       FROM wellbeing_scores ws
       WHERE ws.company_id = $1
       AND ws.calculated_at = (SELECT MAX(calculated_at) FROM wellbeing_scores WHERE company_id = ws.company_id)
-    `, [companyId]);
+    `, [resolvedId]);
 
     const overallScore = scores.find((s: any) => s.dimension === 'overall')?.score || 0;
 
@@ -257,7 +255,7 @@ export class ConsultantService {
       WHERE company_id = $1 AND dimension = 'overall'
       ORDER BY period ASC
       LIMIT 6
-    `, [companyId]);
+    `, [resolvedId]);
 
     // 4. Get Participation
     const participationRes = await this.dataSource.query(`
@@ -267,7 +265,7 @@ export class ConsultantService {
       LEFT JOIN survey_responses sr ON sr.assignment_id = sa.id
       WHERE sa.company_id = $1
       GROUP BY sa.id ORDER BY sa.assigned_at DESC LIMIT 1
-    `, [companyId]);
+    `, [resolvedId]);
 
     // 5. Get Departments
     const departments = await this.dataSource.query(`
@@ -275,7 +273,7 @@ export class ConsultantService {
              (SELECT score FROM wellbeing_scores WHERE department_id = d.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1) as score
       FROM departments d
       WHERE d.company_id = $1 AND d.is_active = true
-    `, [companyId]);
+    `, [resolvedId]);
 
     // 6. Get Industry Label
     const industryInfo = await this.dataSource.query(`
@@ -289,7 +287,7 @@ export class ConsultantService {
         participation: Math.round(participationRes[0]?.rate || 0),
         industry_label_tr: industryInfo[0]?.label_tr,
         industry_label_en: industryInfo[0]?.label_en,
-        employee_count: await this.userRepository.count({ where: { company_id: companyId, role: 'employee', is_active: true } })
+        employee_count: await this.userRepository.count({      where: { company_id: resolvedId, role: 'employee', is_active: true } })
       },
       dimensions: [
         { name: 'Zihinsel Sağlık', score: scores.find((s: any) => s.dimension === 'mental')?.score || 0 },
@@ -345,7 +343,7 @@ export class ConsultantService {
   }
 
   async getDepartments(consultantId: string, companyId: string) {
-    await this.verifyOwnership(consultantId, companyId);
-    return this.departmentService.findAll(companyId);
+    const company = await this.verifyOwnership(consultantId, companyId);
+    return this.departmentService.findAll(company.id);
   }
 }
