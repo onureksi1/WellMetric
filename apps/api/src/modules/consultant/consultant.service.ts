@@ -246,26 +246,30 @@ export class ConsultantService {
 
     const overallScore = scores.find((s: any) => s.dimension === 'overall')?.score || 0;
 
-    // 3. Get Trend Data
+    // 3. Get Trend Data — period column is 'YYYY-MM', cannot cast directly to date
     const trendData = await this.dataSource.query(`
       SELECT 
-        TO_CHAR(period::date, 'Mon') as month,
+        TO_CHAR(TO_DATE(period || '-01', 'YYYY-MM-DD'), 'Mon') as month,
         score
       FROM wellbeing_scores
       WHERE company_id = $1 AND dimension = 'overall'
-      ORDER BY period::date ASC
+      ORDER BY period ASC
       LIMIT 6
     `, [resolvedId]);
 
     // 4. Get Participation
-    const participationRes = await this.dataSource.query(`
-      SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 as rate 
-      FROM survey_assignments sa
-      JOIN survey_tokens st ON st.assignment_id = sa.id
-      LEFT JOIN survey_responses sr ON sr.assignment_id = sa.id
-      WHERE sa.company_id = $1
-      GROUP BY sa.id ORDER BY sa.assigned_at DESC LIMIT 1
-    `, [resolvedId]);
+    let participationRes: any[] = [];
+    try {
+      participationRes = await this.dataSource.query(`
+        SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 as rate 
+        FROM survey_responses sr
+        LEFT JOIN survey_tokens st ON st.employee_id = sr.employee_id AND st.survey_id = sr.survey_id
+        WHERE sr.company_id = $1
+        GROUP BY sr.survey_id ORDER BY MAX(sr.submitted_at) DESC LIMIT 1
+      `, [resolvedId]);
+    } catch (e) {
+      this.logger?.warn?.('[getCompanyStats] participation query failed (non-fatal)', e?.message);
+    }
 
     // 5. Get Departments
     const departments = await this.dataSource.query(`

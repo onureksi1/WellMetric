@@ -33,14 +33,20 @@ export default function CompanyDetailPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
+  const [errorType, setErrorType] = useState<'forbidden' | 'server' | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const response = await client.get(`/consultant/companies/${params.id}/stats`);
         setData(response.data);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching company stats:', error);
+        if (error?.response?.status === 403 || error?.response?.status === 404) {
+          setErrorType('forbidden');
+        } else {
+          setErrorType('server');
+        }
       } finally {
         setLoading(false);
       }
@@ -66,8 +72,14 @@ export default function CompanyDetailPage() {
         <div className="p-4 bg-red-50 rounded-full text-red-500 mb-2">
           <AlertTriangle size={48} />
         </div>
-        <h2 className="text-xl font-bold text-slate-900">{tc('company')} {tc('not_found')}</h2>
-        <p className="text-slate-500 max-w-xs">{t('companies.not_accessible_or_found', { defaultValue: 'İstediğiniz firma verilerine ulaşılamadı veya yetkiniz bulunmuyor.' })}</p>
+        <h2 className="text-xl font-bold text-slate-900">
+          {errorType === 'server' ? 'Veri Yüklenemedi' : `${tc('company')} ${tc('not_found')}`}
+        </h2>
+        <p className="text-slate-500 max-w-xs">
+          {errorType === 'server'
+            ? 'Firma verileri yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin veya destek ekibiyle iletişime geçin.'
+            : t('companies.not_accessible_or_found', { defaultValue: 'İstediğiniz firma verilerine ulaşılamadı veya yetkiniz bulunmuyor.' })}
+        </p>
         <Link href="/consultant/companies" className="mt-4 text-blue-600 font-bold hover:underline flex items-center gap-2">
           <ArrowLeft size={18} /> {tc('back_to_companies')}
         </Link>
