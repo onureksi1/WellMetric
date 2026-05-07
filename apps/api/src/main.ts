@@ -32,9 +32,26 @@ async function bootstrap() {
     }),
   );
 
-  // CORS — tighten origins in production via env
+  // CORS — dynamic origin detection
   app.enableCors({
-    origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        process.env.NEXT_PUBLIC_APP_URL,
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://wellbeingmetric.com',
+        'https://www.wellbeingmetric.com',
+        /\.wellbeingmetric\.com$/,
+      ].filter(Boolean);
+
+      if (!origin || allowedOrigins.some(ao => 
+        ao instanceof RegExp ? ao.test(origin) : ao === origin
+      )) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language', 'X-Request-ID'],
