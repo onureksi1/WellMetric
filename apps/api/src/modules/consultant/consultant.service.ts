@@ -104,16 +104,17 @@ export class ConsultantService {
     const participationQuery = `
       SELECT
         CASE
-          WHEN SUM(emp_count) = 0 THEN 0
-          ELSE (SUM(resp_count)::float / SUM(emp_count)) * 100
+          WHEN SUM(total_tokens) = 0 THEN 0
+          ELSE ROUND((SUM(used_tokens)::float / SUM(total_tokens)) * 100)
         END as avg_participation
       FROM (
         SELECT
-          c.id,
-          (SELECT COUNT(*) FROM employees WHERE company_id = c.id AND is_active = true) as emp_count,
-          (SELECT COUNT(DISTINCT employee_id) FROM survey_responses WHERE company_id = c.id) as resp_count
-        FROM companies c
-        WHERE c.id = ANY($1)
+          company_id,
+          COUNT(*) as total_tokens,
+          COUNT(CASE WHEN is_used = true THEN 1 END) as used_tokens
+        FROM survey_tokens
+        WHERE company_id = ANY($1)
+        GROUP BY company_id
       ) sub
     `;
     const participation = await this.dataSource.query(participationQuery, [companyIds]);
@@ -129,16 +130,14 @@ export class ConsultantService {
           (SELECT score FROM wellbeing_scores WHERE company_id = c.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1)::numeric,
           1
         ) as score,
-        ROUND(
+        COALESCE(
           (
-            SELECT
-              CASE WHEN emp.total = 0 THEN 0
-                   ELSE (resp.total::float / emp.total) * 100
-              END
-            FROM
-              (SELECT COUNT(*) as total FROM employees WHERE company_id = c.id AND is_active = true) emp,
-              (SELECT COUNT(DISTINCT employee_id) as total FROM survey_responses WHERE company_id = c.id) resp
-          )::numeric,
+            SELECT ROUND(
+              (COUNT(CASE WHEN is_used = true THEN 1 END)::float / NULLIF(COUNT(*), 0)) * 100
+            )
+            FROM survey_tokens
+            WHERE company_id = c.id
+          ),
           0
         ) as participation,
         CASE
@@ -313,19 +312,23 @@ export class ConsultantService {
       `, [resolvedId]);
     } catch (e) { /* no trend data yet */ }
 
-    // 4. Get Participation — correct formula: unique respondents / active employees
+    // 4. Get Participation — use survey_tokens.is_used as source of truth
     let participationRate = 0;
     let lastSurveyAt: string | null = null;
     try {
       const participationRes = await this.dataSource.query(`
         SELECT
-          CASE WHEN emp.total = 0 THEN 0
-               ELSE ROUND((resp.total::float / emp.total) * 100)
+          CASE WHEN total_tokens = 0 THEN 0
+               ELSE ROUND((used_tokens::float / total_tokens) * 100)
           END as rate,
           (SELECT MAX(submitted_at) FROM survey_responses WHERE company_id = $1) as last_survey_at
-        FROM
-          (SELECT COUNT(*)::int as total FROM employees WHERE company_id = $1 AND is_active = true) emp,
-          (SELECT COUNT(DISTINCT employee_id)::int as total FROM survey_responses WHERE company_id = $1) resp
+        FROM (
+          SELECT
+            COUNT(*) as total_tokens,
+            COUNT(CASE WHEN is_used = true THEN 1 END) as used_tokens
+          FROM survey_tokens
+          WHERE company_id = $1
+        ) t
       `, [resolvedId]);
       participationRate = participationRes[0]?.rate || 0;
       lastSurveyAt = participationRes[0]?.last_survey_at || null;
