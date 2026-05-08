@@ -149,27 +149,33 @@ export default function ConsultantReportsPage() {
   };
 
   const fetchData = async () => {
+    setLoading(true);
     try {
-      const [rRes, cRes] = await Promise.all([
+      // Bağımsız yükleme: Biri hata verse diğeri çalışmaya devam eder
+      const [rRes, cRes] = await Promise.allSettled([
         client.get('/consultant/reports'),
         client.get('/consultant/companies'),
       ]);
 
-      // Raporlar: res.data.data (paginated) veya res.data (direct array)
-      const reportsArray = Array.isArray(rRes.data?.data) ? rRes.data.data : (Array.isArray(rRes.data) ? rRes.data : []);
-      setReports(reportsArray);
+      // Raporları işle
+      if (rRes.status === 'fulfilled') {
+        const reportsArray = Array.isArray(rRes.value.data?.data) ? rRes.value.data.data : (Array.isArray(rRes.value.data) ? rRes.value.data : []);
+        setReports(reportsArray);
+      } else {
+        console.error('Rapor yükleme hatası:', rRes.reason);
+      }
 
-      // Firmalar: res.data.data (paginated) veya res.data (direct array)
-      const companiesArray = Array.isArray(cRes.data?.data) ? cRes.data.data : (Array.isArray(cRes.data) ? cRes.data : []);
-      setCompanies(companiesArray);
+      // Firmaları işle
+      if (cRes.status === 'fulfilled') {
+        const companiesArray = Array.isArray(cRes.value.data?.data) ? cRes.value.data.data : (Array.isArray(cRes.value.data) ? cRes.value.data : []);
+        setCompanies(companiesArray);
+      } else {
+        console.error('Firma yükleme hatası:', cRes.reason);
+        toast.error('Firmalar yüklenirken bir hata oluştu.');
+      }
       
-      console.log('--- VERİ YÜKLEME ---');
-      console.log('Rapor Sayısı:', reportsArray.length);
-      console.log('Firma Sayısı:', companiesArray.length);
-      console.log('Firma Detay:', companiesArray);
     } catch (err) {
-      console.error('Veri yükleme hatası:', err);
-      toast.error('Veriler yüklenirken bir hata oluştu.');
+      console.error('Genel yükleme hatası:', err);
     } finally {
       setLoading(false);
     }
