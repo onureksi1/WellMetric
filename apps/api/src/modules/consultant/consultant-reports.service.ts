@@ -165,6 +165,16 @@ export class ConsultantReportsService {
         };
         return models[report.assessmentModel || 'wellbeing_metric'];
       })(),
+      reference_model_name: (() => {
+        if (!report.referenceAssessmentModel) return undefined;
+        const models: any = {
+          wellbeing_metric: 'WellBeing Metric Modeli',
+          who5_gallup:      'WHO-5 + Gallup Q12 Modeli',
+          perma:            'PERMA Modeli',
+          cipd:             'CIPD İş Yeri Wellbeing Modeli',
+        };
+        return models[report.referenceAssessmentModel];
+      })(),
       assessment_framework: (() => {
         const frameworks: any = {
           wellbeing_metric: 'WellBeing Metric Proprietary Framework',

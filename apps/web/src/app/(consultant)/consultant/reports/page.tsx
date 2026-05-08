@@ -30,34 +30,89 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; 
   archived:   { label: 'Arşiv',       color: '#94a3b8', bg: '#f8fafc', icon: AlertCircle },
 };
 
-const ASSESSMENT_MODELS = [
+const SINGLE_MODELS = [
   {
     key:   'wellbeing_metric',
     name:  'WellBeing Metric',
-    desc:  'Fiziksel · Zihinsel · Sosyal · Finansal · İş & Anlam',
     badge: 'Varsayılan',
     color: '#1D9E75',
-  },
-  {
-    key:   'who5_gallup',
-    name:  'WHO-5 + Gallup Q12',
-    desc:  'Klinik zihinsel wellbeing + iş bağlılığı endeksi',
-    badge: 'Klinik',
-    color: '#1A56DB',
+    when:  'Ne zaman seç: Kendi metodolojinle çalışıyorsan. Platform\'un 5 boyutlu çerçevesi — Fiziksel, Zihinsel, Sosyal, Finansal, İş & Anlam.',
+    best:  'En iyi: Genel kurumsal wellbeing analizi için.',
   },
   {
     key:   'perma',
     name:  'PERMA (Seligman)',
-    desc:  'Pozitif Duygu · Bağlılık · İlişkiler · Anlam · Başarı',
     badge: 'Akademik',
     color: '#6D28D9',
+    when:  'Ne zaman seç: Pozitif psikoloji uzmanıysan veya müşteri akademik çerçeve istiyorsa.',
+    best:  'En iyi: Çalışan gelişimi ve flourishing odaklı analizler için.',
+  },
+  {
+    key:   'who5_gallup',
+    name:  'WHO-5 + Gallup Q12',
+    badge: 'Klinik',
+    color: '#1A56DB',
+    when:  'Ne zaman seç: Zihinsel sağlık ve iş bağlılığını klinik standartlarda ölçmek istiyorsan.',
+    best:  'En iyi: Sağlık sektörü, kamu kurumları veya yüksek stres ortamları için.',
   },
   {
     key:   'cipd',
     name:  'CIPD Workplace',
-    desc:  'İngiltere İK Enstitüsü kurumsal wellbeing standardı',
     badge: 'Kurumsal',
     color: '#B45309',
+    when:  'Ne zaman seç: İK odaklı, kurumsal standart rapor gerekiyorsa. Uluslararası şirketler için ideal.',
+    best:  'En iyi: İK departmanına sunulacak, politika değişikliği önerecek raporlar için.',
+  },
+];
+
+const COMBO_MODELS = [
+  {
+    key:        'perma_who5',
+    primary:    'perma',
+    reference:  'who5_gallup',
+    name:       'PERMA + WHO-5',
+    badge:      'Akademik + Klinik',
+    color:      '#6D28D9',
+    desc:       'Pozitif psikoloji çerçevesi, klinik zihinsel sağlık verileriyle desteklenir.',
+    when:       'Ne zaman seç: Hem çalışan gelişimini hem zihinsel sağlığı derinlemesine analiz etmek istiyorsan.',
+    best:       'En iyi: Tükenmişlik riski yüksek, yoğun bilişsel çalışma ortamları için.',
+    example:    'Örnek: "PERMA\'nın Bağlılık boyutu WHO-5 klinik verileriyle desteklenmektedir."',
+  },
+  {
+    key:        'wm_perma',
+    primary:    'wellbeing_metric',
+    reference:  'perma',
+    name:       'WellBeing Metric + PERMA',
+    badge:      'Bütünsel + Akademik',
+    color:      '#1D9E75',
+    desc:       'Platform\'un 5 boyutlu çerçevesi, Seligman\'ın akademik modeli referans alınarak yorumlanır.',
+    when:       'Ne zaman seç: Kendi metodolojini akademik bir çerçeveyle güçlendirmek istiyorsan.',
+    best:       'En iyi: Müşteri hem kapsamlı hem akademik referanslı rapor istiyorsa.',
+    example:    'Örnek: "Zihinsel boyut, PERMA\'nın Pozitif Duygu ve Bağlılık perspektifinden yorumlanmıştır."',
+  },
+  {
+    key:        'wm_gallup',
+    primary:    'wellbeing_metric',
+    reference:  'who5_gallup',
+    name:       'WellBeing Metric + Gallup Q12',
+    badge:      'Bütünsel + Bağlılık',
+    color:      '#1D9E75',
+    desc:       'Platform çerçevesi, Gallup\'un dünya genelinde kanıtlanmış iş bağlılığı verileriyle zenginleştirilir.',
+    when:       'Ne zaman seç: İş bağlılığı düşüklüğü şüphesi varsa veya müşteri Gallup standardını tanıyorsa.',
+    best:       'En iyi: Kurumsal satış, büyük holdingler, uluslararası karşılaştırma gerektiğinde.',
+    example:    'Örnek: "İş & Anlam boyutu Gallup Q12 endeksiyle karşılaştırmalı olarak değerlendirilmiştir."',
+  },
+  {
+    key:        'cipd_who5',
+    primary:    'cipd',
+    reference:  'who5_gallup',
+    name:       'CIPD + WHO-5',
+    badge:      'Kurumsal + Klinik',
+    color:      '#B45309',
+    desc:       'İK standartları, klinik zihinsel sağlık verileriyle desteklenir.',
+    when:       'Ne zaman seç: İK politikası değişikliği önerecek, sağlık odaklı kurumsal rapor gerekiyorsa.',
+    best:       'En iyi: Sağlık, finans veya kamu sektöründe İK liderliğine sunulacak raporlar için.',
+    example:    'Örnek: "CIPD iş yeri sağlık çerçevesi WHO-5 klinik eşikleriyle desteklenmiştir."',
   },
 ];
 
@@ -73,7 +128,25 @@ export default function ConsultantReportsPage() {
     period: new Date().toISOString().slice(0, 7),
     language: 'tr' as 'tr' | 'en',
   });
-  const [assessmentModel, setAssessmentModel] = useState('wellbeing_metric');
+  
+  const [modelMode, setModelMode]           = useState<'single'|'combo'|'custom'>('single');
+  const [singleModel, setSingleModel]       = useState('wellbeing_metric');
+  const [primaryModel, setPrimaryModel]     = useState('wellbeing_metric');
+  const [referenceModel, setReferenceModel] = useState('');
+  const [selectedCombo, setSelectedCombo]   = useState('wm_gallup');
+
+  const getSelectedModels = () => {
+    if (modelMode === 'single') {
+      return { primary: singleModel, reference: null };
+    }
+    if (modelMode === 'combo') {
+      const combo = COMBO_MODELS.find(c => c.key === selectedCombo);
+      return { primary: combo?.primary ?? 'wellbeing_metric',
+               reference: combo?.reference ?? null };
+    }
+    // custom
+    return { primary: primaryModel, reference: referenceModel || null };
+  };
 
   const fetchData = async () => {
     try {
@@ -92,12 +165,13 @@ export default function ConsultantReportsPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Firma seçilince (her raporda manuel seçim isteniyor ancak başlangıç değerini koruyoruz)
+  // Firma seçilince (varsayılanı ata)
   useEffect(() => {
     if (!genForm.company_id) return;
     const company = companies.find(c => c.id === genForm.company_id);
     if (company) {
-      setAssessmentModel(company.assessment_model || 'wellbeing_metric');
+      setSingleModel(company.assessment_model || 'wellbeing_metric');
+      setPrimaryModel(company.assessment_model || 'wellbeing_metric');
     }
   }, [genForm.company_id, companies]);
 
@@ -115,10 +189,12 @@ export default function ConsultantReportsPage() {
   const handleGenerate = async () => {
     if (!genForm.company_id) { toast.error('Lütfen bir firma seçin'); return; }
     setGenerating(true);
+    const { primary, reference } = getSelectedModels();
     try {
       await client.post('/consultant/reports/generate', {
         ...genForm,
-        assessment_model: assessmentModel,
+        assessment_model: primary,
+        reference_assessment_model: reference,
       });
       setModal(false);
       toast.success('Rapor talebi alındı. Hazırlandığında e-posta ile bildireceğiz.', { duration: 5000 });
@@ -427,82 +503,352 @@ export default function ConsultantReportsPage() {
                 }}>
                   DEĞERLENDİRME MODELİ *
                 </label>
+
+                {/* ── MOD SEÇİCİ ── */}
                 <div style={{
-                  fontSize:11, color:'var(--color-text-tertiary)',
-                  marginBottom:10, lineHeight:1.5,
+                  display:'grid', gridTemplateColumns:'1fr 1fr 1fr',
+                  gap:6, marginBottom:14,
                 }}>
-                  Rapor bu ölçeğin terminolojisi ve boyutlarıyla yazılır.
-                  Aynı firma için farklı dönemlerde farklı ölçek seçebilirsiniz.
+                  {[
+                    { key:'single', label:'Tek Ölçek',     icon:'🎯' },
+                    { key:'combo',  label:'Kombinasyon',   icon:'🔗' },
+                    { key:'custom', label:'Özel Seçim',    icon:'⚙️' },
+                  ].map(mode => (
+                    <button key={mode.key}
+                      type="button"
+                      onClick={() => setModelMode(mode.key as any)}
+                      style={{
+                        padding:'8px 6px',
+                        border: modelMode === mode.key
+                          ? '2px solid #2563eb'
+                          : '1.5px solid #e2e8f0',
+                        borderRadius:'12px',
+                        background: modelMode === mode.key
+                          ? '#eff6ff'
+                          : '#ffffff',
+                        cursor:'pointer', fontSize:12, fontWeight:700,
+                        color: modelMode === mode.key
+                          ? '#2563eb'
+                          : '#64748b',
+                        display:'flex', flexDirection:'column',
+                        alignItems:'center', gap:3,
+                        transition: 'all 0.15s'
+                      }}>
+                      <span style={{ fontSize: 16 }}>{mode.icon}</span>
+                      <span>{mode.label}</span>
+                    </button>
+                  ))}
                 </div>
 
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {ASSESSMENT_MODELS.map(model => (
-                    <div key={model.key}
-                      onClick={() => setAssessmentModel(model.key)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 12,
-                        padding: '12px 14px',
-                        border: assessmentModel === model.key
-                          ? `2px solid ${model.color}`
-                          : '0.5px solid var(--color-border-tertiary)',
-                        borderRadius: '16px',
-                        cursor: 'pointer',
-                        background: assessmentModel === model.key
-                          ? `${model.color}10`
-                          : '#ffffff',
-                        transition: 'all .15s',
-                      }}>
-
-                      {/* Radio */}
-                      <div style={{
-                        width: 18, height: 18,
-                        borderRadius: '50%',
-                        border: assessmentModel === model.key
-                          ? `5px solid ${model.color}`
-                          : '1.5px solid #e2e8f0',
-                        flexShrink: 0,
-                        marginTop: 2,
-                        transition: 'all .15s',
-                      }} />
-
-                      {/* Content */}
-                      <div style={{ flex: 1 }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6, marginBottom: 3,
+                {/* ── TEK ÖLÇEK ── */}
+                {modelMode === 'single' && (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {SINGLE_MODELS.map(model => (
+                      <div key={model.key}
+                        onClick={() => setSingleModel(model.key)}
+                        style={{
+                          border: singleModel === model.key
+                            ? `2px solid ${model.color}`
+                            : '1.5px solid #e2e8f0',
+                          borderRadius:'16px',
+                          overflow:'hidden',
+                          cursor:'pointer',
+                          transition:'all .15s',
                         }}>
-                          <span style={{ fontSize:13, fontWeight:700, color: '#1e293b' }}>
+                        {/* Üst satır */}
+                        <div style={{
+                          display:'flex', alignItems:'center', gap:10,
+                          padding:'10px 12px',
+                          background: singleModel === model.key
+                            ? `${model.color}10`
+                            : '#ffffff',
+                        }}>
+                          <div style={{
+                            width:16, height:16, borderRadius:'50%', flexShrink:0,
+                            border: singleModel === model.key
+                              ? `5px solid ${model.color}`
+                              : '1.5px solid #e2e8f0',
+                            transition:'all .15s',
+                          }} />
+                          <span style={{ fontSize:13, fontWeight:700, flex:1, color: '#1e293b' }}>
                             {model.name}
                           </span>
                           <span style={{
-                            fontSize: 10,
-                            padding: '1px 7px',
-                            borderRadius: 4,
-                            fontWeight: 700,
-                            background: assessmentModel === model.key
-                              ? `${model.color}20`
-                              : '#f1f5f9',
-                            color: assessmentModel === model.key
-                              ? model.color
-                              : '#64748b',
+                            fontSize:10, padding:'2px 7px', borderRadius:4,
+                            fontWeight:700,
+                            background: singleModel === model.key
+                              ? `${model.color}20` : '#f1f5f9',
+                            color: singleModel === model.key
+                              ? model.color : '#64748b',
                           }}>
                             {model.badge}
                           </span>
                         </div>
-                        <div style={{
-                          fontSize: 11,
-                          color: '#64748b',
-                          lineHeight: 1.4,
+
+                        {/* Açıklama — seçilince açılır */}
+                        {singleModel === model.key && (
+                          <div style={{
+                            padding:'10px 12px 12px',
+                            borderTop:`1px solid ${model.color}20`,
+                            background:`${model.color}05`,
+                          }}>
+                            <div style={{
+                              fontSize:11, color:'#475569',
+                              lineHeight:1.6, marginBottom:6,
+                            }}>
+                              <span style={{ fontWeight:700 }}>📌 </span>
+                              {model.when}
+                            </div>
+                            <div style={{
+                              fontSize:11, color:`${model.color}`,
+                              fontWeight:700,
+                            }}>
+                              <span>✓ </span>{model.best}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ── KOMBİNASYON ── */}
+                {modelMode === 'combo' && (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {COMBO_MODELS.map(combo => (
+                      <div key={combo.key}
+                        onClick={() => setSelectedCombo(combo.key)}
+                        style={{
+                          border: selectedCombo === combo.key
+                            ? `2px solid ${combo.color}`
+                            : '1.5px solid #e2e8f0',
+                          borderRadius:'16px',
+                          overflow:'hidden',
+                          cursor:'pointer',
+                          transition:'all .15s',
                         }}>
-                          {model.desc}
+                        {/* Üst satır */}
+                        <div style={{
+                          display:'flex', alignItems:'center', gap:10,
+                          padding:'10px 12px',
+                          background: selectedCombo === combo.key
+                            ? `${combo.color}10`
+                            : '#ffffff',
+                        }}>
+                          <div style={{
+                            width:16, height:16, borderRadius:'50%', flexShrink:0,
+                            border: selectedCombo === combo.key
+                              ? `5px solid ${combo.color}`
+                              : '1.5px solid #e2e8f0',
+                            transition:'all .15s',
+                          }} />
+                          <div style={{ flex:1 }}>
+                            <div style={{
+                              fontSize:13, fontWeight:700, marginBottom:2, color: '#1e293b'
+                            }}>
+                              {combo.name}
+                            </div>
+                            <div style={{
+                              fontSize:11, color:'#64748b',
+                            }}>
+                              {combo.desc}
+                            </div>
+                          </div>
+                          <span style={{
+                            fontSize:10, padding:'2px 7px', borderRadius:4,
+                            fontWeight:700, flexShrink:0,
+                            background: selectedCombo === combo.key
+                              ? `${combo.color}20`
+                              : '#f1f5f9',
+                            color: selectedCombo === combo.key
+                              ? combo.color : '#64748b',
+                          }}>
+                            {combo.badge}
+                          </span>
                         </div>
+
+                        {/* Açıklama — seçilince açılır */}
+                        {selectedCombo === combo.key && (
+                          <div style={{
+                            padding:'10px 12px 12px',
+                            borderTop:`1px solid ${combo.color}20`,
+                            background:`${combo.color}05`,
+                          }}>
+                            <div style={{
+                              fontSize:11, color:'#475569',
+                              lineHeight:1.6, marginBottom:4,
+                            }}>
+                              <span style={{ fontWeight:700 }}>📌 </span>
+                              {combo.when}
+                            </div>
+                            <div style={{
+                              fontSize:11, color:`${combo.color}`,
+                              fontWeight:700, marginBottom:4,
+                            }}>
+                              <span>✓ </span>{combo.best}
+                            </div>
+                            <div style={{
+                              fontSize:11,
+                              color:'#94a3b8',
+                              fontStyle:'italic',
+                            }}>
+                              {combo.example}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ── ÖZEL SEÇİM ── */}
+                {modelMode === 'custom' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{
+                      fontSize:11, color:'#64748b',
+                      lineHeight:1.5,
+                      padding:'8px 12px',
+                      background:'#f8fafc',
+                      borderRadius:'12px',
+                      border: '1px solid #f1f5f9'
+                    }}>
+                      ⚙️ Uzman modu: Ana ve referans modeli kendiniz seçin.
+                      Yalnızca birbirini destekleyen ölçekler anlamlı sonuç verir.
+                    </div>
+
+                    {/* Ana model */}
+                    <div>
+                      <div style={{ fontSize:11, fontWeight:700,
+                        color:'#64748b', marginBottom:8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        ANA MODEL *
+                      </div>
+                      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                        {SINGLE_MODELS.map(model => (
+                          <div key={model.key}
+                            onClick={() => {
+                              setPrimaryModel(model.key);
+                              if (referenceModel === model.key) {
+                                setReferenceModel('');
+                              }
+                            }}
+                            style={{
+                              display:'flex', alignItems:'center', gap:8,
+                              padding:'10px 12px',
+                              border: primaryModel === model.key
+                                ? `2px solid ${model.color}`
+                                : '1.5px solid #e2e8f0',
+                              borderRadius:'12px',
+                              cursor:'pointer',
+                              background: primaryModel === model.key
+                                ? `${model.color}05`
+                                : '#ffffff',
+                              transition: 'all 0.15s'
+                            }}>
+                            <div style={{
+                              width:14, height:14, borderRadius:'50%', flexShrink:0,
+                              border: primaryModel === model.key
+                                ? `4px solid ${model.color}`
+                                : '1.5px solid #e2e8f0',
+                            }} />
+                            <span style={{ fontSize:13, fontWeight:600, color: '#1e293b' }}>
+                              {model.name}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    {/* Referans model */}
+                    <div>
+                      <div style={{ fontSize:11, fontWeight:700,
+                        color:'#64748b', marginBottom:8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        REFERANS MODEL <span style={{ fontWeight:400, color:'#94a3b8' }}>(opsiyonel)</span>
+                      </div>
+                      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                        <div onClick={() => setReferenceModel('')}
+                          style={{
+                            display:'flex', alignItems:'center', gap:8,
+                            padding:'10px 12px',
+                            border: referenceModel === ''
+                              ? '2px solid #64748b'
+                              : '1.5px solid #e2e8f0',
+                            borderRadius:'12px',
+                            cursor:'pointer',
+                            background: referenceModel === '' ? '#f8fafc' : '#ffffff',
+                          }}>
+                          <div style={{
+                            width:14, height:14, borderRadius:'50%', flexShrink:0,
+                            border: referenceModel === ''
+                              ? '4px solid #64748b'
+                              : '1.5px solid #e2e8f0',
+                          }} />
+                          <span style={{ fontSize:13, fontWeight: 500, color: '#475569' }}>
+                            Referans model kullanma
+                          </span>
+                        </div>
+                        {SINGLE_MODELS.filter(m => m.key !== primaryModel).map(model => (
+                          <div key={model.key}
+                            onClick={() => setReferenceModel(model.key)}
+                            style={{
+                              display:'flex', alignItems:'center', gap:8,
+                              padding:'10px 12px',
+                              border: referenceModel === model.key
+                                ? `2px solid ${model.color}`
+                                : '1.5px solid #e2e8f0',
+                              borderRadius:'12px',
+                              cursor:'pointer',
+                              background: referenceModel === model.key
+                                ? `${model.color}05`
+                                : '#ffffff',
+                            }}>
+                            <div style={{
+                              width:14, height:14, borderRadius:'50%', flexShrink:0,
+                              border: referenceModel === model.key
+                                ? `4px solid ${model.color}`
+                                : '1.5px solid #e2e8f0',
+                            }} />
+                            <span style={{ fontSize:13, fontWeight:600, color: '#1e293b' }}>
+                              {model.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── SEÇİM ÖZETİ ── */}
+                {(() => {
+                  const { primary, reference } = getSelectedModels();
+                  const pName = SINGLE_MODELS.find(m => m.key === primary)?.name ?? primary;
+                  const rName = reference
+                    ? SINGLE_MODELS.find(m => m.key === reference)?.name
+                    : null;
+                  return (
+                    <div style={{
+                      marginTop:20, padding:'12px 16px',
+                      background:'#f8fafc',
+                      borderRadius:'16px',
+                      fontSize:12,
+                      border: '1px solid #f1f5f9'
+                    }}>
+                      <span style={{ fontWeight:700, color:'#64748b' }}>
+                        Seçilen metodoloji:{' '}
+                      </span>
+                      <span style={{ fontWeight:700, color:'#1e293b' }}>
+                        {pName}
+                      </span>
+                      {rName && (
+                        <>
+                          <span style={{ margin:'0 6px', color:'#cbd5e1' }}>+</span>
+                          <span style={{ fontWeight:700, color:'#059669' }}>
+                            {rName} referanslı
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               <div style={{ 

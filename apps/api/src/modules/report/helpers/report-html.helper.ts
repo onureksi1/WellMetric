@@ -228,6 +228,7 @@ export class ReportHtmlHelper {
     risk_areas:        string[];
     assessment_model?: string;
     assessment_model_name?: string;
+    reference_model_name?:  string;
     assessment_framework?:  string;
 
   }): Promise<Buffer> {
@@ -624,6 +625,17 @@ export class ReportHtmlHelper {
                   ">
                     ${data.assessment_model_name}
                   </span>
+                  ${data.reference_model_name ? `
+                    <span class="cover-badge" style="
+                      background: rgba(109,40,217,0.08);
+                      border: 1px solid #C4A8E0;
+                      color: #6D28D9;
+                      font-size: 10px;
+                      font-weight: 600;
+                    ">
+                      + ${data.reference_model_name}
+                    </span>
+                  ` : ''}
                 ` : ''}
       <span class="cover-badge">${data.total_respondents} ${lang('Katılımcı','Respondents')}</span>
       <span class="cover-badge">${data.departments.length} ${lang('Departman','Department')}</span>

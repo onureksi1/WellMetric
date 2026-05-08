@@ -106,37 +106,54 @@ export class AIReportService {
     
     // ── Model tanımları ──────────────────────────────────────────
     const MODEL_DEFINITIONS: Record<string, {
-      name:       string;
-      framework:  string;
-      dimensions: string[];
-      terminology: string;
+      name:          string;
+      framework:     string;
+      dimensions:    string[];
+      terminology:   string;
       analysis_note: string;
     }> = {
       wellbeing_metric: {
         name:      'WellBeing Metric Modeli',
         framework: 'WellBeing Metric Proprietary Framework',
-        dimensions: [
-          'Fiziksel Wellbeing',
-          'Zihinsel Wellbeing',
-          'Sosyal Wellbeing',
-          'Finansal Wellbeing',
-          'İş & Anlam Wellbeing',
-        ],
+        dimensions: ['Fiziksel','Zihinsel','Sosyal','Finansal','İş & Anlam'],
         terminology: `
           Fiziksel: Beden sağlığı, hareket, uyku, beslenme, ergonomi
-          Zihinsel: Ruh sağlığı, stres yönetimi, tükenmişlik, psikolojik güvenlik
-          Sosyal: Aidiyet, ekip ilişkileri, sosyal bağ, iletişim kalitesi
+          Zihinsel: Ruh sağlığı, stres, tükenmişlik, psikolojik güvenlik
+          Sosyal: Aidiyet, ekip ilişkileri, sosyal bağ
           Finansal: Ekonomik güvenlik, maaş tatmini, geleceğe güven
-          İş & Anlam: Bağlılık, amaç duygusu, büyüme, iş-yaşam dengesi
+          İş & Anlam: Bağlılık, amaç, büyüme, iş-yaşam dengesi
         `,
         analysis_note: `
-          Her boyutu 0-100 skala üzerinden değerlendir.
-          Güçlü (70+), Gelişime Açık (50-69), Risk (50 altı) olarak sınıflandır.
+          Her boyutu 0-100 üzerinden değerlendir.
+          70+ Güçlü | 50-69 Gelişime Açık | 50 altı Risk
+        `,
+      },
+      perma: {
+        name:      'PERMA Modeli',
+        framework: 'Seligman, M.E.P. (2011). Flourish. Free Press.',
+        dimensions: [
+          'P — Pozitif Duygu',
+          'E — Bağlılık',
+          'R — İlişkiler',
+          'M — Anlam',
+          'A — Başarı',
+        ],
+        terminology: `
+          P: Neşe, minnettarlık, umut, ilham, merak
+          E: Akış deneyimi, güçlü yönleri kullanma, derin odak
+          R: Anlamlı ilişkiler, güven, sosyal destek
+          M: Kendinden büyük amaca hizmet, değer uyumu
+          A: Başarı, ustalık, hedef gerçekleştirme
+        `,
+        analysis_note: `
+          Her PERMA boyutunu ayrı değerlendir.
+          Flourishing ve Languishing kavramlarını kullan.
+          Pozitif psikoloji perspektifinden öneriler sun.
         `,
       },
       who5_gallup: {
         name:      'WHO-5 + Gallup Q12 Modeli',
-        framework: 'WHO-5 Wellbeing Index (WHO, 1998) + Gallup Q12 Employee Engagement Survey',
+        framework: 'WHO-5 Wellbeing Index (WHO,1998) + Gallup Q12 Employee Engagement Survey',
         dimensions: [
           'Zihinsel Wellbeing (WHO-5)',
           'İş Bağlılığı (Gallup Q12)',
@@ -145,51 +162,19 @@ export class AIReportService {
           'Büyüme & Gelişim',
         ],
         terminology: `
-          WHO-5 boyutları: Neşe ve iyi ruh hali, Sakinlik ve rahatlık,
-          Canlılık ve enerji, Dinç uyanma, Günlük ilgi ve merak
-          
-          Gallup Q12 boyutları: Beklenti netliği, Araç ve kaynak yeterliliği,
-          Takdir ve tanınma, Misyon bağlılığı, Kariyer gelişimi,
-          Görüş alınma, Bağlılık ve sahiplenme, Sosyal arkadaşlık,
-          İlerleme takibi, Öğrenme fırsatları, En iyi yönleri kullanma
+          WHO-5: Neşe, Sakinlik, Canlılık, Dinçlik, Günlük İlgi
+          Gallup Q12: Beklenti netliği, Araç yeterliliği, Takdir,
+          Misyon bağlılığı, Gelişim, Görüş alınma, Sosyal bağ
         `,
         analysis_note: `
-          WHO-5 skorunu 0-100'e normalize et (ham skor 0-25 arasındaysa 4 ile çarp).
-          Gallup Q12 için engaged/not engaged/actively disengaged sınıflandırması kullan.
-          İki çerçeveyi birleştirerek hem klinik hem kurumsal perspektif sun.
-        `,
-      },
-      perma: {
-        name:      'PERMA Modeli',
-        framework: 'Seligman, M.E.P. (2011). Flourish. New York: Free Press.',
-        dimensions: [
-          'P — Pozitif Duygu (Positive Emotion)',
-          'E — Bağlılık (Engagement)',
-          'R — İlişkiler (Relationships)',
-          'M — Anlam (Meaning)',
-          'A — Başarı (Achievement)',
-        ],
-        terminology: `
-          P - Positive Emotion: Neşe, minnettarlık, umut, ilham, merak,
-              sevgi, hayranlık — pozitif duygu oranı
-          E - Engagement: Akış (flow) deneyimi, tam odaklanma,
-              güçlü yönleri kullanma, derin bağlılık
-          R - Relationships: Anlamlı ilişkiler, destek alma/verme,
-              güven, sosyal bağ kalitesi
-          M - Meaning: Kendinden büyük bir amaca hizmet,
-              katkı duygusu, değer uyumu
-          A - Achievement: Başarı, ustalık (mastery), hedef gerçekleştirme,
-              öz-yeterlilik
-        `,
-        analysis_note: `
-          Her PERMA boyutunu ayrı ayrı değerlendir.
-          Flourishing (gelişim) ve Languishing (sönümleme) kavramlarını kullan.
-          Seligman'ın pozitif psikoloji perspektifinden öneriler sun.
+          WHO-5 skoru 0-100 normalize et.
+          Gallup için engaged/not engaged/actively disengaged kullan.
+          İki çerçeveyi birleştir: klinik + kurumsal perspektif.
         `,
       },
       cipd: {
         name:      'CIPD İş Yeri Wellbeing Modeli',
-        framework: 'CIPD Health and Wellbeing at Work Framework (CIPD, 2023)',
+        framework: 'CIPD Health and Wellbeing at Work Framework (2023)',
         dimensions: [
           'Fiziksel Sağlık',
           'Psikolojik Wellbeing',
@@ -198,43 +183,57 @@ export class AIReportService {
           'Finansal Güvenlik',
         ],
         terminology: `
-          Fiziksel sağlık yönetimi, psikolojik güvenlik,
-          esnek çalışma, sosyal sermaye,
-          liderlik desteği, kariyer gelişimi
+          Fiziksel: Devamsızlık, presenteeism, ergonomi
+          Psikolojik: Stres, psikolojik güvenlik, EAP
+          İş-Yaşam: Esnek çalışma, fazla mesai, kopma hakkı
+          Sosyal: Ekip uyumu, liderlik, çeşitlilik
+          Finansal: Ücret adaleti, yan haklar
         `,
         analysis_note: `
-          CIPD'nin "Good Work" (İyi İş) çerçevesini referans al.
-          İşveren yükümlülükleri ve İK pratikleri perspektifinden değerlendir.
-          UK CIPD standartlarına göre benchmark sun.
+          CIPD Good Work çerçevesini referans al.
+          İK politikası ve işveren yükümlülükleri perspektifinden değerlendir.
         `,
       },
     };
 
-    const assessmentModel = params.assessmentModel ?? company.assessmentModel ?? 'wellbeing_metric';
-    const modelDef = MODEL_DEFINITIONS[assessmentModel]
+    const assessmentModel  = params.assessmentModel ?? company.assessmentModel ?? 'wellbeing_metric';
+    const referenceModel   = params.referenceModel;
+    const primaryDef       = MODEL_DEFINITIONS[assessmentModel]
       ?? MODEL_DEFINITIONS['wellbeing_metric'];
+    const referenceDef     = referenceModel
+      ? MODEL_DEFINITIONS[referenceModel]
+      : null;
 
     const methodologySection = `
-## METODOLOJİ VE DEĞERLENDİRME ÇERÇEVESİ
+## METODOLOJİ
 
-Kullanılan Model: ${modelDef.name}
-Akademik Referans: ${modelDef.framework}
+Ana Çerçeve: ${primaryDef.name}
+Referans: ${primaryDef.framework}
+Boyutlar: ${primaryDef.dimensions.join(' · ')}
 
-Değerlendirme Boyutları:
-${modelDef.dimensions.map((d, i) => `${i + 1}. ${d}`).join('\n')}
-
-Terminoloji ve Kavramsal Çerçeve:
-${modelDef.terminology}
+Terminoloji:
+${primaryDef.terminology}
 
 Analiz Notu:
-${modelDef.analysis_note}
+${primaryDef.analysis_note}
 
-ÖNEMLİ KURALLAR:
-1. Raporu YALNIZCA ${modelDef.name} terminolojisiyle yaz
-2. Başlıklarda bu modelin boyut isimlerini kullan
-3. Öneriler bu modelin perspektifinden olsun
-4. Raporun SONUÇ bölümünün en sonuna şu cümleyi ekle:
-   "Bu analiz ${modelDef.framework} çerçevesinde hazırlanmıştır."
+${referenceDef ? `
+Destekleyici Çerçeve: ${referenceDef.name}
+Referans: ${referenceDef.framework}
+
+${referenceDef.terminology}
+
+KURAL: Raporu ${primaryDef.name} terminolojisiyle yaz.
+${referenceDef.name} perspektifinden her boyuta ek yorum ve
+zenginleştirme ekle. İki çerçeveyi karşılaştır.
+` : ''}
+
+ZORUNLU: Raporun SONUÇ bölümünün sonuna şunu ekle:
+"Bu analiz ${primaryDef.framework} çerçevesinde${
+  referenceDef
+    ? `, ${referenceDef.framework} referans alınarak`
+    : ''
+} hazırlanmıştır."
 `;
 
     const scoreTable = currentScores.map((s: any) => {
