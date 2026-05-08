@@ -523,7 +523,7 @@ export class CronService {
               hour: '2-digit', minute: '2-digit'
             }),
             department: event.department?.name ?? 'Tüm firma',
-            plan_url: `${process.env.APP_URL || 'http://localhost:3000'}/dashboard/training?plan_id=${event.planId}`,
+            plan_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/dashboard/training?plan_id=${event.planId}`,
           });
         }
       }

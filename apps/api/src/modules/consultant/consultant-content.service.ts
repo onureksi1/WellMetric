@@ -447,7 +447,7 @@ Hangi firmalara neden önerdiğini açıkla.
         company_name:     assignment.company.name,
         department_name:  assignment.department?.name ?? 'Tüm firma',
         notes:            assignment.notes ?? '',
-        dashboard_url:    `${process.env.APP_URL || 'http://localhost:3000'}/dashboard/content`,
+        dashboard_url:    `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/dashboard/content`,
       });
     }
 

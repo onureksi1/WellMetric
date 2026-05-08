@@ -96,38 +96,30 @@ export default function ReportEditor({ reportId }: ReportEditorProps) {
     if (!reportId) return;
     try {
       setDownloadingPdf(true);
-      const { accessToken } = useAuthStore.getState();
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/consultant/reports/${reportId}/pdf`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
+      // Use the pre-configured Axios client (avoids double /api/v1 prefix)
+      const res = await client.get(`/consultant/reports/${reportId}/pdf`, {
+        responseType: 'blob',
+      });
 
-      if (!res.ok) {
-        toast.error('PDF indirilemedi');
-        return;
-      }
-
-      const blob     = await res.blob();
-      const url      = URL.createObjectURL(blob);
-      const a        = document.createElement('a');
-      a.href         = url;
-      a.download     = `wellbeing-raporu-${reportId.slice(0, 8)}.pdf`;
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `wellbeing-raporu-${reportId.slice(0, 8)}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success('PDF indirildi');
-    } catch {
-      toast.error('Bağlantı hatası');
+    } catch (err: any) {
+      console.error('[PDF Download]', err?.response?.status, err?.message);
+      toast.error(`PDF indirilemedi (${err?.response?.status ?? 'bağlantı hatası'})`);
     } finally {
       setDownloadingPdf(false);
     }
   };
+
 
   const insertInsight = (insight: any) => {
     const md = `\n\n### AI Analizi: ${insight.insight_type}\n${insight.content}\n\n`;

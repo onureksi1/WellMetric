@@ -289,7 +289,7 @@ export class CompanyService {
         if (!settings?.mail_provider || settings.mail_provider === 'none') {
           console.warn(`[Company.create] Mail provider not configured. Invitation email not sent for: ${dto.hr_admin_email}`);
         } else {
-          const platformUrl = settings.platform_url || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+          const platformUrl = settings.platform_url || process.env.NEXT_PUBLIC_APP_URL || 'https://wellbeingmetric.com';
           const inviteLink = `${platformUrl}/invite?token=${inviteToken}`;
           
           console.log('[Company.create] Sending welcome email to:', dto.hr_admin_email);
@@ -576,7 +576,7 @@ export class CompanyService {
       const companyName = company[0]?.name || 'Wellbeing Metric';
       const consultantId: string | undefined = company[0]?.consultant_id || undefined;
 
-      const platformUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const platformUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://wellbeingmetric.com';
       const inviteLink = `${platformUrl}/invite?token=${inviteToken}`;
 
       if (dto.role === 'hr_admin') {
@@ -668,7 +668,7 @@ export class CompanyService {
       const company = await manager.query(`SELECT name FROM companies WHERE id = $1`, [id]);
       const companyName = company[0]?.name || 'Wellbeing Metric';
       
-      const platformUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const platformUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://wellbeingmetric.com';
       const inviteLink = `${platformUrl}/invite?token=${inviteToken}`;
 
       if (user[0].role === 'hr_admin') {

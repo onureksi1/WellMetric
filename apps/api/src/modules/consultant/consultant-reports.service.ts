@@ -242,7 +242,7 @@ export class ConsultantReportsService {
         report_summary: report.summary ?? '',
         period: report.period ?? '',
         company_name: report.company?.name,
-        report_url: `${process.env.APP_URL || 'http://localhost:3000'}/dashboard/reports/consultant/${id}`,
+        report_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/dashboard/reports/consultant/${id}`,
       });
     }
 

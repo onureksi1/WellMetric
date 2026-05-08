@@ -283,7 +283,7 @@ profesyonel bir dil kullan. Klişelerden kaçın. Şirkete özel içerik üret.
           consultant_name: consultant[0].full_name,
           company_name:    company.name,
           period:          params.period,
-          report_url:      `${process.env.APP_URL || 'http://localhost:3000'}/consultant/reports/${reportId}`
+          report_url:      `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/consultant/reports/${reportId}`
         });
 
         // In-app bildirim gönder

@@ -60,7 +60,7 @@ export class HrContentService {
         content_url:      assignment.content_item.url_tr,
         consultant_name:  assignment.consultant.full_name,
         notes:            assignment.notes || '',
-        platform_url:     process.env.APP_URL || 'http://localhost:3000',
+        platform_url:     process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com',
       });
     }
 

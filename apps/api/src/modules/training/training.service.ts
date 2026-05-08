@@ -100,8 +100,8 @@ export class TrainingService {
         company_name: plan.company?.name,
         starts_at: plan.startsAt ? new Date(plan.startsAt).toLocaleDateString('tr-TR') : '',
         event_count: String(plan.events?.length ?? 0),
-        plan_url: `${process.env.APP_URL || 'http://localhost:3000'}/dashboard/training?plan_id=${id}`,
-        platform_url: process.env.APP_URL || 'http://localhost:3000',
+        plan_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/dashboard/training?plan_id=${id}`,
+        platform_url: process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com',
       });
     }
 
@@ -306,7 +306,7 @@ export class TrainingService {
         content_url: event.contentItem?.url_tr ?? event.externalUrl ?? '',
         content_label: event.externalUrlLabel ?? 'İçeriği Görüntüle',
         hr_notes: dto.notes ?? '',
-        platform_url: `${process.env.APP_URL || 'http://localhost:3000'}/dashboard/training?plan_id=${event.planId}`,
+        platform_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/dashboard/training?plan_id=${event.planId}`,
       });
     }
 
