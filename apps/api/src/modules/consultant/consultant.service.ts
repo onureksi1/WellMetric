@@ -80,13 +80,18 @@ export class ConsultantService {
       };
     }
 
-    // 2. Fetch scores and participation
-    // Decouple employee count from scores to ensure it shows even if no scores exist yet
+    // 2. Fetch scores, employee count, and active surveys
     const employeeCount = await this.dataSource.query(
       'SELECT COUNT(*)::int as count FROM employees WHERE company_id = ANY($1) AND is_active = true',
       [companyIds]
     );
     console.log(`[ConsultantService] Employee count result:`, employeeCount);
+
+    // Active surveys for all consultant companies
+    const activeSurveysRes = await this.dataSource.query(
+      `SELECT COUNT(*)::int as count FROM surveys WHERE company_id = ANY($1) AND is_active = true`,
+      [companyIds]
+    );
 
     const statsQuery = `
       SELECT AVG(score) as avg_score
@@ -97,25 +102,69 @@ export class ConsultantService {
     const stats = await this.dataSource.query(statsQuery, [companyIds]);
 
     const participationQuery = `
-      SELECT AVG(rate) as avg_participation FROM (
-        SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 as rate
-        FROM survey_assignments sa
-        JOIN survey_tokens st ON st.assignment_id = sa.id
-        LEFT JOIN survey_responses sr ON sr.assignment_id = sa.id
-        WHERE sa.company_id = ANY($1)
-        GROUP BY sa.id
+      SELECT
+        CASE
+          WHEN SUM(emp_count) = 0 THEN 0
+          ELSE (SUM(resp_count)::float / SUM(emp_count)) * 100
+        END as avg_participation
+      FROM (
+        SELECT
+          c.id,
+          (SELECT COUNT(*) FROM employees WHERE company_id = c.id AND is_active = true) as emp_count,
+          (SELECT COUNT(DISTINCT employee_id) FROM survey_responses WHERE company_id = c.id) as resp_count
+        FROM companies c
+        WHERE c.id = ANY($1)
       ) sub
     `;
     const participation = await this.dataSource.query(participationQuery, [companyIds]);
 
     // 3. Company list with latest scores
     const companyListQuery = `
-      SELECT c.id, c.name, c.industry, c.plan,
-        (SELECT score FROM wellbeing_scores WHERE company_id = c.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1) as current_score,
-        (SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 
-         FROM survey_assignments sa JOIN survey_tokens st ON st.assignment_id = sa.id 
-         LEFT JOIN survey_responses sr ON sr.assignment_id = sa.id 
-         WHERE sa.company_id = c.id GROUP BY sa.id ORDER BY sa.assigned_at DESC LIMIT 1) as last_participation
+      SELECT
+        c.id,
+        c.name,
+        c.industry,
+        c.plan,
+        ROUND(
+          (SELECT score FROM wellbeing_scores WHERE company_id = c.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1)::numeric,
+          1
+        ) as score,
+        ROUND(
+          (
+            SELECT
+              CASE WHEN emp.total = 0 THEN 0
+                   ELSE (resp.total::float / emp.total) * 100
+              END
+            FROM
+              (SELECT COUNT(*) as total FROM employees WHERE company_id = c.id AND is_active = true) emp,
+              (SELECT COUNT(DISTINCT employee_id) as total FROM survey_responses WHERE company_id = c.id) resp
+          )::numeric,
+          0
+        ) as participation,
+        CASE
+          WHEN (SELECT calculated_at FROM wellbeing_scores WHERE company_id = c.id ORDER BY calculated_at DESC LIMIT 1) IS NULL THEN 'new'
+          WHEN (
+            SELECT score FROM wellbeing_scores ws2
+            WHERE ws2.company_id = c.id AND ws2.dimension = 'overall'
+            ORDER BY ws2.calculated_at DESC LIMIT 1
+          ) > (
+            SELECT score FROM wellbeing_scores ws3
+            WHERE ws3.company_id = c.id AND ws3.dimension = 'overall'
+            ORDER BY ws3.calculated_at DESC
+            LIMIT 1 OFFSET 1
+          ) + 2 THEN 'up'
+          WHEN (
+            SELECT score FROM wellbeing_scores ws2
+            WHERE ws2.company_id = c.id AND ws2.dimension = 'overall'
+            ORDER BY ws2.calculated_at DESC LIMIT 1
+          ) < (
+            SELECT score FROM wellbeing_scores ws3
+            WHERE ws3.company_id = c.id AND ws3.dimension = 'overall'
+            ORDER BY ws3.calculated_at DESC
+            LIMIT 1 OFFSET 1
+          ) - 2 THEN 'down'
+          ELSE 'stable'
+        END as status
       FROM companies c
       WHERE c.consultant_id = $1 AND c.is_active = true
     `;
@@ -127,10 +176,11 @@ export class ConsultantService {
         total_employees: employeeCount[0]?.count || 0,
         avg_score: parseFloat(stats[0]?.avg_score || '0'),
         avg_participation: parseFloat(participation[0]?.avg_participation || '0'),
+        active_surveys: activeSurveysRes[0]?.count || 0,
         plan_usage: { used: companies.length, max: plan?.max_companies || 5 }
       },
       companies: companyList,
-      alerts: companyList.filter(c => c.current_score < 60), // Example threshold
+      alerts: companyList.filter((c: any) => c.score !== null && Number(c.score) < 60), // companies below threshold
       recent_activities: [] // Could be fetched from audit_logs
     };
   }
@@ -263,26 +313,42 @@ export class ConsultantService {
       `, [resolvedId]);
     } catch (e) { /* no trend data yet */ }
 
-    // 4. Get Participation
-    let participationRes: any[] = [];
+    // 4. Get Participation — correct formula: unique respondents / active employees
+    let participationRate = 0;
+    let lastSurveyAt: string | null = null;
     try {
-      participationRes = await this.dataSource.query(`
-        SELECT (COUNT(sr.id)::float / NULLIF(COUNT(st.id), 0)) * 100 as rate 
-        FROM survey_responses sr
-        LEFT JOIN survey_tokens st ON st.employee_id = sr.employee_id AND st.survey_id = sr.survey_id
-        WHERE sr.company_id = $1
-        GROUP BY sr.survey_id ORDER BY MAX(sr.submitted_at) DESC LIMIT 1
+      const participationRes = await this.dataSource.query(`
+        SELECT
+          CASE WHEN emp.total = 0 THEN 0
+               ELSE ROUND((resp.total::float / emp.total) * 100)
+          END as rate,
+          (SELECT MAX(submitted_at) FROM survey_responses WHERE company_id = $1) as last_survey_at
+        FROM
+          (SELECT COUNT(*)::int as total FROM employees WHERE company_id = $1 AND is_active = true) emp,
+          (SELECT COUNT(DISTINCT employee_id)::int as total FROM survey_responses WHERE company_id = $1) resp
       `, [resolvedId]);
+      participationRate = participationRes[0]?.rate || 0;
+      lastSurveyAt = participationRes[0]?.last_survey_at || null;
     } catch (e) { /* participation query failed (non-fatal) */ }
 
-    // 5. Get Departments
+    // 5. Get Departments with scores — try department_id first, fallback to company_id-scoped scores
     let departments: any[] = [];
     try {
       departments = await this.dataSource.query(`
-        SELECT d.name, 
-               (SELECT score FROM wellbeing_scores WHERE department_id = d.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1) as score
+        SELECT
+          d.id,
+          d.name,
+          COALESCE(
+            (SELECT ROUND(score::numeric, 1) FROM wellbeing_scores
+             WHERE department_id = d.id AND dimension = 'overall'
+             ORDER BY calculated_at DESC LIMIT 1),
+            (SELECT ROUND(score::numeric, 1) FROM wellbeing_scores
+             WHERE company_id = $1 AND department_id IS NULL AND dimension = 'overall'
+             ORDER BY calculated_at DESC LIMIT 1)
+          ) as score
         FROM departments d
         WHERE d.company_id = $1 AND d.is_active = true
+        ORDER BY d.name ASC
       `, [resolvedId]);
     } catch (e) { /* no departments yet */ }
 
@@ -312,8 +378,9 @@ export class ConsultantService {
     return {
       company: {
         ...company,
-        score: overallScore,
-        participation: Math.round(participationRes[0]?.rate || 0),
+        score: overallScore ? Number(overallScore).toFixed(2) : null,
+        participation: participationRate,
+        last_survey_at: lastSurveyAt,
         industry_label_tr: industryInfo[0]?.label_tr,
         industry_label_en: industryInfo[0]?.label_en,
         employee_count: employeeCount,
@@ -321,7 +388,7 @@ export class ConsultantService {
       dimensions: [
         { name: 'Zihinsel Sağlık', score: scores.find((s: any) => s.dimension === 'mental')?.score || 0 },
         { name: 'Fiziksel Sağlık', score: scores.find((s: any) => s.dimension === 'physical')?.score || 0 },
-        { name: 'İş Tatmini', score: scores.find((s: any) => s.dimension === 'work')?.score || 0 },
+        { name: 'İş Tatmini',      score: scores.find((s: any) => s.dimension === 'work')?.score || 0 },
         { name: 'Sosyal Bağlılık', score: scores.find((s: any) => s.dimension === 'social')?.score || 0 }
       ],
       trend_data: trendData.length > 0 ? trendData : [
@@ -331,13 +398,14 @@ export class ConsultantService {
       ],
       departments: departments.map((d: any) => ({
         name: d.name,
-        score: d.score || 0
+        score: d.score ? Number(d.score) : null
       })),
       alerts: overallScore < 60 && overallScore > 0 ? [
         { title: 'Düşük Esenlik Skoru', message: 'Şirket genel esenlik skoru kritik seviyenin altında. Acil aksiyon planı önerilir.' }
       ] : []
     };
   }
+
 
 
 
