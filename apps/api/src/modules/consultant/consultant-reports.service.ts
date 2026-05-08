@@ -313,15 +313,31 @@ export class ConsultantReportsService {
     company_id?: string;
     status?: string;
   }) {
-    const query: any = { consultantId };
-    if (filters.company_id) query.companyId = filters.company_id;
-    if (filters.status) query.status = filters.status;
+    // Explicit where object to avoid any property mapping issues
+    const where: any = { consultantId };
+    
+    if (filters.company_id) {
+      where.companyId = filters.company_id;
+    }
+    
+    if (filters.status) {
+      where.status = filters.status;
+    }
 
-    return this.reportRepo.find({
-      where: query,
-      relations: ['company'],
-      order: { updatedAt: 'DESC' },
-    });
+    try {
+      return await this.reportRepo.find({
+        where,
+        relations: ['company'],
+        order: { updatedAt: 'DESC' },
+      });
+    } catch (error) {
+      this.logger.error(`[ConsultantReportsService] findAll failed: ${error.message}`, error.stack);
+      // Fallback: Try without relations if company join fails
+      return this.reportRepo.find({
+        where,
+        order: { updatedAt: 'DESC' },
+      });
+    }
   }
 
   // ── Tekil rapor ──────────────────────────────────────────────────

@@ -51,6 +51,10 @@ export class AddAssessmentModelAndNotifications1777930000000
         ADD COLUMN IF NOT EXISTS credit_amount INT           DEFAULT 0,
         ADD COLUMN IF NOT EXISTS usd_try_rate  DECIMAL(8,4)  DEFAULT 0,
         ADD COLUMN IF NOT EXISTS provider      VARCHAR(50)   DEFAULT 'anthropic';
+
+      ALTER TABLE consultant_reports
+        ADD COLUMN IF NOT EXISTS assessment_model VARCHAR(30),
+        ADD COLUMN IF NOT EXISTS reference_assessment_model VARCHAR(30);
     `);
 
     // 4. platform_settings: assessment_models + model_prices
@@ -147,6 +151,10 @@ export class AddAssessmentModelAndNotifications1777930000000
         DROP COLUMN IF EXISTS credit_amount,
         DROP COLUMN IF EXISTS usd_try_rate,
         DROP COLUMN IF EXISTS provider;
+      
+      ALTER TABLE consultant_reports
+        DROP COLUMN IF EXISTS assessment_model,
+        DROP COLUMN IF EXISTS reference_assessment_model;
     `);
   }
 }
