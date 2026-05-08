@@ -198,21 +198,47 @@ export class SettingsService {
   
   async getPublicSettings() {
     const PUBLIC_REDIS_KEY = 'platform:settings:public';
-    const cached = await this.redisClient.get(PUBLIC_REDIS_KEY);
-    if (cached) return JSON.parse(cached);
+    try {
+      const cached = await this.redisClient.get(PUBLIC_REDIS_KEY);
+      if (cached) return JSON.parse(cached);
+    } catch (_) { /* Redis unavailable — continue to DB */ }
 
-    const result = await this.dataSource.query(`
-      SELECT platform_name, platform_url, platform_logo_url, supported_languages, default_language 
-      FROM platform_settings 
-      LIMIT 1
-    `);
-    
-    if (!result || result.length === 0) return null;
-    
-    const settings = this.sanitizeSettings(result[0]);
-    await this.redisClient.set(PUBLIC_REDIS_KEY, JSON.stringify(settings), 'EX', 3600);
-    return settings;
+    try {
+      const result = await this.dataSource.query(`
+        SELECT platform_name, platform_url, platform_logo_url, supported_languages, default_language 
+        FROM platform_settings 
+        LIMIT 1
+      `);
+
+      if (!result || result.length === 0) {
+        // Table exists but has no rows — return safe defaults
+        return {
+          platform_name: 'Wellbeing Metric',
+          platform_url: process.env.PLATFORM_URL || 'https://wellbeingmetric.com',
+          platform_logo_url: null,
+          supported_languages: ['tr', 'en'],
+          default_language: 'tr',
+        };
+      }
+
+      const settings = this.sanitizeSettings(result[0]);
+      try {
+        await this.redisClient.set(PUBLIC_REDIS_KEY, JSON.stringify(settings), 'EX', 3600);
+      } catch (_) { /* Redis unavailable — skip cache */ }
+      return settings;
+    } catch (error) {
+      this.logger.error(`[Settings] getPublicSettings failed: ${error.message}`, error.stack);
+      // Return minimal safe defaults instead of throwing 500
+      return {
+        platform_name: 'Wellbeing Metric',
+        platform_url: process.env.PLATFORM_URL || 'https://wellbeingmetric.com',
+        platform_logo_url: null,
+        supported_languages: ['tr', 'en'],
+        default_language: 'tr',
+      };
+    }
   }
+
 
   async updateSettings(dto: UpdatePlatformSettingsDto, adminUserId?: string) {
     const current = await this.dataSource.query(`SELECT * FROM platform_settings LIMIT 1`);
