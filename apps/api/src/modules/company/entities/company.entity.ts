@@ -55,6 +55,13 @@ export class Company {
   })
   settings: CompanySettings;
 
+  @Column({
+    name: 'assessment_model',
+    default: 'wellbeing_metric',
+    nullable: true,
+  })
+  assessmentModel: string;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 

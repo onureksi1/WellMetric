@@ -101,15 +101,86 @@ export class AIReportService {
     }));
 
     // ── 2. AI PROMPT ─────────────────────────────────────────────
+    
+    // Ölçek bilgisi
+    const modelDefinitions: Record<string, {
+      name: string;
+      framework: string;
+      dimensions: string[];
+      terminology: string;
+    }> = {
+      wellbeing_metric: {
+        name: "WellBeing Metric Modeli",
+        framework: "WellBeing Metric Proprietary Framework",
+        dimensions: ["Fiziksel","Zihinsel","Sosyal","Finansal","İş & Anlam"],
+        terminology: `
+          Fiziksel: Beden sağlığı, hareket, uyku, beslenme
+          Zihinsel: Ruh sağlığı, stres, tükenmişlik, psikolojik güvenlik
+          Sosyal: Aidiyet, ilişkiler, ekip bağı, topluluk
+          Finansal: Ekonomik güvenlik, maaş tatmini, geleceğe güven
+          İş & Anlam: Bağlılık, amaç, büyüme, iş-yaşam dengesi
+        `,
+      },
+      who5_gallup: {
+        name: "WHO-5 + Gallup Q12 Modeli",
+        framework: "WHO-5 Wellbeing Index + Gallup Q12 Employee Engagement",
+        dimensions: ["Zihinsel Wellbeing","İş Bağlılığı","Amaç","Destek","Büyüme"],
+        terminology: `
+          WHO-5 çerçevesinde: Neşe, Sakinlik, Canlılık, Dinçlik, Günlük İlgi
+          Gallup Q12 çerçevesinde: Beklentiler, Araçlar, Takdir, Misyon,
+          Gelişim, Görüş, Bağlılık, Arkadaşlık, İlerleme, Öğrenme, En İyiyi Yapma
+        `,
+      },
+      perma: {
+        name: "PERMA Modeli (Seligman)",
+        framework: "Seligman Positive Psychology Framework (2011)",
+        dimensions: ["Pozitif Duygu","Bağlılık","İlişkiler","Anlam","Başarı"],
+        terminology: `
+          P - Positive Emotion: Neşe, minnettarlık, umut, ilham
+          E - Engagement: Akış deneyimi, tam odaklanma, derin bağlılık
+          R - Relationships: Anlamlı ilişkiler, destek, bağ
+          M - Meaning: Amaç, katkı, anlam duygusu
+          A - Achievement: Başarı, ustalık, hedef gerçekleştirme
+        `,
+      },
+      cipd: {
+        name: "CIPD İş Yeri Wellbeing Modeli",
+        framework: "CIPD Health and Wellbeing at Work Framework (2023)",
+        dimensions: ["Sağlık","Bağlılık","İş-Yaşam Dengesi","Sosyal","Amaç"],
+        terminology: `
+          CIPD çerçevesinde: Fiziksel sağlık yönetimi, psikolojik güvenlik,
+          esnek çalışma, sosyal sermaye, liderlik desteği, kariyer gelişimi
+        `,
+      },
+    };
+
+    const assessmentModel = company.assessmentModel ?? "wellbeing_metric";
+    const modelDef = modelDefinitions[assessmentModel]
+      ?? modelDefinitions["wellbeing_metric"];
+
+    const modelSection = `
+## KULLANILAN DEĞERLENDİRME MODELİ
+Model: ${modelDef.name}
+Referans: ${modelDef.framework}
+Boyutlar: ${modelDef.dimensions.join(", ")}
+
+Bu rapor ${modelDef.name} çerçevesinde hazırlanmıştır.
+Analizde aşağıdaki terminoloji ve boyutlar kullanılmalıdır:
+${modelDef.terminology}
+
+Raporu bu modelin perspektifinden yaz.
+Başlıklarda ve analizde bu modelin boyut isimlerini kullan.
+Raporun sonunda "Bu analiz ${modelDef.framework} referans alınarak hazırlanmıştır." ifadesini ekle.
+`;
 
     const scoreTable = currentScores.map((s: any) => {
       const bench  = benchmarks.find((b: any) => b.dimension === s.dimension);
       const trend  = trends.find(t => t.dimension === s.dimension);
       const change = trend?.change !== null && trend?.change !== undefined
         ? (trend.change > 0 ? `+${trend.change.toFixed(1)}` : trend.change.toFixed(1))
-        : 'İlk dönem';
-      return `${s.dimension}: ${Number(s.score).toFixed(1)}/100 | Benchmark: ${bench?.score ?? 'N/A'} | Trend: ${change}`;
-    }).join('\n');
+        : "İlk dönem";
+      return `${s.dimension}: ${Number(s.score).toFixed(1)}/100 | Benchmark: ${bench?.score ?? "N/A"} | Trend: ${change}`;
+    }).join("\n");
 
     const deptTable = (() => {
       const grouped: Record<string, any[]> = {};
@@ -118,23 +189,22 @@ export class AIReportService {
         grouped[d.dept_name].push(d);
       }
       return Object.entries(grouped).map(([dept, scores]) =>
-        `${dept}: ${scores.map((s: any) => `${s.dimension}=${Number(s.score).toFixed(0)}`).join(', ')}`
-      ).join('\n');
+        `${dept}: ${scores.map((s: any) => `${s.dimension}=${Number(s.score).toFixed(0)}`).join(", ")}`
+      ).join("\n");
     })();
 
-    const lang = params.language === 'en' ? 'English' : 'Türkçe';
+    const langName = params.language === "en" ? "English" : "Türkçe";
 
     const prompt = `
-Sen bir kurumsal wellbeing danışmanısın. Aşağıdaki verilere dayanarak
-${company.name} şirketi için ${params.period} dönemine ait
-kapsamlı ve profesyonel bir wellbeing raporu yaz.
-
-Raporu ${lang} dilinde yaz. Resmi ama anlaşılır bir dil kullan.
+Sen bir kurumsal wellbeing danışmanısın.
+${modelSection}
 
 ## ŞİRKET BİLGİSİ
 - Şirket: ${company.name}
 - Sektör: ${industry}
 - Dönem: ${params.period}
+
+Raporu ${langName} dilinde yaz. Resmi ama anlaşılır bir dil kullan.
 
 ## MEVCUT DÖNEM SKORLARI (0-100)
 ${scoreTable}

@@ -61,7 +61,7 @@ export class HrContentService {
         consultant_name:  assignment.consultant.full_name,
         notes:            assignment.notes || '',
         platform_url:     process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com',
-      });
+      }, companyId, assignment.consultant_id);
     }
 
     // Atamayı güncelle

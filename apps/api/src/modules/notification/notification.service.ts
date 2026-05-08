@@ -74,6 +74,17 @@ export class NotificationService {
       const platformUrl = await this.getPlatformUrl();
       const apiUrl = await this.getApiUrl();
 
+      // Automatically resolve consultantId if missing but companyId is present
+      let effectiveConsultantId = consultantId;
+      if (companyId && !effectiveConsultantId) {
+        try {
+          const res = await this.dataSource.query(`SELECT consultant_id FROM companies WHERE id = $1`, [companyId]);
+          effectiveConsultantId = res[0]?.consultant_id;
+        } catch (e) {
+          console.warn(`[Notification] Failed to resolve consultant_id for company ${companyId}:`, e.message);
+        }
+      }
+
       // Fix logo URL if it contains localhost
       let platformLogoUrl = settings?.platform_logo_url || `${platformUrl}/images/logo.png`;
       if (platformLogoUrl.includes('localhost')) {
@@ -89,7 +100,7 @@ export class NotificationService {
         ...variables,
       };
 
-      console.log(`[Notification] Adding job to queue: ${template} to ${to}`);
+      console.log(`[Notification] Adding job to queue: ${template} to ${to} (Company: ${companyId}, Consultant: ${effectiveConsultantId})`);
       await this.mailQueue.add('send_mail', {
         template,
         to,
@@ -97,7 +108,7 @@ export class NotificationService {
         variables: finalVariables,
         language,
         companyId,
-        consultantId,
+        consultantId: effectiveConsultantId,
       }, {
         attempts: 3,
         backoff: { type: 'fixed', delay: 120000 }, // 2 mins
@@ -107,6 +118,7 @@ export class NotificationService {
       console.error(`[Notification] FAILED to add job to queue: ${template} to ${to}`, error);
     }
   }
+
 
   async sendWelcomeHr(to: string, hrName: string, companyName: string, inviteLink: string, language: string = 'tr', companyId?: string, consultantId?: string) {
     const platformUrl = await this.getPlatformUrl();
@@ -346,11 +358,12 @@ export class NotificationService {
   }
 
   // Generic sendEmail for backward compatibility
-  async sendEmail(to: string, template: string, variables: Record<string, any>) {
+  async sendEmail(to: string, template: string, variables: Record<string, any>, companyId?: string, consultantId?: string) {
       const language = variables.language || 'tr';
       const subject = variables.subject || 'Wellbeing Metric Bildirimi';
-      await this.addToQueue(template, to, subject, variables, language);
+      await this.addToQueue(template, to, subject, variables, language, companyId, consultantId);
   }
+
 
   async getMailQuota() {
     try {

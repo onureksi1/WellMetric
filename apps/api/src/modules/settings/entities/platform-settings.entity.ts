@@ -139,4 +139,7 @@ export class PlatformSettings {
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'updated_by' })
   updater: User;
+
+  @Column({ type: 'jsonb', default: () => "'{}'" })
+  settings: any;
 }

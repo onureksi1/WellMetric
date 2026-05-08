@@ -28,6 +28,7 @@ const companySchema = z.object({
   contact_email: z.string().email('Geçerli bir email giriniz.'),
   size_band: z.string().min(1, 'Çalışan sayısı seçimi zorunludur.'),
   default_language: z.string(),
+  assessment_model: z.enum(['wellbeing_metric', 'who5_gallup', 'perma', 'cipd']),
 });
 
 type CompanyForm = z.infer<typeof companySchema>;
@@ -65,6 +66,7 @@ export default function EditCompanyPage() {
           contact_email: data.contact_email,
           size_band: data.size_band || '',
           default_language: data.default_language || 'tr',
+          assessment_model: data.assessment_model || 'wellbeing_metric',
         });
       } catch (err) {
         toast.error('Firma bilgileri yüklenemedi.');
@@ -178,6 +180,22 @@ export default function EditCompanyPage() {
                   </select>
                 </div>
                 {errors.size_band && <p className="text-xs text-red-500 font-medium">{errors.size_band.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Değerlendirme Modeli*</label>
+                <select 
+                  {...register('assessment_model')}
+                  className={`w-full px-4 py-2.5 bg-slate-50 border ${errors.assessment_model ? 'border-red-500' : 'border-slate-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm`}
+                >
+                  <option value="wellbeing_metric">WellBeing Metric (Bütünsel)</option>
+                  <option value="who5_gallup">WHO-5 + Gallup (Klinik & Bağlılık)</option>
+                  <option value="perma">PERMA (Pozitif Psikoloji)</option>
+                  <option value="cipd">CIPD (Kurumsal Standart)</option>
+                </select>
+                <p className="text-[10px] text-slate-500 italic">
+                  Dikkat: Ölçek değişimi mevcut verilerin yorumlanmasını etkileyebilir.
+                </p>
               </div>
             </div>
           </div>

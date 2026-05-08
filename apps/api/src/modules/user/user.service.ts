@@ -246,8 +246,9 @@ export class UserService {
         savedUser.email,
         savedUser.full_name || savedUser.email.split('@')[0],
         company.name,
-        `${process.env.NEXT_PUBLIC_APP_URL}auth/accept-invite?token=${token}`,
-        savedUser.language || 'tr'
+        token,
+        savedUser.language || 'tr',
+        companyId
       );
 
       await this.auditService.logAction(
@@ -373,8 +374,9 @@ export class UserService {
               email,
               userData.full_name,
               company.name,
-              `${process.env.NEXT_PUBLIC_APP_URL}auth/accept-invite?token=${token}`,
-              userData.language || 'tr'
+              token,
+              userData.language || 'tr',
+              companyId
             );
           } else {
             // Token Mode
@@ -397,7 +399,9 @@ export class UserService {
                 'Wellbeing Anketi', // Ideally fetch from activeAssignment.survey
                 token,
                 activeAssignment.due_at,
-                userData.language || 'tr'
+                userData.language || 'tr',
+                undefined,
+                companyId
               );
             } else {
               // No active assignment - still create/update the user record for future use
@@ -531,8 +535,9 @@ export class UserService {
         user.email,
         user.full_name,
         company?.name || 'Wellbeing Metric',
-        `${process.env.NEXT_PUBLIC_APP_URL}auth/accept-invite?token=${token}`,
-        user.language || 'tr'
+        token,
+        user.language || 'tr',
+        companyId
       );
 
       await this.auditService.logAction(
@@ -798,7 +803,8 @@ export class UserService {
         savedUser.full_name || 'Admin',
         company.name,
         `${process.env.NEXT_PUBLIC_APP_URL}auth/accept-invite?token=${token}`,
-        savedUser.language || 'tr'
+        savedUser.language || 'tr',
+        dto.company_id
       );
     } else {
       await this.notificationService.sendEmployeeInvite(
@@ -806,7 +812,8 @@ export class UserService {
         savedUser.full_name || 'Kullanıcı',
         company.name,
         token,
-        savedUser.language || 'tr'
+        savedUser.language || 'tr',
+        dto.company_id
       );
     }
 

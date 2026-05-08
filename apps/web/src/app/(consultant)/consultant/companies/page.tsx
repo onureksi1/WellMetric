@@ -232,9 +232,23 @@ export default function MyCompaniesPage() {
 
                 {/* Footer Info */}
                 <div className="flex items-center justify-between text-[10px] pt-2">
-                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-lg font-bold uppercase tracking-wider">
-                    {c.plan === 'enterprise' ? 'Enterprise' : c.plan === 'growth' ? 'Growth' : 'Starter'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span style={{
+                      fontSize: 10, padding: '2px 7px',
+                      borderRadius: 3, fontWeight: 500,
+                      background: 'var(--color-background-secondary)',
+                      color: 'var(--color-text-secondary)',
+                      border: '0.5px solid var(--color-border-tertiary)',
+                    }}>
+                      {c.assessment_model === 'wellbeing_metric' ? 'WellBeing Metric' : 
+                       c.assessment_model === 'who5_gallup' ? 'WHO-5 + Gallup' : 
+                       c.assessment_model === 'perma' ? 'PERMA' : 
+                       c.assessment_model === 'cipd' ? 'CIPD' : 'Standard'}
+                    </span>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-lg font-bold uppercase tracking-wider">
+                      {c.plan === 'enterprise' ? 'Enterprise' : c.plan === 'growth' ? 'Growth' : 'Starter'}
+                    </span>
+                  </div>
                   <span className="text-slate-400 font-medium">
                     {c.last_survey_date 
                       ? new Date(c.last_survey_date).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US') 

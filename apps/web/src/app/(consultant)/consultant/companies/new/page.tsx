@@ -31,6 +31,7 @@ const companySchema = z.object({
   hr_admin_full_name: z.string().min(2, 'Ad soyad zorunludur.'),
   size_band: z.string().min(1, 'Çalışan sayısı seçimi zorunludur.'),
   default_language: z.string(),
+  assessment_model: z.enum(['wellbeing_metric', 'who5_gallup', 'perma', 'cipd']),
 });
 
 type CompanyForm = z.infer<typeof companySchema>;
@@ -53,6 +54,7 @@ export default function NewCompanyPage() {
       plan: 'starter',
       default_language: 'tr',
       industry: '',
+      assessment_model: 'wellbeing_metric',
     }
   });
 
@@ -160,6 +162,76 @@ export default function NewCompanyPage() {
                   </select>
                 </div>
                 {errors.size_band && <p className="text-xs text-red-500 font-medium">{errors.size_band.message}</p>}
+              </div>
+
+              <div className="md:col-span-2 space-y-4">
+                <label className="text-sm font-bold text-slate-700 tracking-wider uppercase text-[11px]">
+                  DEĞERLENDİRME MODELİ*
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    {
+                      key: 'wellbeing_metric',
+                      name: 'WellBeing Metric',
+                      desc: 'Fiziksel, Zihinsel, Sosyal, Finansal, İş & Anlam',
+                      badge: 'Varsayılan',
+                    },
+                    {
+                      key: 'who5_gallup',
+                      name: 'WHO-5 + Gallup Q12',
+                      desc: 'Klinik zihinsel wellbeing + iş bağlılığı',
+                      badge: 'Klinik',
+                    },
+                    {
+                      key: 'perma',
+                      name: 'PERMA (Seligman)',
+                      desc: 'Pozitif psikoloji: Duygu, Bağlılık, İlişki, Anlam, Başarı',
+                      badge: 'Akademik',
+                    },
+                    {
+                      key: 'cipd',
+                      name: 'CIPD Workplace',
+                      desc: 'İngiltere İK Enstitüsü kurumsal wellbeing standardı',
+                      badge: 'Kurumsal',
+                    },
+                  ].map((model) => (
+                    <div 
+                      key={model.key}
+                      onClick={() => setValue('assessment_model', model.key as any)}
+                      className={`
+                        flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all duration-200
+                        ${watch('assessment_model') === model.key 
+                          ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500/10' 
+                          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'}
+                      `}
+                    >
+                      <div className={`
+                        w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all
+                        ${watch('assessment_model') === model.key 
+                          ? 'border-blue-600' 
+                          : 'border-slate-300'}
+                      `}>
+                        {watch('assessment_model') === model.key && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-in zoom-in-50 duration-200" />
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-slate-900">{model.name}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-tight bg-slate-100 text-slate-500">
+                            {model.badge}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{model.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {errors.assessment_model && <p className="text-xs text-red-500 font-medium">{errors.assessment_model.message}</p>}
+                <p className="text-[10px] text-slate-400 italic flex items-center gap-1">
+                  <AlertCircle size={12} />
+                  Ölçek seçimi kampanya oluşturulduktan sonra değiştirilemez.
+                </p>
               </div>
             </div>
           </div>

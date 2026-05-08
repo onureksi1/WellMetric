@@ -102,7 +102,7 @@ export class TrainingService {
         event_count: String(plan.events?.length ?? 0),
         plan_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/dashboard/training?plan_id=${id}`,
         platform_url: process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com',
-      });
+      }, plan.companyId, consultantId);
     }
 
     // In-app bildirim gönder
@@ -307,7 +307,7 @@ export class TrainingService {
         content_label: event.externalUrlLabel ?? 'İçeriği Görüntüle',
         hr_notes: dto.notes ?? '',
         platform_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/dashboard/training?plan_id=${event.planId}`,
-      });
+      }, companyId, event.plan?.consultantId);
     }
 
     // Bildirim kaydı

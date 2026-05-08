@@ -155,6 +155,25 @@ export class ConsultantReportsService {
       total_respondents: Number(respondentResult[0]?.count ?? 0),
       response_rate:     0,
       risk_areas:        riskAreas,
+      assessment_model:  report.company?.assessmentModel ?? 'wellbeing_metric',
+      assessment_model_name: (() => {
+        const models: any = {
+          wellbeing_metric: 'WellBeing Metric',
+          who5_gallup:      'WHO-5 + Gallup Q12',
+          perma:            'PERMA Modeli',
+          cipd:             'CIPD Workplace',
+        };
+        return models[report.company?.assessmentModel ?? 'wellbeing_metric'];
+      })(),
+      assessment_framework: (() => {
+        const frameworks: any = {
+          wellbeing_metric: 'WellBeing Metric Proprietary Framework',
+          who5_gallup:      'WHO-5 Wellbeing Index + Gallup Q12',
+          perma:            'Seligman Positive Psychology Framework',
+          cipd:             'CIPD Health and Wellbeing at Work Framework',
+        };
+        return frameworks[report.company?.assessmentModel ?? 'wellbeing_metric'];
+      })(),
     }) as Promise<Buffer>;
   }
 
@@ -243,7 +262,7 @@ export class ConsultantReportsService {
         period: report.period ?? '',
         company_name: report.company?.name,
         report_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wellbeingmetric.com'}/dashboard/reports/consultant/${id}`,
-      });
+      }, report.companyId, consultantId);
     }
 
     // In-app bildirim gönder

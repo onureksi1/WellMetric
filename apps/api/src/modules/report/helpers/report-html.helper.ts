@@ -226,6 +226,9 @@ export class ReportHtmlHelper {
     total_respondents: number;
     response_rate:     number;
     risk_areas:        string[];
+    assessment_model?: string;
+    assessment_model_name?: string;
+    assessment_framework?: string;
 
   }): Promise<Buffer> {
 
@@ -281,15 +284,58 @@ export class ReportHtmlHelper {
       s >= 70 ? '#1D9E75' :
       s >= 50 ? '#F59E0B' : '#EF4444';
 
+    // Model Bilgileri
+    const modelMeta: Record<string, { name: string; ref: string }> = {
+      wellbeing_metric: {
+        name: 'WellBeing Metric',
+        ref:  'WellBeing Metric Proprietary Framework'
+      },
+      who5_gallup: {
+        name: 'WHO-5 + Gallup Q12',
+        ref:  'WHO-5 Index + Gallup Q12 Engagement'
+      },
+      perma: {
+        name: 'PERMA Model',
+        ref:  'Seligman Positive Psychology (2011)'
+      },
+      cipd: {
+        name: 'CIPD Workplace',
+        ref:  'CIPD Health & Wellbeing Framework'
+      }
+    };
+    const activeModel = modelMeta[data.assessment_model || 'wellbeing_metric'] || modelMeta.wellbeing_metric;
+
     // Dimension etiketleri
-    const dimLabel = (dim: string) => ({
-      overall:  lang('Genel',       'Overall'),
-      mental:   lang('Zihinsel',    'Mental'),
-      physical: lang('Fiziksel',    'Physical'),
-      social:   lang('Sosyal',      'Social'),
-      financial:lang('Finansal',    'Financial'),
-      work:     lang('İş & Anlam',  'Work & Purpose'),
-    }[dim] ?? dim);
+    const dimLabel = (dim: string) => {
+      // Özel model etiketleri
+      const customLabels: Record<string, string> = {
+        // WHO5 + Gallup
+        mental_wellbeing: lang('Zihinsel Esenlik', 'Mental Wellbeing'),
+        engagement:       lang('İş Bağlılığı',      'Engagement'),
+        purpose:          lang('Amaç ve Anlam',     'Purpose & Meaning'),
+        support:          lang('Yönetim Desteği',   'Mgmt Support'),
+        growth:           lang('Kariyer Gelişimi',  'Career Growth'),
+        // PERMA
+        positive_emotion: lang('Pozitif Duygu',     'Positive Emotion'),
+        relationships:    lang('İlişkiler',         'Relationships'),
+        meaning:          lang('Anlam',             'Meaning'),
+        achievement:      lang('Başarı',            'Achievement'),
+        // CIPD
+        health:           lang('Sağlık',            'Health'),
+        work_life_balance:lang('İş-Yaşam Dengesi',  'Work-Life Balance'),
+      };
+
+      if (customLabels[dim]) return customLabels[dim];
+
+      return ({
+        overall:  lang('Genel',       'Overall'),
+        mental:   lang('Zihinsel',    'Mental'),
+        physical: lang('Fiziksel',    'Physical'),
+        social:   lang('Sosyal',      'Social'),
+        financial:lang('Finansal',    'Financial'),
+        work:     lang('İş & Anlam',  'Work & Purpose'),
+      }[dim] ?? dim);
+    };
 
     // Logo bölümü
     const logoHtml = data.is_white_label && data.consultant_logo_url
@@ -568,6 +614,9 @@ export class ReportHtmlHelper {
 
     <div class="cover-badges">
       <span class="cover-badge">${data.company_industry || lang('Genel Sektör','General Industry')}</span>
+      <span class="cover-badge" style="background:white; border:1px solid #1D9E75; color:#0F6E56; font-size:10px; font-weight:600;">
+        ${data.assessment_model_name ?? activeModel.name}
+      </span>
       <span class="cover-badge">${data.total_respondents} ${lang('Katılımcı','Respondents')}</span>
       <span class="cover-badge">${data.departments.length} ${lang('Departman','Department')}</span>
       <span class="cover-badge">${data.period}</span>
@@ -607,9 +656,8 @@ export class ReportHtmlHelper {
     <div class="cover-footer-text">
       ${lang('Gizli — Sadece yetkili personel', 'Confidential — Authorized personnel only')}
     </div>
-    <div class="cover-footer-text">
-      ${lang('Hazırlanma tarihi','Prepared on')}:
-      ${new Date().toLocaleDateString(data.language === 'tr' ? 'tr-TR' : 'en-US')}
+    <div class="cover-footer-text" style="font-style:italic; text-align: right;">
+      ${data.assessment_framework ?? activeModel.ref}
     </div>
   </div>
 </div>

@@ -108,7 +108,9 @@ export class EmployeeSurveyService {
         expires_in:  '14 gün',
         period,
       },
+      employee.companyId
     );
+
 
     this.logger.debug('Token ve mail gönderildi', { service: 'EmployeeSurveyService' }, {
       email: employee.email, token: token.slice(0, 8) + '...'

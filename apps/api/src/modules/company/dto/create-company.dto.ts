@@ -58,4 +58,8 @@ export class CreateCompanyDto {
   @IsUUID('4', { message: 'Geçersiz danışman ID.' })
   @IsOptional()
   consultant_id?: string;
+
+  @IsIn(['wellbeing_metric', 'who5_gallup', 'perma', 'cipd'])
+  @IsOptional()
+  assessment_model?: string;
 }

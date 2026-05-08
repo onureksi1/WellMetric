@@ -251,8 +251,10 @@ export class CampaignService {
           recipientData?.token || '',
           new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Default 14 days
           'tr',
-          log.id
+          log.id,
+          campaign.companyId
         );
+
         log.status = DistributionLogStatus.SENT;
         log.sent_at = new Date();
       } catch (err) {
