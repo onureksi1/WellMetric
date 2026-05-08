@@ -64,7 +64,7 @@ export class ConsultantReportsService {
       SELECT dimension, AVG(score) as score
       FROM wellbeing_scores
       WHERE company_id = $1
-        AND DATE_TRUNC('month', period::date) =
+        AND DATE_TRUNC('month', TO_DATE(period || '-01', 'YYYY-MM-DD')) =
             DATE_TRUNC('month', $2::date)
       GROUP BY dimension
     `, [report.companyId, periodDate]);
@@ -76,7 +76,7 @@ export class ConsultantReportsService {
       SELECT dimension, AVG(score) as score
       FROM wellbeing_scores
       WHERE company_id = $1
-        AND DATE_TRUNC('month', period::date) =
+        AND DATE_TRUNC('month', TO_DATE(period || '-01', 'YYYY-MM-DD')) =
             DATE_TRUNC('month', $2::date)
       GROUP BY dimension
     `, [report.companyId, prevDate]);
@@ -106,7 +106,7 @@ export class ConsultantReportsService {
         AND sr.company_id = ws.company_id
       WHERE ws.company_id = $1
         AND ws.dimension = 'overall'
-        AND DATE_TRUNC('month', ws.period::date) =
+        AND DATE_TRUNC('month', TO_DATE(ws.period || '-01', 'YYYY-MM-DD')) =
             DATE_TRUNC('month', $2::date)
         AND ws.department_id IS NOT NULL
       GROUP BY d.name

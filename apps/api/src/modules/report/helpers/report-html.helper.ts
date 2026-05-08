@@ -13,15 +13,21 @@ export class ReportHtmlHelper {
     
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--single-process',
+      ],
     });
 
     try {
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      
-      // Wait for any charts if present (though intelligence report might not have them, good to be consistent)
-      await page.waitForFunction('window.__chartsReady === true', { timeout: 60000 }).catch(() => {});
+      // Wait for charts (non-blocking if CDN unavailable)
+      await page.waitForFunction('window.__chartsReady === true', { timeout: 15000 }).catch(() => {});
 
       const pdf = await page.pdf({
         format: 'A4',
@@ -231,6 +237,8 @@ export class ReportHtmlHelper {
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu',
+        '--disable-web-security',
+        '--single-process',
       ],
     });
 
@@ -239,11 +247,11 @@ export class ReportHtmlHelper {
       await page.setDefaultNavigationTimeout(60000);
       await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
-      // Chart.js grafiklerinin render'lanması için bekle
+      // Wait for Chart.js to render — non-blocking if CDN is unreachable
       await page.waitForFunction(
         () => (window as any).__chartsReady === true,
         { timeout: 15000 }
-      );
+      ).catch(() => {});
 
       const pdf = await page.pdf({
         format:            'A4',
