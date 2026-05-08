@@ -313,30 +313,36 @@ export class ConsultantReportsService {
     company_id?: string;
     status?: string;
   }) {
-    // Explicit where object to avoid any property mapping issues
-    const where: any = { consultantId };
-    
+    let query = `
+      SELECT r.*, c.name as company_name
+      FROM consultant_reports r
+      LEFT JOIN companies c ON r.company_id = c.id
+      WHERE r.consultant_id = $1
+    `;
+    const params: any[] = [consultantId];
+
     if (filters.company_id) {
-      where.companyId = filters.company_id;
-    }
-    
-    if (filters.status) {
-      where.status = filters.status;
+      params.push(filters.company_id);
+      query += ` AND r.company_id = $${params.length}`;
     }
 
+    if (filters.status) {
+      params.push(filters.status);
+      query += ` AND r.status = $${params.length}`;
+    }
+
+    query += ` ORDER BY r.updated_at DESC`;
+
     try {
-      return await this.reportRepo.find({
-        where,
-        relations: ['company'],
-        order: { updatedAt: 'DESC' },
-      });
+      const results = await this.dataSource.query(query, params);
+      // Map results to match expected structure (with nested company object if needed)
+      return results.map(r => ({
+        ...r,
+        company: { name: r.company_name, id: r.company_id }
+      }));
     } catch (error) {
-      this.logger.error(`[ConsultantReportsService] findAll failed: ${error.message}`, error.stack);
-      // Fallback: Try without relations if company join fails
-      return this.reportRepo.find({
-        where,
-        order: { updatedAt: 'DESC' },
-      });
+      this.logger.error(`[ConsultantReportsService] findAll Raw SQL failed: ${error.message}`, error.stack);
+      return [];
     }
   }
 
