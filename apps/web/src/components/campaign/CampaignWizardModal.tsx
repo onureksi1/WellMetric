@@ -87,11 +87,18 @@ export function CampaignWizardModal({ isOpen, onClose, onSuccess, initialData }:
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
+      // datetime-local returns 'YYYY-MM-DDTHH:mm' without timezone
+      // Convert to proper ISO string so IsDateString validator accepts it
+      let scheduledAt: string | null = null;
+      if (data.scheduled_mode === 'scheduled' && data.scheduled_at) {
+        scheduledAt = new Date(data.scheduled_at).toISOString();
+      }
+
       await client.post('/hr/campaigns', {
         survey_id: data.survey_id,
         assignment_id: data.assignment_id || undefined,
         period: data.period || undefined,
-        scheduled_at: data.scheduled_mode === 'scheduled' ? data.scheduled_at : null,
+        scheduled_at: scheduledAt,
         employee_accounts: false,
         ...(data.recipient_mode === 'department' && data.department_id
           ? { department_id: data.department_id }
@@ -303,7 +310,12 @@ export function CampaignWizardModal({ isOpen, onClose, onSuccess, initialData }:
              {step === 1 ? 'İptal' : 'Geri'}
            </Button>
            <Button 
-             onClick={step === 3 ? () => createMutation.mutate(formData) : handleNext} 
+             onClick={step === 3 ? () => {
+               if (formData.scheduled_mode === 'scheduled' && !formData.scheduled_at) {
+                 return toast.error('Lütfen bir gönderim zamanı seçin.');
+               }
+               createMutation.mutate(formData);
+             } : handleNext} 
              className="gap-2 min-w-[140px]"
              disabled={createMutation.isPending}
            >

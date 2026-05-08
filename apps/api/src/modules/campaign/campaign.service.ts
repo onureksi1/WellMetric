@@ -118,8 +118,15 @@ export class CampaignService {
 
   async create(companyId: string, createdBy: string, dto: CreateCampaignDto) {
     // Validation: Check if scheduled_at is in future
-    if (dto.scheduled_at && new Date(dto.scheduled_at) <= new Date()) {
-      throw new BadRequestException('Scheduled date must be in the future');
+    if (dto.scheduled_at) {
+      const scheduledDate = new Date(dto.scheduled_at);
+      if (isNaN(scheduledDate.getTime())) {
+        throw new BadRequestException('Geçersiz zamanlama tarihi. Lütfen geçerli bir tarih girin.');
+      }
+      // Allow 1-minute buffer for clock skew
+      if (scheduledDate.getTime() <= Date.now() - 60000) {
+        throw new BadRequestException('Zamanlama tarihi gelecekte olmalıdır.');
+      }
     }
 
     const campaign = this.campaignRepo.create({
