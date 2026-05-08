@@ -94,6 +94,7 @@ export class ConsultantReportsController {
       consultantId: user.id,
       period:       dto.period,
       language:     dto.language ?? 'tr',
+      assessmentModel: dto.assessment_model,
     });
     
     return {

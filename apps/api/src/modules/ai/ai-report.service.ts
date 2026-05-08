@@ -24,6 +24,7 @@ export class AIReportService {
     consultantId: string;
     period:       string;  // '2026-05'
     language:     'tr' | 'en';
+    assessmentModel?: string;
   }): Promise<string> {
 
     // ── 1. VERİ TOPLAMA ──────────────────────────────────────────
@@ -154,8 +155,8 @@ export class AIReportService {
       },
     };
 
-    const assessmentModel = company.assessmentModel ?? "wellbeing_metric";
-    const modelDef = modelDefinitions[assessmentModel]
+    const selectedModel = params.assessmentModel ?? company.assessmentModel ?? "wellbeing_metric";
+    const modelDef = modelDefinitions[selectedModel]
       ?? modelDefinitions["wellbeing_metric"];
 
     const modelSection = `
@@ -307,6 +308,7 @@ profesyonel bir dil kullan. Klişelerden kaçın. Şirkete özel içerik üret.
     consultantId: string;
     period:       string;
     language:     'tr' | 'en';
+    assessmentModel?: string;
   }) {
     this.logger.log(`Starting background report generation for ${params.companyId} / ${params.period}`);
     

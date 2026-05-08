@@ -48,4 +48,9 @@ export class GenerateReportDto {
   @IsIn(['tr', 'en'])
   @IsOptional()
   language?: 'tr' | 'en';
+
+  @IsString()
+  @IsIn(['wellbeing_metric', 'who5_gallup', 'perma', 'cipd'])
+  @IsOptional()
+  assessment_model?: string;
 }
