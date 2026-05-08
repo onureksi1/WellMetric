@@ -319,7 +319,7 @@ export class ConsultantReportsService {
       SELECT r.*, c.name as company_name
       FROM consultant_reports r
       LEFT JOIN companies c ON r.company_id = c.id
-      WHERE r.consultant_id = $1
+      WHERE r.consultant_id = $1::uuid
     `;
     const params: any[] = [consultantId];
 
