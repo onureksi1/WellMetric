@@ -155,15 +155,18 @@ export default function ConsultantReportsPage() {
         client.get('/consultant/companies'),
       ]);
 
-      // Raporlar için esnek veri okuma
-      const reportsData = rRes.data?.data || rRes.data || [];
-      setReports(Array.isArray(reportsData) ? reportsData : []);
+      // Raporlar: res.data.data (paginated) veya res.data (direct array)
+      const reportsArray = Array.isArray(rRes.data?.data) ? rRes.data.data : (Array.isArray(rRes.data) ? rRes.data : []);
+      setReports(reportsArray);
 
-      // Firmalar için esnek veri okuma
-      const companiesData = cRes.data?.data || cRes.data || [];
-      setCompanies(Array.isArray(companiesData) ? companiesData : []);
+      // Firmalar: res.data.data (paginated) veya res.data (direct array)
+      const companiesArray = Array.isArray(cRes.data?.data) ? cRes.data.data : (Array.isArray(cRes.data) ? cRes.data : []);
+      setCompanies(companiesArray);
       
-      console.log('Yüklenen firmalar:', companiesData);
+      console.log('--- VERİ YÜKLEME ---');
+      console.log('Rapor Sayısı:', reportsArray.length);
+      console.log('Firma Sayısı:', companiesArray.length);
+      console.log('Firma Detay:', companiesArray);
     } catch (err) {
       console.error('Veri yükleme hatası:', err);
       toast.error('Veriler yüklenirken bir hata oluştu.');
