@@ -104,100 +104,137 @@ export class AIReportService {
 
     // ── 2. AI PROMPT ─────────────────────────────────────────────
     
+    // ── Model tanımları ──────────────────────────────────────────
     const MODEL_DEFINITIONS: Record<string, {
-      name: string;
-      framework: string;
+      name:       string;
+      framework:  string;
       dimensions: string[];
       terminology: string;
+      analysis_note: string;
     }> = {
       wellbeing_metric: {
-        name: 'WellBeing Metric Modeli',
+        name:      'WellBeing Metric Modeli',
         framework: 'WellBeing Metric Proprietary Framework',
-        dimensions: ['Fiziksel','Zihinsel','Sosyal','Finansal','İş & Anlam'],
+        dimensions: [
+          'Fiziksel Wellbeing',
+          'Zihinsel Wellbeing',
+          'Sosyal Wellbeing',
+          'Finansal Wellbeing',
+          'İş & Anlam Wellbeing',
+        ],
         terminology: `
-          Fiziksel: Beden sağlığı, hareket, uyku, beslenme
-          Zihinsel: Ruh sağlığı, stres, tükenmişlik, psikolojik güvenlik
-          Sosyal: Aidiyet, ilişkiler, ekip bağı
+          Fiziksel: Beden sağlığı, hareket, uyku, beslenme, ergonomi
+          Zihinsel: Ruh sağlığı, stres yönetimi, tükenmişlik, psikolojik güvenlik
+          Sosyal: Aidiyet, ekip ilişkileri, sosyal bağ, iletişim kalitesi
           Finansal: Ekonomik güvenlik, maaş tatmini, geleceğe güven
-          İş & Anlam: Bağlılık, amaç, büyüme, iş-yaşam dengesi
+          İş & Anlam: Bağlılık, amaç duygusu, büyüme, iş-yaşam dengesi
+        `,
+        analysis_note: `
+          Her boyutu 0-100 skala üzerinden değerlendir.
+          Güçlü (70+), Gelişime Açık (50-69), Risk (50 altı) olarak sınıflandır.
         `,
       },
       who5_gallup: {
-        name: 'WHO-5 + Gallup Q12 Modeli',
-        framework: 'WHO-5 Wellbeing Index (1998) + Gallup Q12 Employee Engagement',
-        dimensions: ['Zihinsel Wellbeing','İş Bağlılığı','Amaç','Destek','Büyüme'],
+        name:      'WHO-5 + Gallup Q12 Modeli',
+        framework: 'WHO-5 Wellbeing Index (WHO, 1998) + Gallup Q12 Employee Engagement Survey',
+        dimensions: [
+          'Zihinsel Wellbeing (WHO-5)',
+          'İş Bağlılığı (Gallup Q12)',
+          'Amaç & Misyon',
+          'Yönetim Desteği',
+          'Büyüme & Gelişim',
+        ],
         terminology: `
-          WHO-5: Neşe, Sakinlik, Canlılık, Dinçlik, Günlük İlgi
-          Gallup Q12: Beklentiler, Araçlar, Takdir, Misyon,
-          Gelişim, Görüş, Bağlılık, Arkadaşlık, İlerleme,
-          Öğrenme, En İyiyi Yapma
+          WHO-5 boyutları: Neşe ve iyi ruh hali, Sakinlik ve rahatlık,
+          Canlılık ve enerji, Dinç uyanma, Günlük ilgi ve merak
+          
+          Gallup Q12 boyutları: Beklenti netliği, Araç ve kaynak yeterliliği,
+          Takdir ve tanınma, Misyon bağlılığı, Kariyer gelişimi,
+          Görüş alınma, Bağlılık ve sahiplenme, Sosyal arkadaşlık,
+          İlerleme takibi, Öğrenme fırsatları, En iyi yönleri kullanma
+        `,
+        analysis_note: `
+          WHO-5 skorunu 0-100'e normalize et (ham skor 0-25 arasındaysa 4 ile çarp).
+          Gallup Q12 için engaged/not engaged/actively disengaged sınıflandırması kullan.
+          İki çerçeveyi birleştirerek hem klinik hem kurumsal perspektif sun.
         `,
       },
       perma: {
-        name: 'PERMA Modeli',
-        framework: 'Seligman Positive Psychology Framework (2011)',
+        name:      'PERMA Modeli',
+        framework: 'Seligman, M.E.P. (2011). Flourish. New York: Free Press.',
         dimensions: [
-          'Pozitif Duygu (P)',
-          'Bağlılık (E)',
-          'İlişkiler (R)',
-          'Anlam (M)',
-          'Başarı (A)',
+          'P — Pozitif Duygu (Positive Emotion)',
+          'E — Bağlılık (Engagement)',
+          'R — İlişkiler (Relationships)',
+          'M — Anlam (Meaning)',
+          'A — Başarı (Achievement)',
         ],
         terminology: `
-          P - Positive Emotion: Neşe, minnettarlık, umut, ilham
-          E - Engagement: Akış deneyimi, tam odaklanma, derin bağlılık
-          R - Relationships: Anlamlı ilişkiler, destek, sosyal bağ
-          M - Meaning: Amaç, katkı, anlam duygusu
-          A - Achievement: Başarı, ustalık, hedef gerçekleştirme
+          P - Positive Emotion: Neşe, minnettarlık, umut, ilham, merak,
+              sevgi, hayranlık — pozitif duygu oranı
+          E - Engagement: Akış (flow) deneyimi, tam odaklanma,
+              güçlü yönleri kullanma, derin bağlılık
+          R - Relationships: Anlamlı ilişkiler, destek alma/verme,
+              güven, sosyal bağ kalitesi
+          M - Meaning: Kendinden büyük bir amaca hizmet,
+              katkı duygusu, değer uyumu
+          A - Achievement: Başarı, ustalık (mastery), hedef gerçekleştirme,
+              öz-yeterlilik
+        `,
+        analysis_note: `
+          Her PERMA boyutunu ayrı ayrı değerlendir.
+          Flourishing (gelişim) ve Languishing (sönümleme) kavramlarını kullan.
+          Seligman'ın pozitif psikoloji perspektifinden öneriler sun.
         `,
       },
       cipd: {
-        name: 'CIPD İş Yeri Wellbeing Modeli',
-        framework: 'CIPD Health and Wellbeing at Work Framework (2023)',
-        dimensions: ['Sağlık','Bağlılık','İş-Yaşam Dengesi','Sosyal','Amaç'],
+        name:      'CIPD İş Yeri Wellbeing Modeli',
+        framework: 'CIPD Health and Wellbeing at Work Framework (CIPD, 2023)',
+        dimensions: [
+          'Fiziksel Sağlık',
+          'Psikolojik Wellbeing',
+          'İş-Yaşam Dengesi',
+          'Sosyal Sermaye',
+          'Finansal Güvenlik',
+        ],
         terminology: `
           Fiziksel sağlık yönetimi, psikolojik güvenlik,
           esnek çalışma, sosyal sermaye,
           liderlik desteği, kariyer gelişimi
         `,
+        analysis_note: `
+          CIPD'nin "Good Work" (İyi İş) çerçevesini referans al.
+          İşveren yükümlülükleri ve İK pratikleri perspektifinden değerlendir.
+          UK CIPD standartlarına göre benchmark sun.
+        `,
       },
     };
 
     const assessmentModel = params.assessmentModel ?? company.assessmentModel ?? 'wellbeing_metric';
-    const referenceModel  = params.referenceModel;
-    const primaryDef      = MODEL_DEFINITIONS[assessmentModel]
+    const modelDef = MODEL_DEFINITIONS[assessmentModel]
       ?? MODEL_DEFINITIONS['wellbeing_metric'];
-    const referenceDef    = referenceModel
-      ? MODEL_DEFINITIONS[referenceModel]
-      : null;
 
     const methodologySection = `
-## METODOLOJİ
+## METODOLOJİ VE DEĞERLENDİRME ÇERÇEVESİ
 
-Ana Çerçeve: ${primaryDef.name}
-Referans: ${primaryDef.framework}
-Ana Boyutlar: ${primaryDef.dimensions.join(' · ')}
+Kullanılan Model: ${modelDef.name}
+Akademik Referans: ${modelDef.framework}
 
-Terminoloji:
-${primaryDef.terminology}
+Değerlendirme Boyutları:
+${modelDef.dimensions.map((d, i) => `${i + 1}. ${d}`).join('\n')}
 
-${referenceDef ? `
-Destekleyici Çerçeve: ${referenceDef.name}
-Referans: ${referenceDef.framework}
-Boyutlar: ${referenceDef.dimensions.join(' · ')}
+Terminoloji ve Kavramsal Çerçeve:
+${modelDef.terminology}
 
-Bu raporu öncelikle ${primaryDef.name} terminolojisiyle yaz.
-${referenceDef.name} perspektifinden ek yorumlar ekle —
-özellikle ilgili boyutlarda iki çerçeveyi karşılaştır ve
-zenginleştir.
-` : ''}
+Analiz Notu:
+${modelDef.analysis_note}
 
-ZORUNLU: Raporun "SONUÇ" bölümünün sonuna şunu ekle:
-"Bu analiz ${primaryDef.framework} çerçevesinde${
-  referenceDef
-    ? `, ${referenceDef.framework} referans alınarak`
-    : ''
-} hazırlanmıştır."
+ÖNEMLİ KURALLAR:
+1. Raporu YALNIZCA ${modelDef.name} terminolojisiyle yaz
+2. Başlıklarda bu modelin boyut isimlerini kullan
+3. Öneriler bu modelin perspektifinden olsun
+4. Raporun SONUÇ bölümünün en sonuna şu cümleyi ekle:
+   "Bu analiz ${modelDef.framework} çerçevesinde hazırlanmıştır."
 `;
 
     const scoreTable = currentScores.map((s: any) => {

@@ -228,8 +228,7 @@ export class ReportHtmlHelper {
     risk_areas:        string[];
     assessment_model?: string;
     assessment_model_name?: string;
-    reference_model_name?:     string;
-    assessment_framework?: string;
+    assessment_framework?:  string;
 
   }): Promise<Buffer> {
 
@@ -617,27 +616,15 @@ export class ReportHtmlHelper {
       <span class="cover-badge">${data.company_industry || lang('Genel Sektör','General Industry')}</span>
                 ${data.assessment_model_name ? `
                   <span class="cover-badge" style="
-                    background: rgba(37, 99, 235, 0.1);
-                    border: 1px solid rgba(37, 99, 235, 0.2);
-                    color: #2563eb;
-                    font-weight: 700;
+                    background: rgba(29,158,117,0.12);
+                    border: 1.5px solid #1D9E75;
+                    color: #0F6E56;
+                    font-weight: 600;
+                    letter-spacing: 0.02em;
                   ">
                     ${data.assessment_model_name}
                   </span>
-                  ${data.reference_model_name ? `
-                    <span class="cover-badge" style="
-                      background: rgba(108, 58, 142, 0.08);
-                      border: 1px solid #C4A8E0;
-                      color: #6C3A8E;
-                      font-weight: 600;
-                      font-size: 11px;
-                    ">
-                      + ${data.reference_model_name}
-                    </span>
-                  ` : ''}
-                ` : `<span class="cover-badge" style="background:white; border:1px solid #1D9E75; color:#0F6E56; font-size:10px; font-weight:600;">
-        ${data.assessment_model_name ?? activeModel.name}
-      </span>`}
+                ` : ''}
       <span class="cover-badge">${data.total_respondents} ${lang('Katılımcı','Respondents')}</span>
       <span class="cover-badge">${data.departments.length} ${lang('Departman','Department')}</span>
       <span class="cover-badge">${data.period}</span>
@@ -677,8 +664,8 @@ export class ReportHtmlHelper {
     <div class="cover-footer-text">
       ${lang('Gizli — Sadece yetkili personel', 'Confidential — Authorized personnel only')}
     </div>
-    <div class="cover-footer-text" style="font-style:italic; text-align: right;">
-      ${data.assessment_framework ?? activeModel.ref}
+    <div class="cover-footer-text" style="font-style:italic; text-align: right; opacity: 0.8; font-size: 9px;">
+      ${data.assessment_framework ? `Ref: ${data.assessment_framework}` : (activeModel.ref || '')}
     </div>
   </div>
 </div>

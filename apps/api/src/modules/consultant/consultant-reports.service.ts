@@ -155,40 +155,24 @@ export class ConsultantReportsService {
       total_respondents: Number(respondentResult[0]?.count ?? 0),
       response_rate:     0,
       risk_areas:        riskAreas,
-      assessment_model:  report.assessmentModel || report.company?.assessmentModel || 'wellbeing_metric',
+      assessment_model:  report.assessmentModel || 'wellbeing_metric',
       assessment_model_name: (() => {
         const models: any = {
-          wellbeing_metric: 'WellBeing Metric',
-          who5_gallup:      'WHO-5 + Gallup Q12',
+          wellbeing_metric: 'WellBeing Metric Modeli',
+          who5_gallup:      'WHO-5 + Gallup Q12 Modeli',
           perma:            'PERMA Modeli',
-          cipd:             'CIPD Workplace',
+          cipd:             'CIPD İş Yeri Wellbeing Modeli',
         };
-        return models[report.assessmentModel || report.company?.assessmentModel || 'wellbeing_metric'];
-      })(),
-      reference_model_name: (() => {
-        if (!report.referenceAssessmentModel) return undefined;
-        const models: any = {
-          wellbeing_metric: 'WellBeing Metric',
-          who5_gallup:      'WHO-5 + Gallup Q12',
-          perma:            'PERMA Modeli',
-          cipd:             'CIPD Workplace',
-        };
-        return models[report.referenceAssessmentModel];
+        return models[report.assessmentModel || 'wellbeing_metric'];
       })(),
       assessment_framework: (() => {
         const frameworks: any = {
           wellbeing_metric: 'WellBeing Metric Proprietary Framework',
-          who5_gallup:      'WHO-5 Wellbeing Index + Gallup Q12',
-          perma:            'Seligman Positive Psychology Framework',
-          cipd:             'CIPD Health and Wellbeing at Work Framework',
+          who5_gallup:      'WHO-5 Wellbeing Index (1998) + Gallup Q12 Employee Engagement Survey',
+          perma:            'Seligman, M.E.P. (2011). Flourish. New York: Free Press.',
+          cipd:             'CIPD Health and Wellbeing at Work Framework (CIPD, 2023)',
         };
-        const primary = frameworks[report.assessmentModel || report.company?.assessmentModel || 'wellbeing_metric'];
-        const secondary = report.referenceAssessmentModel ? frameworks[report.referenceAssessmentModel] : null;
-        
-        if (secondary) {
-          return `${primary} & ${secondary} referans alınarak`;
-        }
-        return primary;
+        return frameworks[report.assessmentModel || 'wellbeing_metric'];
       })(),
     }) as Promise<Buffer>;
   }
