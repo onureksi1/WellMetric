@@ -57,6 +57,7 @@ export class ConsultantReportsController {
     @Query('company_id') companyId?: string,
     @Query('status') status?: string,
   ) {
+    console.log('[ConsultantReportsController.findAll] User:', user.id);
     return this.reportsService.findAll(user.id, { company_id: companyId, status });
   }
 

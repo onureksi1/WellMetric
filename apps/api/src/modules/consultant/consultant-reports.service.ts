@@ -313,6 +313,8 @@ export class ConsultantReportsService {
     company_id?: string;
     status?: string;
   }) {
+    this.logger.log(`[ConsultantReportsService] findAll called for consultant: ${consultantId}`);
+    
     let query = `
       SELECT r.*, c.name as company_name
       FROM consultant_reports r
