@@ -10,9 +10,9 @@ const templateDirEn = '/Users/onureksi/Desktop/wellanalytics/apps/api/src/module
 const subjectsTr: Record<string, string> = {
   ai_ready: '🤖 AI Analizi Hazır',
   campaign_bounced: '⚠️ Teslim Edilemeyen Mailler',
-  campaign_invite: '📋 Wellbeing Anketi Daveti',
-  campaign_reminder: '⏰ Hatırlatma: Anketinizi Tamamlayın',
-  draft_reminder: '📝 Yarım Kalan Anketiniz Sizi Bekliyor',
+  campaign_invite: '📋 Esenlik Değerlendirmesi Daveti',
+  campaign_reminder: '⏰ Hatırlatma: Esenlik Değerlendirmenizi Tamamlayın',
+  draft_reminder: '📝 Yarım Kalan Esenlik Değerlendirmeniz Sizi Bekliyor',
   employee_invite: 'Wellbeing Hesabınızı Oluşturun',
   password_reset: 'Şifre Sıfırlama Talebi',
   plan_expiry: '⚠️ Aboneliğiniz Sona Ermek Üzere',
@@ -20,8 +20,8 @@ const subjectsTr: Record<string, string> = {
   report_ready: '📑 Raporunuz İndirilmeye Hazır',
   score_alert: '⚠️ Düşük Wellbeing Skoru Uyarısı',
   survey_closed: '📊 Wellbeing Sonuçları Hazır',
-  survey_reminder: '⏰ Anketinizi Tamamlamayı Unutmayın',
-  survey_token_invite: '🌱 Wellbeing Anketiniz Hazır',
+  survey_reminder: '⏰ Esenlik Değerlendirmenizi Tamamlamayı Unutmayın',
+  survey_token_invite: '🌱 Esenlik Değerlendirmeniz Hazır',
   welcome_hr: 'Wellbeing Metric Hoş Geldiniz'
 };
 

@@ -136,7 +136,7 @@ export class NotificationService {
 
   async sendSurveyTokenInvite(to: string, fullName: string, companyName: string, surveyTitle: string, token: string, dueDate: Date, language: string = 'tr', logId?: string, companyId?: string, consultantId?: string) {
     const platformUrl = await this.getPlatformUrl();
-    const subject = language === 'tr' ? '🌱 Wellbeing Anketiniz Hazır' : '🌱 Your Wellbeing Survey is Ready';
+    const subject = language === 'tr' ? '🌱 Esenlik Değerlendirmeniz Hazır' : '🌱 Your Wellbeing Survey is Ready';
 
     const surveyLink = logId
       ? `${await this.getApiUrl()}/api/v1/track/click/${logId}`
@@ -155,7 +155,7 @@ export class NotificationService {
   }
 
   async sendCampaignInvite(to: string, fullName: string, companyName: string, surveyTitle: string, surveyLink: string, dueDate: Date, language: string = 'tr', companyId?: string, consultantId?: string) {
-    const subject = language === 'tr' ? `📋 Wellbeing Anketi — ${surveyTitle}` : `📋 Wellbeing Survey — ${surveyTitle}`;
+    const subject = language === 'tr' ? `📋 Esenlik Değerlendirmesi — ${surveyTitle}` : `📋 Wellbeing Survey — ${surveyTitle}`;
 
     await this.addToQueue('campaign_invite', to, subject, {
       full_name: fullName,
@@ -167,7 +167,7 @@ export class NotificationService {
   }
 
   async sendCampaignReminder(to: string, fullName: string, companyName: string, surveyTitle: string, surveyLink: string, daysRemaining: number, language: string = 'tr') {
-    const subject = language === 'tr' ? '⏰ Hatırlatma: Anketinizi Tamamlayın' : '⏰ Reminder: Complete Your Survey';
+    const subject = language === 'tr' ? '⏰ Hatırlatma: Esenlik Değerlendirmenizi Tamamlayın' : '⏰ Reminder: Complete Your Survey';
     
     await this.addToQueue('campaign_reminder', to, subject, {
       full_name: fullName,
@@ -192,7 +192,7 @@ export class NotificationService {
   }
 
   async sendSurveyReminder(to: string, fullName: string, surveyTitle: string, surveyLink: string, daysRemaining: number, language: string = 'tr') {
-    const subject = language === 'tr' ? '⏰ Anketinizi Tamamlamayı Unutmayın' : "⏰ Don't Forget to Complete Your Survey";
+    const subject = language === 'tr' ? '⏰ Esenlik Değerlendirmenizi Tamamlamayı Unutmayın' : "⏰ Don't Forget to Complete Your Survey";
     await this.addToQueue('survey_reminder', to, subject, {
       full_name: fullName,
       survey_title: surveyTitle,
@@ -280,7 +280,7 @@ export class NotificationService {
   }
 
   async sendDraftReminder(to: string, fullName: string, surveyTitle: string, surveyLink: string, dueDate: Date, language: string = 'tr') {
-    const subject = language === 'tr' ? '📝 Yarım Kalan Anketiniz Sizi Bekliyor' : '📝 Your Incomplete Survey is Waiting';
+    const subject = language === 'tr' ? '📝 Yarım Kalan Esenlik Değerlendirmeniz Sizi Bekliyor' : '📝 Your Incomplete Survey is Waiting';
     await this.addToQueue('draft_reminder', to, subject, {
       full_name: fullName,
       survey_title: surveyTitle,
