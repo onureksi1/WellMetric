@@ -155,7 +155,7 @@ export class ConsultantReportsService {
       total_respondents: Number(respondentResult[0]?.count ?? 0),
       response_rate:     0,
       risk_areas:        riskAreas,
-      assessment_model:  report.company?.assessmentModel ?? 'wellbeing_metric',
+      assessment_model:  report.assessmentModel || report.company?.assessmentModel || 'wellbeing_metric',
       assessment_model_name: (() => {
         const models: any = {
           wellbeing_metric: 'WellBeing Metric',
@@ -163,7 +163,17 @@ export class ConsultantReportsService {
           perma:            'PERMA Modeli',
           cipd:             'CIPD Workplace',
         };
-        return models[report.company?.assessmentModel ?? 'wellbeing_metric'];
+        return models[report.assessmentModel || report.company?.assessmentModel || 'wellbeing_metric'];
+      })(),
+      reference_model_name: (() => {
+        if (!report.referenceAssessmentModel) return undefined;
+        const models: any = {
+          wellbeing_metric: 'WellBeing Metric',
+          who5_gallup:      'WHO-5 + Gallup Q12',
+          perma:            'PERMA Modeli',
+          cipd:             'CIPD Workplace',
+        };
+        return models[report.referenceAssessmentModel];
       })(),
       assessment_framework: (() => {
         const frameworks: any = {
@@ -172,7 +182,13 @@ export class ConsultantReportsService {
           perma:            'Seligman Positive Psychology Framework',
           cipd:             'CIPD Health and Wellbeing at Work Framework',
         };
-        return frameworks[report.company?.assessmentModel ?? 'wellbeing_metric'];
+        const primary = frameworks[report.assessmentModel || report.company?.assessmentModel || 'wellbeing_metric'];
+        const secondary = report.referenceAssessmentModel ? frameworks[report.referenceAssessmentModel] : null;
+        
+        if (secondary) {
+          return `${primary} & ${secondary} referans alınarak`;
+        }
+        return primary;
       })(),
     }) as Promise<Buffer>;
   }

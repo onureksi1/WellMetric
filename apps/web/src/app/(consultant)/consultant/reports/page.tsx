@@ -30,6 +30,33 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; 
   archived:   { label: 'Arşiv',       color: '#94a3b8', bg: '#f8fafc', icon: AlertCircle },
 };
 
+const ASSESSMENT_MODELS = [
+  {
+    key:   'wellbeing_metric',
+    name:  'WellBeing Metric',
+    desc:  'Fiziksel · Zihinsel · Sosyal · Finansal · İş & Anlam',
+    badge: 'Varsayılan',
+  },
+  {
+    key:   'who5_gallup',
+    name:  'WHO-5 + Gallup Q12',
+    desc:  'Klinik zihinsel wellbeing + iş bağlılığı endeksi',
+    badge: 'Klinik',
+  },
+  {
+    key:   'perma',
+    name:  'PERMA (Seligman)',
+    desc:  'Pozitif Duygu · Bağlılık · İlişkiler · Anlam · Başarı',
+    badge: 'Akademik',
+  },
+  {
+    key:   'cipd',
+    name:  'CIPD Workplace',
+    desc:  'İngiltere İK Enstitüsü kurumsal wellbeing standardı',
+    badge: 'Kurumsal',
+  },
+];
+
 export default function ConsultantReportsPage() {
   const router = useRouter();
   const [reports, setReports] = useState<any[]>([]);
@@ -42,7 +69,8 @@ export default function ConsultantReportsPage() {
     period: new Date().toISOString().slice(0, 7),
     language: 'tr' as 'tr' | 'en',
   });
-  const [assessmentModel, setAssessmentModel] = useState<string>('');
+  const [primaryModel, setPrimaryModel] = useState('wellbeing_metric');
+  const [referenceModel, setReferenceModel] = useState('');
 
   const fetchData = async () => {
     try {
@@ -66,7 +94,8 @@ export default function ConsultantReportsPage() {
     if (!genForm.company_id) return;
     const company = companies.find(c => c.id === genForm.company_id);
     if (company) {
-      setAssessmentModel(company.assessment_model || 'wellbeing_metric');
+      setPrimaryModel(company.assessment_model || 'wellbeing_metric');
+      setReferenceModel('');
     }
   }, [genForm.company_id, companies]);
 
@@ -87,7 +116,8 @@ export default function ConsultantReportsPage() {
     try {
       await client.post('/consultant/reports/generate', {
         ...genForm,
-        assessment_model: assessmentModel || 'wellbeing_metric',
+        assessment_model: primaryModel,
+        reference_assessment_model: referenceModel || null,
       });
       setModal(false);
       toast.success('Rapor talebi alındı. Hazırlandığında e-posta ile bildireceğiz.', { duration: 5000 });
@@ -388,57 +418,38 @@ export default function ConsultantReportsPage() {
 
               {/* Assessment Model Selection */}
               <div style={{ marginBottom: 24 }}>
-                <label style={{ fontSize:11, fontWeight:500,
+                <label style={{ fontSize:11, fontWeight:700,
                   color:'#64748b',
                   display:'block', marginBottom:8,
-                  letterSpacing:'.07em', fontWeight: 700 }}>
-                  DEĞERLENDİRME MODELİ
+                  letterSpacing:'.07em' }}>
+                  ANA DEĞERLENDİRME MODELİ *
                 </label>
+                <div style={{ fontSize:11, color:'#94a3b8', marginBottom:12 }}>
+                  Raporun temel çerçevesi bu modele göre oluşturulur.
+                </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                  {[
-                    {
-                      key: 'wellbeing_metric',
-                      name: 'WellBeing Metric',
-                      desc: 'Fiziksel · Zihinsel · Sosyal · Finansal · İş & Anlam',
-                      badge: 'Varsayılan',
-                    },
-                    {
-                      key: 'who5_gallup',
-                      name: 'WHO-5 + Gallup Q12',
-                      desc: 'Klinik zihinsel wellbeing + iş bağlılığı endeksi',
-                      badge: 'Klinik',
-                    },
-                    {
-                      key: 'perma',
-                      name: 'PERMA (Seligman)',
-                      desc: 'Pozitif Duygu · Bağlılık · İlişkiler · Anlam · Başarı',
-                      badge: 'Akademik',
-                    },
-                    {
-                      key: 'cipd',
-                      name: 'CIPD Workplace',
-                      desc: 'İngiltere İK Enstitüsü kurumsal wellbeing standardı',
-                      badge: 'Kurumsal',
-                    },
-                  ].map(model => (
+                  {ASSESSMENT_MODELS.map(model => (
                     <div key={model.key}
-                      onClick={() => setAssessmentModel(model.key)}
+                      onClick={() => {
+                        setPrimaryModel(model.key);
+                        if (referenceModel === model.key) setReferenceModel('');
+                      }}
                       style={{
                         display:'flex', alignItems:'flex-start',
                         gap:10, padding:'10px 12px',
-                        border: assessmentModel === model.key
+                        border: primaryModel === model.key
                           ? '2px solid #2563eb'
                           : '1.5px solid #e2e8f0',
                         borderRadius:'16px',
                         cursor:'pointer',
-                        background: assessmentModel === model.key
+                        background: primaryModel === model.key
                           ? '#eff6ff'
                           : '#ffffff',
                         transition:'all .15s',
                       }}>
                       <div style={{
                         width:16, height:16, borderRadius:'50%',
-                        border: assessmentModel === model.key
+                        border: primaryModel === model.key
                           ? '5px solid #2563eb'
                           : '1.5px solid #e2e8f0',
                         flexShrink:0, marginTop:2,
@@ -469,6 +480,117 @@ export default function ConsultantReportsPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Reference Model Selection */}
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ fontSize:11, fontWeight:700,
+                  color:'#64748b',
+                  display:'block', marginBottom:8,
+                  letterSpacing:'.07em' }}>
+                  REFERANS MODEL
+                  <span style={{ fontWeight:400, marginLeft:4, color:'#94a3b8' }}>(opsiyonel)</span>
+                </label>
+                <div style={{ fontSize:11, color:'#94a3b8', marginBottom:12 }}>
+                  Ana modeli desteklemek için ikinci bir akademik çerçeve.
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  
+                  {/* None option */}
+                  <div onClick={() => setReferenceModel('')}
+                    style={{
+                      display:'flex', alignItems:'center',
+                      gap:10, padding:'10px 12px',
+                      border: referenceModel === ''
+                        ? '2px solid #64748b'
+                        : '0.5px solid #e2e8f0',
+                      borderRadius:'16px',
+                      cursor:'pointer',
+                      background: referenceModel === '' ? '#f8fafc' : '#ffffff',
+                    }}>
+                    <div style={{
+                      width:16, height:16, borderRadius:'50%',
+                      border: referenceModel === ''
+                        ? '5px solid #64748b'
+                        : '1.5px solid #e2e8f0',
+                      flexShrink:0,
+                    }} />
+                    <span style={{ fontSize:13, fontWeight: 500, color: '#475569' }}>
+                      Referans model kullanma
+                    </span>
+                  </div>
+
+                  {ASSESSMENT_MODELS.filter(m => m.key !== primaryModel).map(model => (
+                    <div key={model.key}
+                      onClick={() => setReferenceModel(model.key)}
+                      style={{
+                        display:'flex', alignItems:'flex-start',
+                        gap:10, padding:'10px 12px',
+                        border: referenceModel === model.key
+                          ? '2px solid #059669'
+                          : '0.5px solid #e2e8f0',
+                        borderRadius:'16px',
+                        cursor:'pointer',
+                        background: referenceModel === model.key
+                          ? '#ecfdf5'
+                          : '#ffffff',
+                        transition:'all .15s',
+                      }}>
+                      <div style={{
+                        width:16, height:16, borderRadius:'50%',
+                        border: referenceModel === model.key
+                          ? '5px solid #059669'
+                          : '1.5px solid #e2e8f0',
+                        flexShrink:0, marginTop:2,
+                        transition:'all .15s',
+                      }} />
+                      <div style={{ flex:1 }}>
+                        <div style={{ display:'flex', alignItems:'center',
+                          gap:6, marginBottom:2 }}>
+                          <span style={{ fontSize:13, fontWeight:700, color: '#1e293b' }}>
+                            {model.name}
+                          </span>
+                          <span style={{
+                            fontSize:9, padding:'1px 6px',
+                            borderRadius:4, fontWeight:800,
+                            background:'#f1f5f9',
+                            color:'#64748b',
+                            textTransform: 'uppercase'
+                          }}>
+                            {model.badge}
+                          </span>
+                        </div>
+                        <div style={{ fontSize:11,
+                          color:'#64748b',
+                          lineHeight:1.4 }}>
+                          {model.desc}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selection Summary */}
+              <div style={{
+                background: '#f8fafc',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                marginBottom: 20,
+                fontSize: 12,
+                color: '#64748b',
+                border: '1px solid #f1f5f9'
+              }}>
+                <span style={{ fontWeight: 700 }}>Metodoloji: </span>
+                {ASSESSMENT_MODELS.find(m => m.key === primaryModel)?.name}
+                {referenceModel && (
+                  <>
+                    <span style={{ margin: '0 6px', color: '#cbd5e1' }}>+</span>
+                    <span style={{ color: '#059669', fontWeight: 700 }}>
+                      {ASSESSMENT_MODELS.find(m => m.key === referenceModel)?.name} referanslı
+                    </span>
+                  </>
+                )}
               </div>
 
               <div style={{ 

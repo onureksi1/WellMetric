@@ -59,6 +59,12 @@ export class ConsultantReport {
   @Column({ name: 'is_pinned', default: false })
   isPinned: boolean;
 
+  @Column({ name: 'assessment_model', type: 'varchar', length: 30, nullable: true })
+  assessmentModel: string;
+
+  @Column({ name: 'reference_assessment_model', type: 'varchar', length: 30, nullable: true })
+  referenceAssessmentModel: string;
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt: Date;
 

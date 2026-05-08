@@ -228,6 +228,7 @@ export class ReportHtmlHelper {
     risk_areas:        string[];
     assessment_model?: string;
     assessment_model_name?: string;
+    reference_model_name?:     string;
     assessment_framework?: string;
 
   }): Promise<Buffer> {
@@ -331,7 +332,7 @@ export class ReportHtmlHelper {
         overall:  lang('Genel',       'Overall'),
         mental:   lang('Zihinsel',    'Mental'),
         physical: lang('Fiziksel',    'Physical'),
-        social:   lang('Sosyal',      'Social'),
+        social:   lang('Sosyal',      'Sosyal'),
         financial:lang('Finansal',    'Financial'),
         work:     lang('İş & Anlam',  'Work & Purpose'),
       }[dim] ?? dim);
@@ -614,9 +615,29 @@ export class ReportHtmlHelper {
 
     <div class="cover-badges">
       <span class="cover-badge">${data.company_industry || lang('Genel Sektör','General Industry')}</span>
-      <span class="cover-badge" style="background:white; border:1px solid #1D9E75; color:#0F6E56; font-size:10px; font-weight:600;">
+                ${data.assessment_model_name ? `
+                  <span class="cover-badge" style="
+                    background: rgba(37, 99, 235, 0.1);
+                    border: 1px solid rgba(37, 99, 235, 0.2);
+                    color: #2563eb;
+                    font-weight: 700;
+                  ">
+                    ${data.assessment_model_name}
+                  </span>
+                  ${data.reference_model_name ? `
+                    <span class="cover-badge" style="
+                      background: rgba(5, 150, 105, 0.1);
+                      border: 1px solid rgba(5, 150, 105, 0.2);
+                      color: #059669;
+                      font-weight: 700;
+                      font-size: 11px;
+                    ">
+                      + ${data.reference_model_name}
+                    </span>
+                  ` : ''}
+                ` : `<span class="cover-badge" style="background:white; border:1px solid #1D9E75; color:#0F6E56; font-size:10px; font-weight:600;">
         ${data.assessment_model_name ?? activeModel.name}
-      </span>
+      </span>`}
       <span class="cover-badge">${data.total_respondents} ${lang('Katılımcı','Respondents')}</span>
       <span class="cover-badge">${data.departments.length} ${lang('Departman','Department')}</span>
       <span class="cover-badge">${data.period}</span>

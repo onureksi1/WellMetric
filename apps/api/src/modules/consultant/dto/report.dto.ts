@@ -53,4 +53,9 @@ export class GenerateReportDto {
   @IsIn(['wellbeing_metric', 'who5_gallup', 'perma', 'cipd'])
   @IsOptional()
   assessment_model?: string;
+
+  @IsString()
+  @IsIn(['wellbeing_metric', 'who5_gallup', 'perma', 'cipd'])
+  @IsOptional()
+  reference_assessment_model?: string;
 }

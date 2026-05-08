@@ -25,6 +25,7 @@ export class AIReportService {
     period:       string;  // '2026-05'
     language:     'tr' | 'en';
     assessmentModel?: string;
+    referenceModel?:  string;
   }): Promise<string> {
 
     // ── 1. VERİ TOPLAMA ──────────────────────────────────────────
@@ -103,75 +104,100 @@ export class AIReportService {
 
     // ── 2. AI PROMPT ─────────────────────────────────────────────
     
-    // Ölçek bilgisi
-    const modelDefinitions: Record<string, {
+    const MODEL_DEFINITIONS: Record<string, {
       name: string;
       framework: string;
       dimensions: string[];
       terminology: string;
     }> = {
       wellbeing_metric: {
-        name: "WellBeing Metric Modeli",
-        framework: "WellBeing Metric Proprietary Framework",
-        dimensions: ["Fiziksel","Zihinsel","Sosyal","Finansal","İş & Anlam"],
+        name: 'WellBeing Metric Modeli',
+        framework: 'WellBeing Metric Proprietary Framework',
+        dimensions: ['Fiziksel','Zihinsel','Sosyal','Finansal','İş & Anlam'],
         terminology: `
           Fiziksel: Beden sağlığı, hareket, uyku, beslenme
           Zihinsel: Ruh sağlığı, stres, tükenmişlik, psikolojik güvenlik
-          Sosyal: Aidiyet, ilişkiler, ekip bağı, topluluk
+          Sosyal: Aidiyet, ilişkiler, ekip bağı
           Finansal: Ekonomik güvenlik, maaş tatmini, geleceğe güven
           İş & Anlam: Bağlılık, amaç, büyüme, iş-yaşam dengesi
         `,
       },
       who5_gallup: {
-        name: "WHO-5 + Gallup Q12 Modeli",
-        framework: "WHO-5 Wellbeing Index + Gallup Q12 Employee Engagement",
-        dimensions: ["Zihinsel Wellbeing","İş Bağlılığı","Amaç","Destek","Büyüme"],
+        name: 'WHO-5 + Gallup Q12 Modeli',
+        framework: 'WHO-5 Wellbeing Index (1998) + Gallup Q12 Employee Engagement',
+        dimensions: ['Zihinsel Wellbeing','İş Bağlılığı','Amaç','Destek','Büyüme'],
         terminology: `
-          WHO-5 çerçevesinde: Neşe, Sakinlik, Canlılık, Dinçlik, Günlük İlgi
-          Gallup Q12 çerçevesinde: Beklentiler, Araçlar, Takdir, Misyon,
-          Gelişim, Görüş, Bağlılık, Arkadaşlık, İlerleme, Öğrenme, En İyiyi Yapma
+          WHO-5: Neşe, Sakinlik, Canlılık, Dinçlik, Günlük İlgi
+          Gallup Q12: Beklentiler, Araçlar, Takdir, Misyon,
+          Gelişim, Görüş, Bağlılık, Arkadaşlık, İlerleme,
+          Öğrenme, En İyiyi Yapma
         `,
       },
       perma: {
-        name: "PERMA Modeli (Seligman)",
-        framework: "Seligman Positive Psychology Framework (2011)",
-        dimensions: ["Pozitif Duygu","Bağlılık","İlişkiler","Anlam","Başarı"],
+        name: 'PERMA Modeli',
+        framework: 'Seligman Positive Psychology Framework (2011)',
+        dimensions: [
+          'Pozitif Duygu (P)',
+          'Bağlılık (E)',
+          'İlişkiler (R)',
+          'Anlam (M)',
+          'Başarı (A)',
+        ],
         terminology: `
           P - Positive Emotion: Neşe, minnettarlık, umut, ilham
           E - Engagement: Akış deneyimi, tam odaklanma, derin bağlılık
-          R - Relationships: Anlamlı ilişkiler, destek, bağ
+          R - Relationships: Anlamlı ilişkiler, destek, sosyal bağ
           M - Meaning: Amaç, katkı, anlam duygusu
           A - Achievement: Başarı, ustalık, hedef gerçekleştirme
         `,
       },
       cipd: {
-        name: "CIPD İş Yeri Wellbeing Modeli",
-        framework: "CIPD Health and Wellbeing at Work Framework (2023)",
-        dimensions: ["Sağlık","Bağlılık","İş-Yaşam Dengesi","Sosyal","Amaç"],
+        name: 'CIPD İş Yeri Wellbeing Modeli',
+        framework: 'CIPD Health and Wellbeing at Work Framework (2023)',
+        dimensions: ['Sağlık','Bağlılık','İş-Yaşam Dengesi','Sosyal','Amaç'],
         terminology: `
-          CIPD çerçevesinde: Fiziksel sağlık yönetimi, psikolojik güvenlik,
-          esnek çalışma, sosyal sermaye, liderlik desteği, kariyer gelişimi
+          Fiziksel sağlık yönetimi, psikolojik güvenlik,
+          esnek çalışma, sosyal sermaye,
+          liderlik desteği, kariyer gelişimi
         `,
       },
     };
 
-    const selectedModel = params.assessmentModel ?? company.assessmentModel ?? "wellbeing_metric";
-    const modelDef = modelDefinitions[selectedModel]
-      ?? modelDefinitions["wellbeing_metric"];
+    const assessmentModel = params.assessmentModel ?? company.assessmentModel ?? 'wellbeing_metric';
+    const referenceModel  = params.referenceModel;
+    const primaryDef      = MODEL_DEFINITIONS[assessmentModel]
+      ?? MODEL_DEFINITIONS['wellbeing_metric'];
+    const referenceDef    = referenceModel
+      ? MODEL_DEFINITIONS[referenceModel]
+      : null;
 
-    const modelSection = `
-## KULLANILAN DEĞERLENDİRME MODELİ
-Model: ${modelDef.name}
-Referans: ${modelDef.framework}
-Boyutlar: ${modelDef.dimensions.join(", ")}
+    const methodologySection = `
+## METODOLOJİ
 
-Bu rapor ${modelDef.name} çerçevesinde hazırlanmıştır.
-Analizde aşağıdaki terminoloji ve boyutlar kullanılmalıdır:
-${modelDef.terminology}
+Ana Çerçeve: ${primaryDef.name}
+Referans: ${primaryDef.framework}
+Ana Boyutlar: ${primaryDef.dimensions.join(' · ')}
 
-Raporu bu modelin perspektifinden yaz.
-Başlıklarda ve analizde bu modelin boyut isimlerini kullan.
-Raporun sonunda "Bu analiz ${modelDef.framework} referans alınarak hazırlanmıştır." ifadesini ekle.
+Terminoloji:
+${primaryDef.terminology}
+
+${referenceDef ? `
+Destekleyici Çerçeve: ${referenceDef.name}
+Referans: ${referenceDef.framework}
+Boyutlar: ${referenceDef.dimensions.join(' · ')}
+
+Bu raporu öncelikle ${primaryDef.name} terminolojisiyle yaz.
+${referenceDef.name} perspektifinden ek yorumlar ekle —
+özellikle ilgili boyutlarda iki çerçeveyi karşılaştır ve
+zenginleştir.
+` : ''}
+
+ZORUNLU: Raporun "SONUÇ" bölümünün sonuna şunu ekle:
+"Bu analiz ${primaryDef.framework} çerçevesinde${
+  referenceDef
+    ? `, ${referenceDef.framework} referans alınarak`
+    : ''
+} hazırlanmıştır."
 `;
 
     const scoreTable = currentScores.map((s: any) => {
@@ -197,8 +223,7 @@ Raporun sonunda "Bu analiz ${modelDef.framework} referans alınarak hazırlanmı
     const langName = params.language === "en" ? "English" : "Türkçe";
 
     const prompt = `
-Sen bir kurumsal wellbeing danışmanısın.
-${modelSection}
+${methodologySection}
 
 ## ŞİRKET BİLGİSİ
 - Şirket: ${company.name}
@@ -309,6 +334,7 @@ profesyonel bir dil kullan. Klişelerden kaçın. Şirkete özel içerik üret.
     period:       string;
     language:     'tr' | 'en';
     assessmentModel?: string;
+    referenceModel?:  string;
   }) {
     this.logger.log(`Starting background report generation for ${params.companyId} / ${params.period}`);
     
@@ -319,16 +345,20 @@ profesyonel bir dil kullan. Klişelerden kaçın. Şirkete özel içerik üret.
       // 1. Create Placeholder Record
       const insertResult = await this.dataSource.query(`
         INSERT INTO consultant_reports (
-          consultant_id, company_id, title, content, period, status, created_at, updated_at
+          consultant_id, company_id, title, content, period, status, 
+          assessment_model, reference_assessment_model,
+          created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, 'processing', NOW(), NOW()
+          $1, $2, $3, $4, $5, 'processing', $6, $7, NOW(), NOW()
         ) RETURNING id
       `, [
         params.consultantId,
         params.companyId,
         `${company.name} — ${params.period} Wellbeing Raporu`,
         '',
-        params.period
+        params.period,
+        params.assessmentModel || company.assessmentModel || 'wellbeing_metric',
+        params.referenceModel || null
       ]);
 
       const reportId = insertResult[0].id;
