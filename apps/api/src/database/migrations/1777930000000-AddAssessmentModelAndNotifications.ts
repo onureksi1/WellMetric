@@ -113,6 +113,23 @@ export class AddAssessmentModelAndNotifications1777930000000
         "comparative_analysis":   {"model": "claude-sonnet-4-6",         "provider": "anthropic"}
       }'::jsonb;
     `);
+
+    await queryRunner.query(`
+      UPDATE platform_settings
+      SET ai_task_models = ai_task_models || '{
+        "task_credits": {
+          "intelligence_report":    60,
+          "comparative_analysis":   20,
+          "survey_generation":      10,
+          "content_suggestion":      5,
+          "action_recommendation":   5,
+          "insight_generation":      5,
+          "onboarding_analysis":    10,
+          "chat":                    2,
+          "score_analysis":          5
+        }
+      }'::jsonb;
+    `);
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {

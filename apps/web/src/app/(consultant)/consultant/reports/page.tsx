@@ -154,10 +154,19 @@ export default function ConsultantReportsPage() {
         client.get('/consultant/reports'),
         client.get('/consultant/companies'),
       ]);
-      setReports(Array.isArray(rRes.data?.data || rRes.data) ? (rRes.data?.data || rRes.data) : []);
-      setCompanies(Array.isArray(cRes.data?.data || cRes.data) ? (cRes.data?.data || cRes.data) : []);
+
+      // Raporlar için esnek veri okuma
+      const reportsData = rRes.data?.data || rRes.data || [];
+      setReports(Array.isArray(reportsData) ? reportsData : []);
+
+      // Firmalar için esnek veri okuma
+      const companiesData = cRes.data?.data || cRes.data || [];
+      setCompanies(Array.isArray(companiesData) ? companiesData : []);
+      
+      console.log('Yüklenen firmalar:', companiesData);
     } catch (err) {
       console.error('Veri yükleme hatası:', err);
+      toast.error('Veriler yüklenirken bir hata oluştu.');
     } finally {
       setLoading(false);
     }
@@ -857,7 +866,7 @@ export default function ConsultantReportsPage() {
               }}>
                 <Zap size={20} color="#f59e0b" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <p style={{ margin: 0, fontSize: '12.5px', color: '#9a3412', lineHeight: '1.5' }}>
-                  Bu işlem <strong>20 AI kredisi</strong> kullanacaktır. Analiz süreci arka planda gerçekleştirilecek ve bittiğinde kayıtlı e-posta adresinize bir bildirim gönderilecektir.
+                  Bu işlem <strong>60 AI kredisi</strong> kullanacaktır. Analiz süreci arka planda gerçekleştirilecek ve bittiğinde kayıtlı e-posta adresinize bir bildirim gönderilecektir.
                 </p>
               </div>
             </div>

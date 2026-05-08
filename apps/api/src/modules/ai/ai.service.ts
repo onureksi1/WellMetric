@@ -63,6 +63,25 @@ export class AIService {
     this.debug = new ServiceDebugger(logger, 'AIService');
   }
 
+  private async getTaskCredit(taskType: string): Promise<number> {
+    const settings = await this.settingsService.getSettings();
+    const credits  = (settings?.ai_task_models as any)?.task_credits ?? {};
+    
+    const defaults: Record<string, number> = {
+      intelligence_report:   60,
+      comparative_analysis:  20,
+      survey_generation:     10,
+      content_suggestion:     5,
+      action_recommendation:  5,
+      insight_generation:     5,
+      onboarding_analysis:   10,
+      chat:                   2,
+      score_analysis:         5,
+    };
+    
+    return credits[taskType] ?? defaults[taskType] ?? TASK_CREDITS[taskType] ?? 5;
+  }
+
   private async handleAiUsage(companyId: string | null, taskType: string): Promise<number> {
     if (!companyId) return 0;
 
@@ -72,7 +91,7 @@ export class AIService {
 
     let totalDeducted = 0;
     if (!taskCost) {
-      totalDeducted = TASK_CREDITS[taskType] ?? 1;
+      totalDeducted = await this.getTaskCredit(taskType);
     } else {
       totalDeducted = Object.values(taskCost).reduce((a: number, b: any) => a + Number(b), 0) as number;
     }
@@ -172,7 +191,7 @@ export class AIService {
       outputTokens: result.outputTokens,
       durationMs:   result.durationMs,
       aiInsightId:  saved.id,
-      creditAmount: TASK_CREDITS[AITaskEnum.OPEN_TEXT_SUMMARY],
+      creditAmount: await this.getTaskCredit(AITaskEnum.OPEN_TEXT_SUMMARY),
     });
 
     // 7. Audit log
@@ -232,7 +251,7 @@ export class AIService {
       outputTokens: result.outputTokens,
       durationMs:   result.durationMs,
       aiInsightId:  saved.id,
-      creditAmount: TASK_CREDITS[AITaskEnum.RISK_ALERT],
+      creditAmount: await this.getTaskCredit(AITaskEnum.RISK_ALERT),
     });
 
     await this.auditService.logAction(
@@ -468,7 +487,7 @@ export class AIService {
       outputTokens: aiResult.outputTokens,
       durationMs:   aiResult.durationMs,
       aiInsightId:  insight.id,
-      creditAmount: TASK_CREDITS[AITaskEnum.INTELLIGENCE_REPORT],
+      creditAmount: await this.getTaskCredit(AITaskEnum.INTELLIGENCE_REPORT),
     });
 
     // 7. Generate PDF
@@ -511,7 +530,7 @@ export class AIService {
       outputTokens: result.outputTokens,
       durationMs:   result.durationMs,
       aiInsightId:  saved.id,
-      creditAmount: TASK_CREDITS[AITaskEnum.TREND_ANALYSIS],
+      creditAmount: await this.getTaskCredit(AITaskEnum.TREND_ANALYSIS),
     });
 
     await this.auditService.logAction(
@@ -551,7 +570,7 @@ export class AIService {
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
       durationMs:   result.durationMs,
-      creditAmount: TASK_CREDITS[AITaskEnum.HR_CHAT],
+      creditAmount: await this.getTaskCredit(AITaskEnum.HR_CHAT),
     });
 
     return { response: result.response, tokens_used: result.totalTokens };
@@ -755,7 +774,7 @@ export class AIService {
       inputTokens:  result.inputTokens,
       outputTokens: result.outputTokens,
       durationMs:   result.durationMs,
-      creditAmount: TASK_CREDITS[AITaskEnum.CONTENT_SUGGESTION],
+      creditAmount: await this.getTaskCredit(AITaskEnum.CONTENT_SUGGESTION),
     });
 
     return result.response;
