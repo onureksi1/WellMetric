@@ -527,19 +527,19 @@ export default function ConsultantReportsPage() {
                         display:'flex', alignItems:'flex-start',
                         gap:10, padding:'10px 12px',
                         border: referenceModel === model.key
-                          ? '2px solid #059669'
+                          ? '2px solid #6c3a8e'
                           : '0.5px solid #e2e8f0',
                         borderRadius:'16px',
                         cursor:'pointer',
                         background: referenceModel === model.key
-                          ? '#ecfdf5'
+                          ? '#f5f3ff'
                           : '#ffffff',
                         transition:'all .15s',
                       }}>
                       <div style={{
                         width:16, height:16, borderRadius:'50%',
                         border: referenceModel === model.key
-                          ? '5px solid #059669'
+                          ? '5px solid #6c3a8e'
                           : '1.5px solid #e2e8f0',
                         flexShrink:0, marginTop:2,
                         transition:'all .15s',
@@ -586,7 +586,7 @@ export default function ConsultantReportsPage() {
                 {referenceModel && (
                   <>
                     <span style={{ margin: '0 6px', color: '#cbd5e1' }}>+</span>
-                    <span style={{ color: '#059669', fontWeight: 700 }}>
+                    <span style={{ color: '#6c3a8e', fontWeight: 700 }}>
                       {ASSESSMENT_MODELS.find(m => m.key === referenceModel)?.name} referanslı
                     </span>
                   </>

@@ -626,10 +626,10 @@ export class ReportHtmlHelper {
                   </span>
                   ${data.reference_model_name ? `
                     <span class="cover-badge" style="
-                      background: rgba(5, 150, 105, 0.1);
-                      border: 1px solid rgba(5, 150, 105, 0.2);
-                      color: #059669;
-                      font-weight: 700;
+                      background: rgba(108, 58, 142, 0.08);
+                      border: 1px solid #C4A8E0;
+                      color: #6C3A8E;
+                      font-weight: 600;
                       font-size: 11px;
                     ">
                       + ${data.reference_model_name}
