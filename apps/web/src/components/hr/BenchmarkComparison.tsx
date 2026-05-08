@@ -97,7 +97,8 @@ export function BenchmarkComparison({ companyScores, period }: { companyScores: 
       <div className="space-y-6 pt-4">
         {DIMENSIONS.map(dim => {
           const bench = benchmark.benchmark?.[dim.key];
-          const myScore = companyScores?.[dim.key] ?? 0;
+          // score_card.dimensions.physical — API'dan nested olarak geliyor
+          const myScore = companyScores?.dimensions?.[dim.key] ?? companyScores?.[dim.key] ?? 0;
           const trScore = bench?.turkey_platform?.score ?? 0;
           const glScore = bench?.global?.score ?? 0;
           const isFinancial = dim.key === 'financial';
