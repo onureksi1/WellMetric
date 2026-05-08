@@ -335,10 +335,20 @@ export class ConsultantReportsService {
 
     try {
       const results = await this.dataSource.query(query, params);
-      // Map results to match expected structure (with nested company object if needed)
+      
       return results.map(r => ({
         ...r,
-        company: { name: r.company_name, id: r.company_id }
+        // Frontend'in her iki formatı da (snake & camel) bulabilmesi için:
+        id:            r.id,
+        createdAt:     r.created_at,
+        updatedAt:     r.updated_at,
+        companyId:     r.company_id,
+        assessmentModel: r.assessment_model,
+        referenceAssessmentModel: r.reference_assessment_model,
+        company: { 
+          id:   r.company_id, 
+          name: r.company_name 
+        }
       }));
     } catch (error) {
       this.logger.error(`[ConsultantReportsService] findAll Raw SQL failed: ${error.message}`, error.stack);
