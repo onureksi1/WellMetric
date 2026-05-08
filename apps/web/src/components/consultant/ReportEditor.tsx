@@ -44,13 +44,14 @@ export default function ReportEditor({ reportId }: ReportEditorProps) {
         if (reportId) {
           const reportRes = await client.get(`/consultant/reports/${reportId}`);
           const r = reportRes.data;
+          
           setForm({
-            title: r.title,
-            company_id: r.companyId,
-            period: r.period || '',
-            summary: r.summary || '',
-            content: r.content,
-            tags: r.tags || [],
+            title:      r.title || '',
+            company_id: r.companyId || r.company_id || '',
+            period:     r.period || '',
+            summary:    r.summary || '',
+            content:    r.content || '',
+            tags:       r.tags || [],
           });
         }
       } catch (error) {
