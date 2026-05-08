@@ -96,8 +96,17 @@ export class ConsultantService {
     const statsQuery = `
       SELECT AVG(score) as avg_score
       FROM wellbeing_scores ws
-      WHERE ws.company_id = ANY($1) AND ws.dimension = 'overall'
-      AND ws.calculated_at = (SELECT MAX(calculated_at) FROM wellbeing_scores WHERE company_id = ws.company_id)
+      WHERE ws.company_id = ANY($1)
+        AND ws.dimension = 'overall'
+        AND ws.department_id IS NULL
+        AND ws.segment_type IS NULL
+        AND ws.calculated_at = (
+          SELECT MAX(calculated_at) FROM wellbeing_scores
+          WHERE company_id = ws.company_id
+            AND dimension = 'overall'
+            AND department_id IS NULL
+            AND segment_type IS NULL
+        )
     `;
     const stats = await this.dataSource.query(statsQuery, [companyIds]);
 
@@ -127,7 +136,12 @@ export class ConsultantService {
         c.industry,
         c.plan,
         ROUND(
-          (SELECT score FROM wellbeing_scores WHERE company_id = c.id AND dimension = 'overall' ORDER BY calculated_at DESC LIMIT 1)::numeric,
+          (SELECT score FROM wellbeing_scores
+           WHERE company_id = c.id
+             AND dimension = 'overall'
+             AND department_id IS NULL
+             AND segment_type IS NULL
+           ORDER BY calculated_at DESC LIMIT 1)::numeric,
           1
         ) as score,
         COALESCE(
@@ -141,26 +155,31 @@ export class ConsultantService {
           0
         ) as participation,
         CASE
-          WHEN (SELECT calculated_at FROM wellbeing_scores WHERE company_id = c.id ORDER BY calculated_at DESC LIMIT 1) IS NULL THEN 'new'
+          WHEN (SELECT id FROM wellbeing_scores
+                WHERE company_id = c.id AND dimension = 'overall'
+                  AND department_id IS NULL AND segment_type IS NULL
+                LIMIT 1) IS NULL THEN 'new'
           WHEN (
             SELECT score FROM wellbeing_scores ws2
             WHERE ws2.company_id = c.id AND ws2.dimension = 'overall'
+              AND ws2.department_id IS NULL AND ws2.segment_type IS NULL
             ORDER BY ws2.calculated_at DESC LIMIT 1
           ) > (
             SELECT score FROM wellbeing_scores ws3
             WHERE ws3.company_id = c.id AND ws3.dimension = 'overall'
-            ORDER BY ws3.calculated_at DESC
-            LIMIT 1 OFFSET 1
+              AND ws3.department_id IS NULL AND ws3.segment_type IS NULL
+            ORDER BY ws3.calculated_at DESC LIMIT 1 OFFSET 1
           ) + 2 THEN 'up'
           WHEN (
             SELECT score FROM wellbeing_scores ws2
             WHERE ws2.company_id = c.id AND ws2.dimension = 'overall'
+              AND ws2.department_id IS NULL AND ws2.segment_type IS NULL
             ORDER BY ws2.calculated_at DESC LIMIT 1
           ) < (
             SELECT score FROM wellbeing_scores ws3
             WHERE ws3.company_id = c.id AND ws3.dimension = 'overall'
-            ORDER BY ws3.calculated_at DESC
-            LIMIT 1 OFFSET 1
+              AND ws3.department_id IS NULL AND ws3.segment_type IS NULL
+            ORDER BY ws3.calculated_at DESC LIMIT 1 OFFSET 1
           ) - 2 THEN 'down'
           ELSE 'stable'
         END as status
@@ -285,28 +304,38 @@ export class ConsultantService {
     const company = await this.verifyOwnership(consultantId, companyId);
     const resolvedId = company.id;
 
-    // 2. Get latest scores for all dimensions
+    // 2. Get latest scores for all dimensions (company-level only, no department/segment breakdown)
     let scores: any[] = [];
     try {
       scores = await this.dataSource.query(`
         SELECT dimension, score, calculated_at
         FROM wellbeing_scores ws
         WHERE ws.company_id = $1
-        AND ws.calculated_at = (SELECT MAX(calculated_at) FROM wellbeing_scores WHERE company_id = ws.company_id)
+          AND ws.department_id IS NULL
+          AND ws.segment_type IS NULL
+          AND ws.calculated_at = (
+            SELECT MAX(calculated_at) FROM wellbeing_scores
+            WHERE company_id = ws.company_id
+              AND department_id IS NULL
+              AND segment_type IS NULL
+          )
       `, [resolvedId]);
     } catch (e) { /* no scores yet */ }
 
     const overallScore = scores.find((s: any) => s.dimension === 'overall')?.score || 0;
 
-    // 3. Get Trend Data — period column is 'YYYY-MM', cannot cast directly to date
+    // 3. Get Trend Data — period column is 'YYYY-MM', company-level only
     let trendData: any[] = [];
     try {
       trendData = await this.dataSource.query(`
         SELECT 
           TO_CHAR(TO_DATE(period || '-01', 'YYYY-MM-DD'), 'Mon') as month,
-          score
+          ROUND(score::numeric, 1) as score
         FROM wellbeing_scores
-        WHERE company_id = $1 AND dimension = 'overall'
+        WHERE company_id = $1
+          AND dimension = 'overall'
+          AND department_id IS NULL
+          AND segment_type IS NULL
         ORDER BY period ASC
         LIMIT 6
       `, [resolvedId]);
