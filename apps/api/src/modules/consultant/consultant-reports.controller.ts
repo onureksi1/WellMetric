@@ -89,26 +89,33 @@ export class ConsultantReportsController {
     });
     if (!company) throw new ForbiddenException('Bu firmaya erişim yetkiniz yok');
 
-    // 1. "Oluşturuluyor" durumunda ön kayıt oluştur
-    const reportPlaceholder = await this.dataSource.query(`
-      INSERT INTO consultant_reports (
-        consultant_id, company_id, title, content, status, period, 
-        assessment_model, reference_assessment_model, created_at, updated_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-      RETURNING id
-    `, [
-      user.id, 
-      dto.company_id, 
-      `${company.name} Esenlik Raporu`, 
-      'Rapor hazırlanıyor...', 
-      'generating', 
-      dto.period,
-      dto.assessment_model,
-      dto.reference_assessment_model
-    ]);
-
-    const reportId = reportPlaceholder[0].id;
+    // 1. Create a 'generating' placeholder record immediately
+    let reportId: string;
+    try {
+      const insertResult = await this.dataSource.query(`
+        INSERT INTO consultant_reports (
+          consultant_id, company_id, title, status, period, 
+          assessment_model, reference_assessment_model, content,
+          created_at, updated_at
+        )
+        VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        RETURNING id
+      `, [
+        user.id,
+        dto.company_id,
+        `${company.name} Esenlik Raporu`,
+        'generating',
+        dto.period,
+        dto.assessment_model,
+        dto.reference_assessment_model,
+        'Rapor hazırlanıyor, lütfen bekleyin...'
+      ]);
+      reportId = insertResult[0].id;
+      console.log('[ConsultantReportsController] Placeholder created:', reportId);
+    } catch (error) {
+      console.error('[ConsultantReportsController] Failed to create placeholder:', error.message);
+      // Fallback: If placeholder fails, we still queue the job but without an ID
+    }
 
     // 2. Kuyruğa at (reportId'yi de gönder)
     await this.aiQueue.add('generate_consultant_report', {
