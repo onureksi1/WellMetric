@@ -88,8 +88,30 @@ export class ConsultantReportsController {
     });
     if (!company) throw new ForbiddenException('Bu firmaya erişim yetkiniz yok');
 
-    // Kapsamlı rapor üretimini kuyruğa at
+    // 1. "Oluşturuluyor" durumunda ön kayıt oluştur
+    const reportPlaceholder = await this.dataSource.query(`
+      INSERT INTO consultant_reports (
+        consultant_id, company_id, title, content, status, period, 
+        assessment_model, reference_assessment_model, created_at, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+      RETURNING id
+    `, [
+      user.id, 
+      dto.company_id, 
+      `${company.name} Esenlik Raporu`, 
+      'Rapor hazırlanıyor...', 
+      'generating', 
+      dto.period,
+      dto.assessment_model,
+      dto.reference_assessment_model
+    ]);
+
+    const reportId = reportPlaceholder[0].id;
+
+    // 2. Kuyruğa at (reportId'yi de gönder)
     await this.aiQueue.add('generate_consultant_report', {
+      reportId:     reportId,
       companyId:    dto.company_id,
       consultantId: user.id,
       period:       dto.period,
@@ -99,8 +121,9 @@ export class ConsultantReportsController {
     });
     
     return {
-      message:   'Rapor talebi alındı. Hazırlandığında size e-posta ile bildireceğiz. Raporlarım sayfasından takip edebilirsiniz.',
-      status:    'processing'
+      message:   'Rapor üretimi başlatıldı. "Raporlarım" sayfasından takip edebilirsiniz.',
+      reportId:  reportId,
+      status:    'generating'
     };
   }
 

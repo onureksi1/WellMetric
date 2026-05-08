@@ -365,6 +365,7 @@ profesyonel bir dil kullan. Klişelerden kaçın. Şirkete özel içerik üret.
   }
 
   async generateAndSaveComprehensiveReport(params: {
+    reportId?:    string;
     companyId:    string;
     consultantId: string;
     period:       string;
@@ -375,30 +376,33 @@ profesyonel bir dil kullan. Klişelerden kaçın. Şirkete özel içerik üret.
     this.logger.log(`Starting background report generation for ${params.companyId} / ${params.period}`);
     
     try {
+      let reportId = params.reportId;
       const company = await this.companyRepo.findOne({ where: { id: params.companyId } });
       if (!company) throw new Error('Company not found');
 
-      // 1. Create Placeholder Record
-      const insertResult = await this.dataSource.query(`
-        INSERT INTO consultant_reports (
-          consultant_id, company_id, title, content, period, status, 
-          assessment_model, reference_assessment_model,
-          created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, 'processing', $6, $7, NOW(), NOW()
-        ) RETURNING id
-      `, [
-        params.consultantId,
-        params.companyId,
-        `${company.name} — ${params.period} Wellbeing Raporu`,
-        '',
-        params.period,
-        params.assessmentModel || company.assessmentModel || 'wellbeing_metric',
-        params.referenceModel || null
-      ]);
-
-      const reportId = insertResult[0].id;
-      this.logger.log(`Created placeholder report: ${reportId}`);
+      if (!reportId) {
+        // 1. Create Placeholder Record if not provided
+        const insertResult = await this.dataSource.query(`
+          INSERT INTO consultant_reports (
+            consultant_id, company_id, title, content, period, status, 
+            assessment_model, reference_assessment_model,
+            created_at, updated_at
+          ) VALUES (
+            $1, $2, $3, $4, $5, 'generating', $6, $7, NOW(), NOW()
+          ) RETURNING id
+        `, [
+          params.consultantId,
+          params.companyId,
+          `${company.name} — ${params.period} Wellbeing Raporu`,
+          '',
+          params.period,
+          params.assessmentModel || company.assessmentModel || 'wellbeing_metric',
+          params.referenceModel || null
+        ]);
+        reportId = insertResult[0].id;
+      }
+      
+      this.logger.log(`Using report record: ${reportId}`);
 
       // 2. Generate content (Long running)
       const content = await this.generateComprehensiveReport(params);

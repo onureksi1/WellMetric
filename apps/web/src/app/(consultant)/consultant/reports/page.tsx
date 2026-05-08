@@ -24,10 +24,11 @@ import {
 } from 'lucide-react';
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-  draft:      { label: 'Taslak',      color: '#475569', bg: '#f1f5f9', icon: Clock },
-  processing: { label: 'Hazırlanıyor', color: '#2563eb', bg: '#eff6ff', icon: Loader2 },
-  published:  { label: 'Yayında',     color: '#059669', bg: '#ecfdf5', icon: CheckCircle2 },
-  archived:   { label: 'Arşiv',       color: '#94a3b8', bg: '#f8fafc', icon: AlertCircle },
+  draft:      { label: 'Taslak',       color: '#475569', bg: '#f1f5f9', icon: Clock },
+  generating: { label: 'Hazırlanıyor',  color: '#2563eb', bg: '#eff6ff', icon: Loader2 },
+  processing: { label: 'Hazırlanıyor',  color: '#2563eb', bg: '#eff6ff', icon: Loader2 },
+  published:  { label: 'Yayında',      color: '#059669', bg: '#ecfdf5', icon: CheckCircle2 },
+  archived:   { label: 'Arşiv',        color: '#94a3b8', bg: '#f8fafc', icon: AlertCircle },
 };
 
 const SINGLE_MODELS = [
@@ -339,7 +340,13 @@ export default function ConsultantReportsPage() {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.02)';
                   }}
-                  onClick={() => router.push(`/consultant/reports/${report.id}/edit`)}
+                  onClick={() => {
+                    if (report.status === 'generating' || report.status === 'processing') {
+                      toast.error('Rapor henüz hazırlanıyor, bittiğinde düzenleyebilirsiniz.');
+                      return;
+                    }
+                    router.push(`/consultant/reports/${report.id}/edit`);
+                  }}
                 >
                   <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                     <div style={{ 

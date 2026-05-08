@@ -123,11 +123,12 @@ export class AIProcessor {
 
   @Process('generate_consultant_report')
   async handleConsultantReport(job: Job) {
-    const { companyId, consultantId, period, language, assessmentModel, referenceModel } = job.data;
+    const { reportId, companyId, consultantId, period, language, assessmentModel, referenceModel } = job.data;
     this.logger.log(`Processing generate_consultant_report for consultant ${consultantId}, company ${companyId}, period ${period}`);
 
     try {
       await this.aiReportService.generateAndSaveComprehensiveReport({
+        reportId,
         companyId,
         consultantId,
         period,
