@@ -313,31 +313,19 @@ export class ConsultantReportsService {
     company_id?: string;
     status?: string;
   }) {
-    this.logger.log(`[ConsultantReportsService] Fetching reports for: ${consultantId}`);
+    this.logger.log(`[ConsultantReportsService] MOCK TEST for consultant: ${consultantId}`);
     
-    try {
-      // En yalın sorgu: Join'leri ve karmaşık filtreleri çıkarıp test ediyoruz
-      const query = `SELECT * FROM consultant_reports WHERE consultant_id::text = $1`;
-      const results = await this.dataSource.query(query, [consultantId]);
-      
-      // Şirket isimlerini manuel olarak ekleyelim (ikinci bir sorgu ile daha güvenli)
-      const companies = await this.dataSource.query('SELECT id, name FROM companies');
-      const companyMap = new Map(companies.map((c: any) => [c.id, c.name]));
-
-      return results.map((r: any) => ({
-        ...r,
-        createdAt: r.created_at,
-        updatedAt: r.updated_at,
-        company: { 
-          id: r.company_id, 
-          name: companyMap.get(r.company_id) || 'Bilinmeyen Firma'
-        }
-      }));
-    } catch (error) {
-      this.logger.error(`[ConsultantReportsService] CRITICAL ERROR: ${error.message}`);
-      // Hatayı fırlatıyoruz ki 500 hatasının içinde ne olduğunu görelim
-      throw new Error(`DB_ERROR: ${error.message}`);
-    }
+    // Geçici olarak veritabanını atlayıp mock veri dönüyoruz
+    return [
+      {
+        id: 'debug-id-1',
+        title: 'Sistem Test Raporu (Veritabanı Devre Dışı)',
+        status: 'draft',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        company: { id: 'mock-co-1', name: 'Test Firması' }
+      }
+    ];
   }
 
   // ── Tekil rapor ──────────────────────────────────────────────────
