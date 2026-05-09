@@ -5,6 +5,7 @@ import { Company } from '../company/entities/company.entity';
 import { AIService } from './ai.service';
 import { NotificationService } from '../notification/notification.service';
 import { InAppNotificationService } from '../notification/in-app-notification.service';
+import { ScoreService } from '../score/score.service';
 
 @Injectable()
 export class AIReportService {

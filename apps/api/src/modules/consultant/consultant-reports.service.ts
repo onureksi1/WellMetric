@@ -8,6 +8,7 @@ import { AiInsight } from '../ai/entities/ai-insight.entity';
 import { NotificationService } from '../notification/notification.service';
 import { AppLogger } from '../../common/logger/app-logger.service';
 import { ReportHtmlHelper } from '../report/helpers/report-html.helper';
+import { ScoreService } from '../score/score.service';
 import { CreateReportDto, UpdateReportDto } from './dto/report.dto';
 import { InAppNotificationService } from '../notification/in-app-notification.service';
 
@@ -385,6 +386,35 @@ export class ConsultantReportsService {
   }
 
   // ── Yardımcı ─────────────────────────────────────────────────────
+  async generateAiReport(dto: any, consultantId: string) {
+    const company = await this.companyRepo.findOne({
+      where: { id: dto.company_id, consultant_id: consultantId }
+    });
+    if (!company) throw new ForbiddenException('Bu firmaya erişim yetkiniz yok');
+
+    const report = this.reportRepo.create({
+      consultantId,
+      companyId: dto.company_id,
+      title: `${company.name} Esenlik Raporu`,
+      status: 'generating' as any,
+      period: dto.period,
+      assessmentModel: dto.assessment_model,
+      referenceAssessmentModel: dto.reference_assessment_model,
+      content: 'Rapor hazırlanıyor...',
+    });
+    const saved = await this.reportRepo.save(report);
+
+    return {
+      reportId: (saved as any).id,
+      companyId: dto.company_id,
+      consultantId,
+      period: dto.period,
+      language: dto.language ?? 'tr',
+      assessmentModel: dto.assessment_model,
+      referenceModel: dto.reference_assessment_model,
+    };
+  }
+
   private async findOwned(id: string, consultantId: string) {
     const report = await this.reportRepo.findOne({
       where: { id, consultantId },

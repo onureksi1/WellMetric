@@ -83,66 +83,15 @@ export class ConsultantReportsController {
       period:    dto.period,
     });
 
-    // Firma ownership kontrolü
-    const company = await this.companyRepo.findOne({
-      where: { id: dto.company_id, consultant_id: user.id }
-    });
-    if (!company) throw new ForbiddenException('Bu firmaya erişim yetkiniz yok');
+    // 1. Servis üzerinden placeholder oluştur
+    const jobData = await this.reportsService.generateAiReport(dto, user.id);
 
-    // 1. Create a 'generating' placeholder record immediately
-    let reportId: string;
-    try {
-      const insertResult = await this.dataSource.query(`
-        INSERT INTO consultant_reports (
-          id, consultant_id, company_id, title, status, period, 
-          assessment_model, reference_assessment_model, content,
-          created_at, updated_at
-        )
-        VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-        RETURNING id
-      `, [
-        user.id,
-        dto.company_id,
-        `${company.name} Esenlik Raporu`,
-        'generating',
-        dto.period || new Date().toISOString().slice(0, 7),
-        dto.assessment_model || 'wellbeing_metric',
-        dto.reference_assessment_model || null,
-        'Rapor hazırlanıyor, lütfen bekleyin...'
-      ]);
-      reportId = insertResult[0].id;
-      console.log('[ConsultantReportsController] Placeholder successfully created:', reportId);
-    } catch (error) {
-      console.error('[ConsultantReportsController] CRITICAL: Placeholder failed:', error.message);
-      // Fallback: Using basic TypeORM save with all columns
-      const fallbackReport = this.reportRepo.create({
-        consultantId: user.id,
-        companyId: dto.company_id,
-        title: `${company.name} Esenlik Raporu`,
-        status: 'generating' as any,
-        period: dto.period,
-        assessment_model: dto.assessment_model,
-        reference_assessment_model: dto.reference_assessment_model,
-        content: 'Rapor hazırlanıyor...'
-      });
-      const saved = await this.reportRepo.save(fallbackReport);
-      reportId = saved.id;
-    }
-
-    // 2. Kuyruğa at (reportId'yi de gönder)
-    await this.aiQueue.add('generate_consultant_report', {
-      reportId:     reportId,
-      companyId:    dto.company_id,
-      consultantId: user.id,
-      period:       dto.period,
-      language:     dto.language ?? 'tr',
-      assessmentModel: dto.assessment_model,
-      referenceModel:  dto.reference_assessment_model,
-    });
+    // 2. Kuyruğa at
+    await this.aiQueue.add('generate_consultant_report', jobData);
     
     return {
       message:   'Rapor üretimi başlatıldı. "Raporlarım" sayfasından takip edebilirsiniz.',
-      reportId:  reportId,
+      reportId:  jobData.reportId,
       status:    'generating'
     };
   }
