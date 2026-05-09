@@ -944,7 +944,7 @@ export class UserService {
       expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000),
     });
 
-    console.log(`[ResendInvite] Token created for ${user.email}: ${token}`);
+    // Token log removed for security
 
     if (user.role === 'hr_admin') {
       const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}auth/accept-invite?token=${token}`;
