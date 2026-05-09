@@ -341,12 +341,12 @@ export class ReportHtmlHelper {
     // Logo bölümü
     const logoHtml = data.is_white_label && data.consultant_logo_url
       ? `<img src="${data.consultant_logo_url}"
-              style="height:40px;max-width:160px;
-                     object-fit:contain;object-position:left;" />`
+              style="height:36px;object-fit:contain;
+                     filter:brightness(0) invert(1);" />`
       : data.brand_logo_url
         ? `<img src="${data.brand_logo_url}"
-                style="height:40px;max-width:160px;
-                       object-fit:contain;object-position:left;" />`
+                style="height:36px;object-fit:contain;
+                       filter:brightness(0) invert(1);" />`
         : `<span style="font-size:14px;font-weight:600;
                         color:#0F6E56;">${data.brand_name}</span>`;
 
@@ -409,7 +409,7 @@ export class ReportHtmlHelper {
     overflow: hidden;
   }
   .cover-top {
-    background: #1D9E75;
+    background: #0D1F1A;
     padding: 32px 40px 24px;
     color: white;
   }
@@ -598,7 +598,7 @@ export class ReportHtmlHelper {
   <div class="cover-top">
     <div class="cover-logo-row">
       <div>${logoHtml}</div>
-      <div class="cover-consultant" style="color:white;opacity:.8;">
+      <div class="cover-consultant" style="color:rgba(255,255,255,0.7);font-size:12px;">
         ${data.consultant_name}
       </div>
     </div>
