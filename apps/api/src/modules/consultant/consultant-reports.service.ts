@@ -313,19 +313,33 @@ export class ConsultantReportsService {
     company_id?: string;
     status?: string;
   }) {
-    this.logger.log(`[ConsultantReportsService] MOCK TEST for consultant: ${consultantId}`);
+    this.logger.log(`[ConsultantReportsService] Safe fetch for: ${consultantId}`);
     
-    // Geçici olarak veritabanını atlayıp mock veri dönüyoruz
-    return [
-      {
-        id: 'debug-id-1',
-        title: 'Sistem Test Raporu (Veritabanı Devre Dışı)',
-        status: 'draft',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        company: { id: 'mock-co-1', name: 'Test Firması' }
-      }
-    ];
+    try {
+      // Sadece kesin var olan kolonları çekiyoruz (assessment_model'i çıkardık)
+      const query = `
+        SELECT id, consultant_id, company_id, title, status, period, content, created_at, updated_at 
+        FROM consultant_reports 
+        WHERE consultant_id::text = $1
+      `;
+      const results = await this.dataSource.query(query, [consultantId]);
+      
+      const companies = await this.dataSource.query('SELECT id, name FROM companies');
+      const companyMap = new Map(companies.map((c: any) => [c.id, c.name]));
+
+      return results.map((r: any) => ({
+        ...r,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        company: { 
+          id: r.company_id, 
+          name: companyMap.get(r.company_id) || 'Bilinmeyen Firma'
+        }
+      }));
+    } catch (error) {
+      this.logger.error(`[ConsultantReportsService] Safe findAll failed: ${error.message}`);
+      return []; // Hata alırsak 500 vermek yerine boş liste dönüyoruz (en güvenlisi)
+    }
   }
 
   // ── Tekil rapor ──────────────────────────────────────────────────
