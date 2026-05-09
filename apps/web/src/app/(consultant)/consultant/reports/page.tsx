@@ -20,8 +20,11 @@ import {
   Loader2,
   Trash2,
   Send,
-  EyeOff
+  EyeOff,
+  Building2,
+  Calendar
 } from 'lucide-react';
+import { useAuthStore } from '@/lib/store/auth.store';
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: any }> = {
   draft:      { label: 'Taslak',       color: '#475569', bg: '#f1f5f9', icon: Clock },
