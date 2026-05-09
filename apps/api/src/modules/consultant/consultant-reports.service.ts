@@ -313,6 +313,8 @@ export class ConsultantReportsService {
     company_id?: string;
     status?: string;
   }) {
+    const dbInfo = (this.dataSource.options as any);
+    this.logger.log(`[ConsultantReportsService] DB: ${dbInfo.database} @ ${dbInfo.host}:${dbInfo.port}`);
     this.logger.log(`[ConsultantReportsService] findAll called for consultant: ${consultantId}`);
     
     let query = `
