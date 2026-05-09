@@ -313,32 +313,47 @@ export class ConsultantReportsService {
     company_id?: string;
     status?: string;
   }) {
-    this.logger.log(`[ConsultantReportsService] Safe fetch for: ${consultantId}`);
+    this.logger.log(`[ConsultantReportsService] Fetching all reports for: ${consultantId}`);
     
-    try {
-      // Sadece kesin var olan kolonları çekiyoruz (assessment_model'i çıkardık)
-      const query = `
-        SELECT id, consultant_id, company_id, title, status, period, content, created_at, updated_at 
-        FROM consultant_reports 
-        WHERE consultant_id::text = $1
-      `;
-      const results = await this.dataSource.query(query, [consultantId]);
-      
-      const companies = await this.dataSource.query('SELECT id, name FROM companies');
-      const companyMap = new Map(companies.map((c: any) => [c.id, c.name]));
+    let query = `
+      SELECT r.*, c.name as company_name
+      FROM consultant_reports r
+      LEFT JOIN companies c ON r.company_id = c.id
+      WHERE r.consultant_id::text = LOWER($1)
+    `;
+    const params: any[] = [consultantId];
 
-      return results.map((r: any) => ({
+    if (filters.company_id) {
+      params.push(filters.company_id);
+      query += ` AND r.company_id = $${params.length}::uuid`;
+    }
+
+    if (filters.status) {
+      params.push(filters.status);
+      query += ` AND r.status = $${params.length}`;
+    }
+
+    query += ` ORDER BY r.updated_at DESC`;
+
+    try {
+      const results = await this.dataSource.query(query, params);
+      
+      return results.map(r => ({
         ...r,
-        createdAt: r.created_at,
-        updatedAt: r.updated_at,
+        id:            r.id,
+        createdAt:     r.created_at,
+        updatedAt:     r.updated_at,
+        companyId:     r.company_id,
+        assessmentModel: r.assessment_model,
+        referenceAssessmentModel: r.reference_assessment_model,
         company: { 
-          id: r.company_id, 
-          name: companyMap.get(r.company_id) || 'Bilinmeyen Firma'
+          id:   r.company_id, 
+          name: r.company_name 
         }
       }));
     } catch (error) {
-      this.logger.error(`[ConsultantReportsService] Safe findAll failed: ${error.message}`);
-      return []; // Hata alırsak 500 vermek yerine boş liste dönüyoruz (en güvenlisi)
+      this.logger.error(`[ConsultantReportsService] findAll failed: ${error.message}`);
+      throw error;
     }
   }
 
