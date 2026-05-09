@@ -798,7 +798,7 @@ export class ReportHtmlHelper {
       ${lang('Radar Analizi','Radar Analysis')}
     </div>
     <div style="display:flex;justify-content:center;">
-      <div class="chart-container" style="height:320px;width:360px;">
+      <div class="chart-container" style="height:340px;width:400px;">
         <canvas id="radarChart"></canvas>
       </div>
     </div>
@@ -989,9 +989,10 @@ new Chart(document.getElementById('barChart'), {
         ),
         borderRadius: 6,
         borderSkipped: false,
-        barThickness: 28,
-        categoryPercentage: 0.8,
-        barPercentage: 0.9,
+        barThickness: 24,
+        categoryPercentage: 0.7,
+        barPercentage: 0.85,
+        minBarLength: 4,
       },
       {
         label: '${lang('Sektör Benchmark','Industry Benchmark')}',
@@ -1001,9 +1002,10 @@ new Chart(document.getElementById('barChart'), {
         borderWidth: 1,
         borderRadius: 6,
         borderSkipped: false,
-        barThickness: 28,
-        categoryPercentage: 0.8,
-        barPercentage: 0.9,
+        barThickness: 24,
+        categoryPercentage: 0.7,
+        barPercentage: 0.85,
+        minBarLength: 4,
       },
     ],
   },
@@ -1013,6 +1015,8 @@ new Chart(document.getElementById('barChart'), {
     scales: {
       y: { 
         min: 0, max: 100,
+        suggestedMin: 0,
+        suggestedMax: 100,
         grid: { color: 'rgba(0,0,0,0.05)' },
         ticks: { font: { size: 10 } } 
       },
@@ -1054,21 +1058,26 @@ new Chart(document.getElementById('radarChart'), {
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { font: { size: 11 }, boxWidth: 14 }
+      }
+    },
     scales: {
       r: {
         min: 0,
         max: 100,
-        suggestedMin: 0,
-        suggestedMax: 100,
         ticks: {
-          stepSize: 20,
-          font: { size: 9 },
+          stepSize: 25,
+          font: { size: 10 },
           backdropColor: 'transparent',
+          color: '#888',
         },
-        grid: { color: 'rgba(0,0,0,0.08)' },
+        grid:  { color: 'rgba(0,0,0,0.08)' },
+        angleLines: { color: 'rgba(0,0,0,0.08)' },
         pointLabels: {
-          font: { size: 11, weight: '500' },
+          font: { size: 12, weight: '500' },
           color: '#333',
         },
       },
