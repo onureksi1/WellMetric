@@ -606,18 +606,18 @@ export class ScoreService {
     // Son N ay
     const rows = await this.dataSource.query(`
       SELECT
-        TO_CHAR(DATE_TRUNC('month', period::date), 'YYYY-MM') as period_key,
+        TO_CHAR(DATE_TRUNC('month', (period || '-01')::date), 'YYYY-MM') as period_key,
         dimension,
         AVG(score) as score
       FROM wellbeing_scores
       WHERE company_id = $1
         AND segment_type IS NULL
-        AND period::date >= NOW() - INTERVAL '${months} months'
+        AND (period || '-01')::date >= NOW() - INTERVAL '${months} months'
       GROUP BY
-        DATE_TRUNC('month', period::date),
+        DATE_TRUNC('month', (period || '-01')::date),
         dimension
       ORDER BY
-        DATE_TRUNC('month', period::date) ASC,
+        DATE_TRUNC('month', (period || '-01')::date) ASC,
         dimension
     `, [companyId]);
 
