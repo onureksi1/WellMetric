@@ -313,50 +313,30 @@ export class ConsultantReportsService {
     company_id?: string;
     status?: string;
   }) {
-    const dbInfo = (this.dataSource.options as any);
-    this.logger.log(`[ConsultantReportsService] DB: ${dbInfo.database} @ ${dbInfo.host}:${dbInfo.port}`);
-    this.logger.log(`[ConsultantReportsService] findAll called for consultant: ${consultantId}`);
+    this.logger.log(`[ConsultantReportsService] Fetching reports for: ${consultantId}`);
     
-    let query = `
-      SELECT r.*, c.name as company_name
-      FROM consultant_reports r
-      LEFT JOIN companies c ON r.company_id = c.id
-      WHERE r.consultant_id::text = LOWER($1)
-    `;
-    const params: any[] = [consultantId];
-
-    if (filters.company_id) {
-      params.push(filters.company_id);
-      query += ` AND r.company_id = $${params.length}`;
-    }
-
-    if (filters.status) {
-      params.push(filters.status);
-      query += ` AND r.status = $${params.length}`;
-    }
-
-    query += ` ORDER BY r.updated_at DESC`;
-
     try {
-      const results = await this.dataSource.query(query, params);
+      // En yalın sorgu: Join'leri ve karmaşık filtreleri çıkarıp test ediyoruz
+      const query = `SELECT * FROM consultant_reports WHERE consultant_id::text = $1`;
+      const results = await this.dataSource.query(query, [consultantId]);
       
-      return results.map(r => ({
+      // Şirket isimlerini manuel olarak ekleyelim (ikinci bir sorgu ile daha güvenli)
+      const companies = await this.dataSource.query('SELECT id, name FROM companies');
+      const companyMap = new Map(companies.map((c: any) => [c.id, c.name]));
+
+      return results.map((r: any) => ({
         ...r,
-        // Frontend'in her iki formatı da (snake & camel) bulabilmesi için:
-        id:            r.id,
-        createdAt:     r.created_at,
-        updatedAt:     r.updated_at,
-        companyId:     r.company_id,
-        assessmentModel: r.assessment_model,
-        referenceAssessmentModel: r.reference_assessment_model,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
         company: { 
-          id:   r.company_id, 
-          name: r.company_name 
+          id: r.company_id, 
+          name: companyMap.get(r.company_id) || 'Bilinmeyen Firma'
         }
       }));
     } catch (error) {
-      this.logger.error(`[ConsultantReportsService] findAll Raw SQL failed: ${error.message}`, error.stack);
-      return [];
+      this.logger.error(`[ConsultantReportsService] CRITICAL ERROR: ${error.message}`);
+      // Hatayı fırlatıyoruz ki 500 hatasının içinde ne olduğunu görelim
+      throw new Error(`DB_ERROR: ${error.message}`);
     }
   }
 
