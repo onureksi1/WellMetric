@@ -15,6 +15,7 @@ export class AIReportService {
     private readonly dataSource: DataSource,
     private readonly notificationService: NotificationService,
     private readonly inAppNotifService: InAppNotificationService,
+    private readonly scoreService: ScoreService,
   ) {}
 
   private readonly logger = new Logger(AIReportService.name);
@@ -88,19 +89,11 @@ export class AIReportService {
       .filter((s: any) => Number(s.score) < 45)
       .sort((a: any, b: any) => Number(a.score) - Number(b.score));
 
-    // Trend hesaplama
-    const prevMap: Record<string, number> = {};
-    for (const p of prevScores) {
-      prevMap[p.dimension] = Number(p.score);
-    }
-    const trends = currentScores.map((s: any) => ({
-      dimension: s.dimension,
-      current:   Number(s.score),
-      previous:  prevMap[s.dimension] ?? null,
-      change:    prevMap[s.dimension]
-        ? Number(s.score) - prevMap[s.dimension]
-        : null,
-    }));
+    // Trend verisi (ScoreService kullanarak)
+    const trendData = await this.scoreService.getTrendData({
+      companyId: params.companyId,
+      months: 6,
+    });
 
     // ── 2. AI PROMPT ─────────────────────────────────────────────
     
@@ -252,9 +245,9 @@ ZORUNLU: Raporun SONUÇ bölümünün sonuna şunu ekle:
 
     const scoreTable = currentScores.map((s: any) => {
       const bench  = benchmarks.find((b: any) => b.dimension === s.dimension);
-      const trend  = trends.find(t => t.dimension === s.dimension);
-      const change = trend?.change !== null && trend?.change !== undefined
-        ? (trend.change > 0 ? `+${trend.change.toFixed(1)}` : trend.change.toFixed(1))
+      const trend  = trendData.changes[s.dimension];
+      const change = trend && trend.delta !== null
+        ? (trend.delta > 0 ? `+${trend.delta}` : trend.delta)
         : "İlk dönem";
       return `${s.dimension}: ${Number(s.score).toFixed(1)}/100 | Benchmark: ${bench?.score ?? "N/A"} | Trend: ${change}`;
     }).join("\n");
@@ -272,8 +265,37 @@ ZORUNLU: Raporun SONUÇ bölümünün sonuna şunu ekle:
 
     const langName = params.language === "en" ? "English" : "Türkçe";
 
+    const trendSection = trendData.periods.length > 1 ? `
+## DÖNEMSEL TREND ANALİZİ
+
+${Object.entries(trendData.changes).map(([dim, c]: [string, any]) => {
+  if (!c || c.delta === null) return '';
+  const label = dim === 'overall'  ? 'Genel'
+              : dim === 'mental'   ? 'Zihinsel'
+              : dim === 'physical' ? 'Fiziksel'
+              : dim === 'social'   ? 'Sosyal'
+              : dim === 'financial'? 'Finansal'
+              : 'İş & Anlam';
+  const trendDesc = c.trend === 'up'   ? `▲ +${c.delta} puan artış`
+              : c.trend === 'down' ? `▼ ${c.delta} puan düşüş`
+              : '→ Stabil';
+  return `${label}: ${c.current} (${trendDesc}, önceki dönem: ${c.previous})`;
+}).filter(Boolean).join('\n')}
+
+Raporda "TREND ANALİZİ" başlığı altında:
+- Hangi boyutlar iyileşti, hangisi geriledi?
+- En hızlı düşen boyutu özellikle vurgula
+- En hızlı yükselen boyutu tebrikle
+- Trend sürdürülebilir mi? Yorum yap.
+` : `
+## DÖNEMSEL TREND
+İlk ölçüm dönemi. Trend analizi bir sonraki dönemde yapılacak.
+Mevcut dönemi referans nokta (baseline) olarak değerlendir.
+`;
+
     const prompt = `
 ${methodologySection}
+${trendSection}
 
 ## ŞİRKET BİLGİSİ
 - Şirket: ${company.name}

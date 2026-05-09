@@ -231,6 +231,11 @@ export class ReportHtmlHelper {
     reference_model_name?:  string;
     assessment_framework?:  string;
 
+    // Trend verileri
+    trend_periods?:    string[];
+    trend_overall?:    number[];
+    trend_dimensions?: Record<string, number[]>;
+    score_changes?:    Record<string, any>;
   }): Promise<Buffer> {
 
     const html = this.buildHtml(data);
@@ -384,10 +389,31 @@ export class ReportHtmlHelper {
     const deptLabels   = JSON.stringify(data.departments.map(d => d.name));
     const deptScores   = JSON.stringify(data.departments.map(d => d.score));
     const deptColors   = JSON.stringify(
-      data.departments.map(d => scoreColor(d.score))
+      data.departments.map((d: any) => scoreColor(d.score))
     );
 
-    const overallScore = data.scores.find(s => s.dimension === 'overall');
+    // Trend verileri (JSON)
+    const trendLabels   = JSON.stringify(data.trend_periods    ?? []);
+    const trendOverall  = JSON.stringify(data.trend_overall    ?? []);
+    const trendMental   = JSON.stringify(data.trend_dimensions?.mental   ?? []);
+    const trendPhysical = JSON.stringify(data.trend_dimensions?.physical  ?? []);
+    const trendSocial   = JSON.stringify(data.trend_dimensions?.social    ?? []);
+    const trendFinancial= JSON.stringify(data.trend_dimensions?.financial ?? []);
+    const trendWork     = JSON.stringify(data.trend_dimensions?.work      ?? []);
+    const changes       = data.score_changes ?? {};
+
+    // Değişim badge helper:
+    const changeBadge = (dim: string) => {
+      const c = changes[dim];
+      if (!c || c.delta === null) return '';
+      const arrow = c.trend === 'up' ? '▲' : c.trend === 'down' ? '▼' : '→';
+      const color = c.trend === 'up' ? '#1D9E75'
+                  : c.trend === 'down' ? '#EF4444' : '#888';
+      return `<span style="font-size:11px;font-weight:600;color:${color};
+        margin-left:6px;">${arrow} ${Math.abs(c.delta)}</span>`;
+    };
+
+    const overallScore = data.scores.find((s: any) => s.dimension === 'overall');
 
     return `<!DOCTYPE html>
 <html>
@@ -725,6 +751,7 @@ export class ReportHtmlHelper {
       <div class="metric-value"
            style="color:${scoreColor(overallScore?.score ?? 0)}">
         ${overallScore?.score.toFixed(1) ?? '-'}
+        ${changeBadge('overall')}
       </div>
       <div class="metric-sub">/100</div>
     </div>
@@ -769,6 +796,66 @@ export class ReportHtmlHelper {
         <canvas id="radarChart"></canvas>
       </div>
     </div>
+  </div>
+
+  <!-- Trend Analizi -->
+  <div class="section" style="margin-top:20px;">
+    <div class="section-title">${lang('DÖNEMSEL TREND ANALİZİ', 'PERIODIC TREND ANALYSIS')}</div>
+
+    ${data.trend_periods && data.trend_periods.length > 1 ? `
+    <div class="chart-container" style="height:220px; margin-bottom: 24px;">
+      <canvas id="trendChart"></canvas>
+    </div>
+
+    <!-- Boyut değişim özeti -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);
+      gap:10px;">
+      ${['overall','mental','physical','social','financial','work'].map(dim => {
+        const c = changes[dim];
+        if (!c) return '';
+        const label = dimLabel(dim);
+        const color = c.trend === 'up'   ? '#1D9E75'
+                    : c.trend === 'down' ? '#EF4444' : '#888';
+        const arrow = c.trend === 'up' ? '▲'
+                    : c.trend === 'down' ? '▼' : '→';
+        const bg    = c.trend === 'up'   ? '#E1F5EE'
+                    : c.trend === 'down' ? '#FEF2F2' : '#F5F5F5';
+
+        return `
+          <div style="background:${bg};border-radius:10px;
+            padding:12px;text-align:center;border:1px solid rgba(0,0,0,0.03);">
+            <div style="font-size:10px;color:#666;
+              text-transform:uppercase;letter-spacing:.07em;
+              margin-bottom:6px;">${label}</div>
+            <div style="font-size:22px;font-weight:700;color:#1a1a1a;line-height:1;">
+              ${c.current.toFixed(1)}
+            </div>
+            ${c.delta !== null ? `
+            <div style="font-size:12px;font-weight:600;
+              color:${color};margin-top:4px;">
+              ${arrow} ${Math.abs(c.delta)} ${lang('puan', 'pts')}
+            </div>
+            <div style="font-size:9px;color:#888;margin-top:2px;opacity:0.8;">
+              ${lang('önceki:', 'prev:')} ${c.previous?.toFixed(1) ?? '-'}
+            </div>
+            ` : `
+            <div style="font-size:10px;color:#888;margin-top:6px;">
+              ${lang('İlk ölçüm', 'Baseline')}
+            </div>
+            `}
+          </div>
+        `;
+      }).join('')}
+    </div>
+    ` : `
+    <div style="text-align:center;padding:3rem;background:#F8FFFE;border-radius:12px;
+      border:1px dashed #C5E8DC;color:#666;font-size:12px;">
+      ${lang(
+        'Trend analizi için en az 2 dönem verisi gereklidir. Bir sonraki ölçümden itibaren görünecektir.',
+        'At least 2 periods of data are required for trend analysis. It will appear after the next measurement.'
+      )}
+    </div>
+    `}
   </div>
 </div>
 
@@ -1012,6 +1099,78 @@ new Chart(document.getElementById('deptChart'), {
     },
   },
 });
+
+// ── Trend Chart ──
+if (${data.trend_periods && data.trend_periods.length > 1}) {
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: ${trendLabels},
+      datasets: [
+        {
+          label: '${lang('Genel', 'Overall')}',
+          data:  ${trendOverall},
+          borderColor:     '#1D9E75',
+          backgroundColor: 'rgba(29,158,117,0.08)',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#1D9E75',
+          pointRadius: 4,
+          tension: 0.3,
+          fill: true,
+        },
+        {
+          label: '${lang('Zihinsel', 'Mental')}',
+          data:  ${trendMental},
+          borderColor:     '#6D28D9',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 3,
+          tension: 0.3,
+          borderDash: [4,3],
+        },
+        {
+          label: '${lang('Fiziksel', 'Physical')}',
+          data:  ${trendPhysical},
+          borderColor:     '#1A56DB',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 3,
+          tension: 0.3,
+          borderDash: [4,3],
+        },
+        {
+          label: '${lang('Sosyal', 'Social')}',
+          data:  ${trendSocial},
+          borderColor:     '#B45309',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 3,
+          tension: 0.3,
+          borderDash: [4,3],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom',
+          labels: { font: { size: 10 }, boxWidth: 12 } },
+      },
+      scales: {
+        y: {
+          min: 0, max: 100,
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 10 } },
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10 } },
+        },
+      },
+    },
+  });
+}
 
 // Puppeteer için hazır sinyali
 window.__chartsReady = true;

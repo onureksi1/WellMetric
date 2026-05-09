@@ -587,6 +587,94 @@ export class ScoreService {
     return result;
   }
 
+  async getTrendData(params: {
+    companyId: string;
+    months?:    number; // kaç ay geriye gidilecek (varsayılan 6)
+  }): Promise<{
+    periods:    string[];
+    dimensions: Record<string, number[]>;
+    overall:    number[];
+    changes:    Record<string, {
+      current:  number;
+      previous: number | null;
+      delta:    number | null;
+      trend:    'up' | 'down' | 'stable';
+    }>;
+  }> {
+    const { companyId, months = 6 } = params;
+
+    // Son N ay
+    const rows = await this.dataSource.query(`
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', period::date), 'YYYY-MM') as period_key,
+        dimension,
+        AVG(score) as score
+      FROM wellbeing_scores
+      WHERE company_id = $1
+        AND segment_type IS NULL
+        AND period::date >= NOW() - INTERVAL '${months} months'
+      GROUP BY
+        DATE_TRUNC('month', period::date),
+        dimension
+      ORDER BY
+        DATE_TRUNC('month', period::date) ASC,
+        dimension
+    `, [companyId]);
+
+    // Dönemleri topla
+    const periods = [...new Set(rows.map((r: any) => r.period_key))] as string[];
+
+    // Boyut bazında skor dizileri
+    const dimensions: Record<string, number[]> = {};
+    const overall: number[] = [];
+
+    for (const period of periods) {
+      const periodRows = rows.filter((r: any) => r.period_key === period);
+
+      for (const row of periodRows) {
+        if (!dimensions[row.dimension]) {
+          dimensions[row.dimension] = [];
+        }
+        dimensions[row.dimension].push(Number(row.score));
+      }
+
+      const overallRow = periodRows.find((r: any) => r.dimension === 'overall');
+      overall.push(overallRow ? Number(overallRow.score) : 0);
+    }
+
+    // Değişim hesapla (son dönem vs önceki dönem)
+    const changes: Record<string, any> = {};
+    const allDimensions = ['overall', 'mental', 'physical',
+                           'social', 'financial', 'work'];
+
+    for (const dim of allDimensions) {
+      const scores = dim === 'overall'
+        ? overall
+        : (dimensions[dim] ?? []);
+
+      if (scores.length >= 2) {
+        const current  = scores[scores.length - 1];
+        const previous = scores[scores.length - 2];
+        const delta    = current - previous;
+        changes[dim] = {
+          current,
+          previous,
+          delta:  Number(delta.toFixed(1)),
+          trend:  delta > 0.5 ? 'up' : delta < -0.5 ? 'down' : 'stable',
+        };
+      } else if (scores.length === 1) {
+        changes[dim] = {
+          current:  scores[0],
+          previous: null,
+          delta:    null,
+          trend:    'stable',
+        };
+      }
+    }
+
+    return { periods, dimensions, overall, changes };
+  }
+
   async getBenchmark(companyId: string, period: string) {
     const companyRes = await this.dataSource.query(`SELECT industry FROM companies WHERE id = $1`, [companyId]);
     const industry = companyRes[0]?.industry;

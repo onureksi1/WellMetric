@@ -25,6 +25,7 @@ export class ConsultantReportsService {
     private readonly notificationService: NotificationService,
     private readonly inAppNotifService: InAppNotificationService,
     private readonly reportHtmlHelper: ReportHtmlHelper,
+    private readonly scoreService: ScoreService,
     private readonly logger: AppLogger,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -35,18 +36,15 @@ export class ConsultantReportsService {
     // ── Skor verisi çek ──────────────────────────────────────────
     const dimensions = ['overall','mental','physical','social','financial','work'];
 
-    // Period formatını düzelt: '2026-05' → '2026-05-01'
     const periodDate = report.period
-      ? (report.period.length === 7
-          ? report.period + '-01'
-          : report.period)
+      ? (report.period.length === 7 ? report.period + '-01' : report.period)
       : new Date().toISOString().slice(0, 7) + '-01';
 
-    const prevDate = (() => {
-      const d = new Date(periodDate);
-      d.setMonth(d.getMonth() - 1);
-      return d.toISOString().slice(0, 10);
-    })();
+    // Trend verisi (ScoreService kullanarak)
+    const trendData = await this.scoreService.getTrendData({
+      companyId: report.companyId,
+      months: 6,
+    });
 
     // Benchmark (sektör)
     const industry = report.company?.industry ?? 'technology';
@@ -59,39 +57,18 @@ export class ConsultantReportsService {
     const benchMap: Record<string, number> = {};
     for (const b of benchmarks) benchMap[b.dimension] = Number(b.score);
 
-    // Mevcut dönem skorları
-    const currentScores = await this.dataSource.query(`
-      SELECT dimension, AVG(score) as score
-      FROM wellbeing_scores
-      WHERE company_id = $1
-        AND DATE_TRUNC('month', TO_DATE(period || '-01', 'YYYY-MM-DD')) =
-            DATE_TRUNC('month', $2::date)
-      GROUP BY dimension
-    `, [report.companyId, periodDate]);
-    const currentMap: Record<string, number> = {};
-    for (const s of currentScores) currentMap[s.dimension] = Number(s.score);
-
-    // Önceki dönem
-    const prevScores = await this.dataSource.query(`
-      SELECT dimension, AVG(score) as score
-      FROM wellbeing_scores
-      WHERE company_id = $1
-        AND DATE_TRUNC('month', TO_DATE(period || '-01', 'YYYY-MM-DD')) =
-            DATE_TRUNC('month', $2::date)
-      GROUP BY dimension
-    `, [report.companyId, prevDate]);
-    const prevMap: Record<string, number> = {};
-    for (const s of prevScores) prevMap[s.dimension] = Number(s.score);
-
-    // Skor dizisi
-    const scores = dimensions.map(dim => ({
-      dimension:  dim,
-      score:      currentMap[dim] ?? 0,
-      benchmark:  benchMap[dim]   ?? 0,
-      prev_score: prevMap[dim]    ?? null,
-      label_tr:   dim,
-      label_en:   dim,
-    }));
+    // Mevcut dönem skorları (trendData'dan al)
+    const scores = dimensions.map(dim => {
+      const trend = trendData.changes[dim];
+      return {
+        dimension:  dim,
+        score:      trend?.current ?? 0,
+        benchmark:  benchMap[dim]  ?? 0,
+        prev_score: trend?.previous ?? null,
+        label_tr:   dim,
+        label_en:   dim,
+      };
+    });
 
     // Departman skorları
     const deptScores = await this.dataSource.query(`
@@ -184,6 +161,10 @@ export class ConsultantReportsService {
         };
         return frameworks[report.assessmentModel || 'wellbeing_metric'];
       })(),
+      trend_periods:    trendData.periods,
+      trend_overall:    trendData.overall,
+      trend_dimensions: trendData.dimensions,
+      score_changes:    trendData.changes,
     }) as Promise<Buffer>;
   }
 
