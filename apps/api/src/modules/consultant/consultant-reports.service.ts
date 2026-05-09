@@ -168,10 +168,6 @@ export class ConsultantReportsService {
         };
         return frameworks[report.assessmentModel || 'wellbeing_metric'];
       })(),
-      trend_periods:    trendData.periods,
-      trend_overall:    trendData.overall,
-      trend_dimensions: trendData.dimensions,
-      score_changes:    trendData.changes,
     }) as Promise<Buffer>;
   }
 
