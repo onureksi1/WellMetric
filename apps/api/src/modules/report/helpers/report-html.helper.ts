@@ -289,7 +289,7 @@ export class ReportHtmlHelper {
     const modelMeta: Record<string, { name: string; ref: string }> = {
       wellbeing_metric: {
         name: 'WellBeing Metric',
-        ref:  'WellBeing Metric Proprietary Framework'
+        ref:  'WellBeing Metric Framework (WHO-5 · Gallup Q12 · PERMA · CFPB)'
       },
       who5_gallup: {
         name: 'WHO-5 + Gallup Q12',
@@ -670,6 +670,31 @@ export class ReportHtmlHelper {
         </div>
       </div>
     </div>` : ''}
+
+    ${data.scores && data.scores.length > 0 ? `
+    <div style="margin-top:24px;">
+      <div style="font-size:10px;font-weight:600;color:#0F6E56;
+        letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">
+        ${lang('BOYUT SKORLARI', 'DIMENSION SCORES')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        ${data.scores.filter((s: any) => s.dimension !== 'overall').map((s: any) => `
+          <div style="background:white;border-radius:8px;
+            padding:10px 12px;text-align:center;
+            border:1px solid rgba(29,158,117,0.2);">
+            <div style="font-size:18px;font-weight:700;
+              color:${scoreColor(s.score)};">
+              ${s.score.toFixed(1)}
+            </div>
+            <div style="font-size:9px;color:#666;margin-top:2px;
+              text-transform:uppercase;letter-spacing:.05em;">
+              ${dimLabel(s.dimension)}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ` : ''}
   </div>
 
   <div class="cover-footer">
@@ -740,7 +765,7 @@ export class ReportHtmlHelper {
       ${lang('Radar Analizi','Radar Analysis')}
     </div>
     <div style="display:flex;justify-content:center;">
-      <div class="chart-container" style="height:260px;width:300px;">
+      <div class="chart-container" style="height:320px;width:360px;">
         <canvas id="radarChart"></canvas>
       </div>
     </div>
@@ -869,9 +894,11 @@ new Chart(document.getElementById('barChart'), {
           s >= 70 ? 'rgba(29,158,117,0.85)' :
           s >= 50 ? 'rgba(245,158,11,0.85)' : 'rgba(239,68,68,0.85)'
         ),
-        borderRadius: 4,
+        borderRadius: 6,
         borderSkipped: false,
-        barThickness: 20,
+        barThickness: 28,
+        categoryPercentage: 0.8,
+        barPercentage: 0.9,
       },
       {
         label: '${lang('Sektör Benchmark','Industry Benchmark')}',
@@ -879,21 +906,27 @@ new Chart(document.getElementById('barChart'), {
         backgroundColor: 'rgba(136,135,128,0.25)',
         borderColor:     'rgba(136,135,128,0.6)',
         borderWidth: 1,
-        borderRadius: 4,
+        borderRadius: 6,
         borderSkipped: false,
-        barThickness: 20,
+        barThickness: 28,
+        categoryPercentage: 0.8,
+        barPercentage: 0.9,
       },
     ],
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position:'bottom' } },
+    plugins: { legend: { position:'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
     scales: {
-      y: { min: 0, max: 100,
-           grid: { color: 'rgba(0,0,0,0.05)' },
-           ticks: { font: { size: 10 } } },
-      x: { grid: { display: false },
-           ticks: { font: { size: 10 } } },
+      y: { 
+        min: 0, max: 100,
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        ticks: { font: { size: 10 } } 
+      },
+      x: { 
+        grid: { display: false },
+        ticks: { font: { size: 10 } } 
+      },
     },
   },
 });
@@ -926,14 +959,25 @@ new Chart(document.getElementById('radarChart'), {
     ],
   },
   options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position:'bottom' } },
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
     scales: {
       r: {
-        min: 0, max: 100,
-        ticks: { stepSize: 20, font: { size: 9 } },
-        grid:  { color: 'rgba(0,0,0,0.08)' },
-        pointLabels: { font: { size: 10 } },
+        min: 0,
+        max: 100,
+        suggestedMin: 0,
+        suggestedMax: 100,
+        ticks: {
+          stepSize: 20,
+          font: { size: 9 },
+          backdropColor: 'transparent',
+        },
+        grid: { color: 'rgba(0,0,0,0.08)' },
+        pointLabels: {
+          font: { size: 11, weight: '500' },
+          color: '#333',
+        },
       },
     },
   },

@@ -114,18 +114,32 @@ export class AIReportService {
     }> = {
       wellbeing_metric: {
         name:      'WellBeing Metric Modeli',
-        framework: 'WellBeing Metric Proprietary Framework',
+        framework: 'WellBeing Metric Framework — WHO-5 Wellbeing Index (WHO,1998), Gallup Q12 Employee Engagement Survey (Gallup,2024), PERMA Model (Seligman,2011), CFPB Financial Wellbeing Scale (CFPB,2017) sentezi',
         dimensions: ['Fiziksel','Zihinsel','Sosyal','Finansal','İş & Anlam'],
         terminology: `
           Fiziksel: Beden sağlığı, hareket, uyku, beslenme, ergonomi
+          [WHO tanımları referans alınmıştır]
+
           Zihinsel: Ruh sağlığı, stres, tükenmişlik, psikolojik güvenlik
-          Sosyal: Aidiyet, ekip ilişkileri, sosyal bağ
+          [WHO-5 Wellbeing Index referans alınmıştır]
+
+          Sosyal: Aidiyet, ekip ilişkileri, sosyal bağ, iletişim kalitesi
+          [Huppert & So (2013) Flourishing Scale referans alınmıştır]
+
           Finansal: Ekonomik güvenlik, maaş tatmini, geleceğe güven
+          [CFPB Financial Wellbeing Scale referans alınmıştır]
+
           İş & Anlam: Bağlılık, amaç, büyüme, iş-yaşam dengesi
+          [Gallup Q12 + Seligman PERMA referans alınmıştır]
         `,
         analysis_note: `
           Her boyutu 0-100 üzerinden değerlendir.
           70+ Güçlü | 50-69 Gelişime Açık | 50 altı Risk
+          Raporun sonuna şu notu ekle:
+          "WellBeing Metric Framework; WHO-5 Wellbeing Index,
+          Gallup Q12 Employee Engagement Survey, Seligman PERMA Modeli
+          ve CFPB Financial Wellbeing Scale referans alınarak
+          geliştirilmiş bütünsel bir kurumsal wellbeing çerçevesidir."
         `,
       },
       perma: {

@@ -38,8 +38,8 @@ const SINGLE_MODELS = [
     name:  'WellBeing Metric',
     badge: 'Varsayılan',
     color: '#1D9E75',
-    when:  'Ne zaman seç: Kendi metodolojinle çalışıyorsan. Platform\'un 5 boyutlu çerçevesi — Fiziksel, Zihinsel, Sosyal, Finansal, İş & Anlam.',
-    best:  'En iyi: Genel kurumsal wellbeing analizi için.',
+    when:  'Ne zaman seç: Akademik temelli, bütünsel analiz istiyorsan. WHO-5, Gallup Q12, PERMA ve CFPB Financial Wellbeing Scale referans alınarak geliştirilmiş kanıtlanmış çerçeve.',
+    best:  'En iyi: WHO-5 + Gallup Q12 + PERMA + CFPB sentezi ile derinlemesine analiz için.',
   },
   {
     key:   'perma',
