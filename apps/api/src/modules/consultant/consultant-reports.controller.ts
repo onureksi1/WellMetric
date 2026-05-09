@@ -92,14 +92,12 @@ export class ConsultantReportsController {
     // 1. Create a 'generating' placeholder record immediately
     let reportId: string;
     try {
-      // UUID nesnesi oluşturmak için gen_random_uuid() veya uuid_generate_v4() kullanıyoruz
       const insertResult = await this.dataSource.query(`
         INSERT INTO consultant_reports (
-          id, consultant_id, company_id, title, status, period, 
-          assessment_model, reference_assessment_model, content,
+          id, consultant_id, company_id, title, status, period, content,
           created_at, updated_at
         )
-        VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3, $4, $5, $6, NOW(), NOW())
         RETURNING id
       `, [
         user.id,
@@ -107,23 +105,19 @@ export class ConsultantReportsController {
         `${company.name} Esenlik Raporu`,
         'generating',
         dto.period || new Date().toISOString().slice(0, 7),
-        dto.assessment_model || 'wellbeing_metric',
-        dto.reference_assessment_model || null,
         'Rapor hazırlanıyor, lütfen bekleyin...'
       ]);
       reportId = insertResult[0].id;
       console.log('[ConsultantReportsController] Placeholder successfully created:', reportId);
     } catch (error) {
       console.error('[ConsultantReportsController] CRITICAL: Placeholder failed:', error.message);
-      // Fallback: Use TypeORM if raw SQL fails for some reason
+      // Fallback: Using basic TypeORM save with existing columns only
       const fallbackReport = this.reportRepo.create({
         consultantId: user.id,
         companyId: dto.company_id,
         title: `${company.name} Esenlik Raporu`,
         status: 'generating' as any,
         period: dto.period,
-        assessment_model: dto.assessment_model,
-        reference_assessment_model: dto.reference_assessment_model,
         content: 'Rapor hazırlanıyor...'
       });
       const saved = await this.reportRepo.save(fallbackReport);
