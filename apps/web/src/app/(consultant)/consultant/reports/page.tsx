@@ -20,9 +20,7 @@ import {
   Loader2,
   Trash2,
   Send,
-  EyeOff,
-  Building2,
-  Calendar
+  EyeOff
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store/auth.store';
 
