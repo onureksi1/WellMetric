@@ -129,6 +129,12 @@ export class ConsultantReportsService {
         respondents: Number(d.respondents ?? 0),
       })),
 
+      // Trend verilerini ekle
+      trend_periods:    trendData.periods,
+      trend_overall:    trendData.overall,
+      trend_dimensions: trendData.dimensions,
+      score_changes:    trendData.changes,
+
       ai_content:        report.content ?? '',
       total_respondents: Number(respondentResult[0]?.count ?? 0),
       response_rate:     0,

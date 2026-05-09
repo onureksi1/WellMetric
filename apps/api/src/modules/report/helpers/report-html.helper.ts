@@ -239,10 +239,13 @@ export class ReportHtmlHelper {
   }): Promise<Buffer> {
 
     const html = this.buildHtml(data);
+    const exePath = (process.env.PUPPETEER_EXECUTABLE_PATH || '').replace(/\"/g, '').trim();
+
+    console.log('[PDF] Launching Puppeteer...', { exePath: exePath || 'built-in' });
 
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      executablePath: exePath || undefined,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -251,6 +254,9 @@ export class ReportHtmlHelper {
         '--disable-web-security',
         '--single-process',
       ],
+    }).catch(err => {
+      console.error('[PDF] Puppeteer launch failed:', err.message);
+      throw err;
     });
 
     try {
