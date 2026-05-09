@@ -34,6 +34,7 @@ import { ConsultantReportsController } from './consultant-reports.controller';
 import { HrConsultantReportsController } from './hr-consultant-reports.controller';
 import { ReportModule } from '../report/report.module';
 import { DepartmentModule } from '../department/department.module';
+import { ScoreModule } from '../score/score.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { DepartmentModule } from '../department/department.module';
     BillingModule,
     ReportModule,
     DepartmentModule,
+    ScoreModule,
   ],
   controllers: [
     ConsultantController, 
