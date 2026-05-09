@@ -287,6 +287,7 @@ export default function ConsultantReportsPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
           <Clock size={20} color="#64748b" />
           <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b', margin: 0 }}>Rapor Arşivi</h2>
+          <span style={{ fontSize: '10px', color: '#cbd5e1', marginLeft: '12px' }}>(Sistem Notu: {reports.length} rapor bulundu)</span>
         </div>
 
         {loading ? (
