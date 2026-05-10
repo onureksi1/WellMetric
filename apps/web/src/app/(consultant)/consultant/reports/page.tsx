@@ -371,6 +371,12 @@ export default function ConsultantReportsPage() {
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Building2 size={14} /> {report.company?.name}</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {report.period}</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Globe size={14} /> {report.language?.toUpperCase() || 'TR'}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#2563eb' }}>
+                          <Zap size={14} /> 
+                          {SINGLE_MODELS.find(m => m.key === report.assessment_model)?.name || 
+                           COMBO_MODELS.find(c => c.key === report.assessment_model)?.name || 
+                           report.assessment_model || 'WellBeing Metric'}
+                        </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {new Date(report.createdAt || report.created_at).toLocaleDateString('tr-TR')}</span>
                       </div>
                     </div>
