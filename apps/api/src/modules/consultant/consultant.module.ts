@@ -35,6 +35,7 @@ import { HrConsultantReportsController } from './hr-consultant-reports.controlle
 import { ReportModule } from '../report/report.module';
 import { DepartmentModule } from '../department/department.module';
 import { ScoreModule } from '../score/score.module';
+import { WhiteLabelModule } from '../white-label/white-label.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { ScoreModule } from '../score/score.module';
     ReportModule,
     DepartmentModule,
     ScoreModule,
+    WhiteLabelModule,
   ],
   controllers: [
     ConsultantController, 
