@@ -489,7 +489,7 @@
       "companies": "Companies",
       "unlimited": "Unlimited",
       "up_to": "Up to {{n}} companies",
-      "credits_unit": "{{n}} credits",
+      "credits_unit": "{{n}} Credits / mo",
       "white_label": "White-label Feature",
       "included": "INCLUDED",
       "credit_disclaimer": "Credits are renewed every billing cycle and do not roll over to the next month.",
