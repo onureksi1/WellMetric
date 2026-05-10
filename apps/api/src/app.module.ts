@@ -68,6 +68,7 @@ import { LoggerModule } from './common/logger/logger.module';
         autoLoadEntities: true,
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: config.get<string>('NODE_ENV') === 'development',
+        migrationsRun: true,
       }),
       inject: [ConfigService],
     }),

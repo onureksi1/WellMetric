@@ -22,8 +22,8 @@ export class SeedService implements OnApplicationBootstrap {
   }
 
   private async seedAdmin() {
-    const adminEmail = 'admin@wellanalytics.com';
-    const adminPassword = 'Admin123!';
+    const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'admin@wellanalytics.com';
+    const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Exhe.40241000';
 
     const existingAdmin = await this.userRepository.findOne({
       where: { email: adminEmail },
