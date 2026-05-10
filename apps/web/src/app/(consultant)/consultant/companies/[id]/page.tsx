@@ -17,7 +17,8 @@ import {
   Brain,
   Heart,
   Briefcase,
-  Loader2
+  Loader2,
+  DollarSign
 } from 'lucide-react';
 import { 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -89,10 +90,11 @@ export default function CompanyDetailPage() {
 
   // Map dimensions to UI icons
   const dimensionIcons: any = {
-    'Mental Sağlık': Brain,
-    'Fiziksel Sağlık': Heart,
-    'İş Tatmini': Briefcase,
-    'Sosyal Bağlılık': Users
+    'mental': Brain,
+    'physical': Heart,
+    'work': Briefcase,
+    'social': Users,
+    'financial': DollarSign
   };
 
   const handleDownloadReport = () => {
@@ -172,10 +174,12 @@ export default function CompanyDetailPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-slate-900">{dim.score || '-'}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Skor</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{tc('score')}</p>
                     </div>
                   </div>
-                  <h4 className="font-bold text-slate-800">{dim.name}</h4>
+                  <h4 className="font-bold text-slate-800 uppercase tracking-tight">
+                    {t(`common.dimensions.${dim.name}`, { defaultValue: dim.name })}
+                  </h4>
                   <div className="mt-4 h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-blue-500 rounded-full" 

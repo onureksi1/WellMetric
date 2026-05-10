@@ -26,6 +26,7 @@
     },
     "comparison_table": "Firma Karşılaştırması",
     "health_map": "Sağlık Haritası",
+    "dimension_avgs": "Boyut Ortalamaları",
     "risk_alerts": "Risk Alarmları",
     "no_alerts": "Tüm firmalar normal seviyede",
     "view_all": "Tümünü Gör"

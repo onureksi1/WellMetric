@@ -188,6 +188,25 @@ export class ConsultantService {
     `;
     const companyList = await this.dataSource.query(companyListQuery, [consultantId]);
 
+    // 4. Dimension Averages across all companies
+    const dimensionAverages = await this.dataSource.query(`
+      SELECT 
+        ws.dimension,
+        AVG(ws.score) as avg_score,
+        COUNT(DISTINCT ws.company_id) as company_count
+      FROM wellbeing_scores ws
+      WHERE ws.company_id = ANY($1) 
+        AND ws.dimension != 'overall' 
+        AND ws.segment_type IS NULL
+        AND ws.calculated_at = (
+          SELECT MAX(calculated_at) FROM wellbeing_scores
+          WHERE company_id = ws.company_id
+            AND dimension = ws.dimension
+            AND segment_type IS NULL
+        )
+      GROUP BY ws.dimension
+    `, [companyIds]);
+
     return {
       metrics: {
         total_companies: companies.length,
@@ -198,6 +217,11 @@ export class ConsultantService {
         plan_usage: { used: companies.length, max: plan?.max_companies || 5 }
       },
       companies: companyList,
+      dimension_averages: dimensionAverages.map((d: any) => ({
+        dimension: d.dimension,
+        avg_score: parseFloat(d.avg_score || 0),
+        company_count: parseInt(d.company_count || 0)
+      })),
       alerts: companyList.filter((c: any) => c.score !== null && Number(c.score) < 60), // companies below threshold
       recent_activities: [] // Could be fetched from audit_logs
     };
@@ -418,10 +442,11 @@ export class ConsultantService {
         employee_count: employeeCount,
       },
       dimensions: [
-        { name: 'Zihinsel Sağlık', score: scores.find((s: any) => s.dimension === 'mental')?.score || 0 },
-        { name: 'Fiziksel Sağlık', score: scores.find((s: any) => s.dimension === 'physical')?.score || 0 },
-        { name: 'İş Tatmini',      score: scores.find((s: any) => s.dimension === 'work')?.score || 0 },
-        { name: 'Sosyal Bağlılık', score: scores.find((s: any) => s.dimension === 'social')?.score || 0 }
+        { name: 'mental',    score: scores.find((s: any) => s.dimension === 'mental')?.score || 0 },
+        { name: 'physical',  score: scores.find((s: any) => s.dimension === 'physical')?.score || 0 },
+        { name: 'financial', score: scores.find((s: any) => s.dimension === 'financial')?.score || 0 },
+        { name: 'social',    score: scores.find((s: any) => s.dimension === 'social')?.score || 0 },
+        { name: 'work',      score: scores.find((s: any) => s.dimension === 'work')?.score || 0 }
       ],
       trend_data: trendData.length > 0 ? trendData : [
         { month: 'Oca', score: 0 },
