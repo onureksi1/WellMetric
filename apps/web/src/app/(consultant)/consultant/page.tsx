@@ -27,17 +27,20 @@ export default function ConsultantDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
+  const [overview, setOverview] = useState<any>(null);
   const [credits, setCredits] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const [overviewRes, creditsRes] = await Promise.allSettled([
+        const [overviewRes, creditsRes, companiesOverviewRes] = await Promise.allSettled([
           client.get('/consultant/dashboard/overview'),
           client.get('/consultant/billing/credits'),
+          client.get('/consultant/companies/overview'),
         ]);
         if (overviewRes.status === 'fulfilled') setData(overviewRes.value.data);
         if (creditsRes.status === 'fulfilled') setCredits(creditsRes.value.data || []);
+        if (companiesOverviewRes.status === 'fulfilled') setOverview(companiesOverviewRes.value.data);
       } catch (error) {
         console.error('Dashboard fetch error:', error);
       } finally {
@@ -116,50 +119,122 @@ export default function ConsultantDashboard() {
       </div>
 
       {/* Credit Balances */}
-      {credits.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <CreditCard size={18} className="text-slate-400" />
-              <h3 className="text-sm font-bold text-slate-700">{t('billing.tabs.credits')}</h3>
-            </div>
-            <a href="/consultant/billing" className="text-xs text-blue-600 font-medium hover:underline">
-              {t('billing.credits.add_credits')}
-            </a>
+      ...
+      {/* Şirketler Genel Özeti (Trafik Işığı) */}
+      {overview && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Building2 className="text-blue-600" size={24} />
+              {t('trainer_dashboard.company_summary')}
+            </h2>
           </div>
-          <div className="flex flex-wrap gap-4">
-            {credits.map((c: any) => {
-              const isUnlimited = c.balance === -1;
-              const totalAmount = c.package_amount || 0;
-              const pct = isUnlimited ? 100 : totalAmount > 0 ? Math.round((c.balance / totalAmount) * 100) : 0;
-              const isLow = !isUnlimited && totalAmount > 0 && c.balance < (totalAmount * 0.2);
-              const isEmpty = !isUnlimited && c.balance <= 0;
-              const icon = c.key === 'ai_credit' ? <Zap size={14} /> : <Mail size={14} />;
-              return (
-                <div key={c.key} className="flex-1 min-w-[140px] p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className={isEmpty ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-blue-400'}>{icon}</span>
-                    <span className="text-xs font-semibold text-slate-600">{c.label_tr || c.key}</span>
-                    {isEmpty && <span className="ml-auto text-[10px] font-bold text-red-500">{t('billing.credits.out_of_credit')}</span>}
-                    {isLow && !isEmpty && <span className="ml-auto text-[10px] font-bold text-orange-500">{t('billing.credits.low_credit')}</span>}
-                  </div>
-                  <p className="text-lg font-bold text-slate-900">
-                    {isUnlimited ? t('billing.credits.unlimited') : (c.balance ?? 0).toLocaleString()}
-                  </p>
-                  {!isUnlimited && (
-                    <div className="mt-1.5 h-1 w-full bg-slate-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${isEmpty ? 'bg-red-400' : isLow ? 'bg-orange-400' : 'bg-blue-500'}`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  )}
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    {isUnlimited ? '' : `${(totalAmount || 0).toLocaleString()} ${t('billing.credits.total')}`}
-                  </p>
+
+          {/* Özet Kartlar */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[
+              {
+                label: 'Toplam Firma',
+                value: overview.summary.total,
+                color: 'text-slate-900',
+                bg: 'bg-white',
+                border: 'border-slate-200'
+              },
+              {
+                label: 'İyi Durumda',
+                value: overview.summary.good,
+                color: 'text-emerald-600',
+                bg: 'bg-emerald-50',
+                border: 'border-emerald-100'
+              },
+              {
+                label: 'Risk Altında',
+                value: overview.summary.at_risk,
+                color: 'text-red-600',
+                bg: 'bg-red-50',
+                border: 'border-red-100'
+              },
+              {
+                label: 'Veri Yok',
+                value: overview.summary.no_data,
+                color: 'text-slate-400',
+                bg: 'bg-slate-50',
+                border: 'border-slate-100'
+              },
+            ].map(card => (
+              <div key={card.label} className={`${card.bg} ${card.border} border-2 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-all group`}>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                  {card.label}
                 </div>
-              );
-            })}
+                <div className={`text-4xl font-black ${card.color} tracking-tighter group-hover:scale-110 transition-transform origin-left`}>
+                  {card.value}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Firma Listesi — Trafik Işığı */}
+          <div className="bg-white rounded-[32px] border-2 border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b-2 border-slate-50">
+                    {['Firma', 'Sektör', 'Skor', 'Değişim', 'Durum'].map(h => (
+                      <th key={h} className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {overview.companies.map((c: any) => (
+                    <tr 
+                      key={c.id}
+                      onClick={() => router.push(`/consultant/companies/${c.id}`)}
+                      className="hover:bg-slate-50/50 transition-all cursor-pointer group"
+                    >
+                      <td className="px-8 py-5 font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {c.name}
+                      </td>
+                      <td className="px-8 py-5 text-sm font-medium text-slate-500">
+                        {c.industry ?? '—'}
+                      </td>
+                      <td className={`px-8 py-5 font-black text-lg tracking-tighter ${
+                        !c.overall_score ? 'text-slate-300'
+                        : c.overall_score >= 70 ? 'text-emerald-500'
+                        : c.overall_score >= 50 ? 'text-amber-500'
+                        : 'text-red-500'
+                      }`}>
+                        {c.overall_score ? Number(c.overall_score).toFixed(1) : '—'}
+                      </td>
+                      <td className="px-8 py-5">
+                        {c.delta !== null && c.delta !== 0 ? (
+                          <div className={`flex items-center gap-1 text-sm font-black ${c.delta > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {c.delta > 0 ? '▲' : '▼'}
+                            {Math.abs(Number(c.delta)).toFixed(1)}
+                          </div>
+                        ) : (
+                          <span className="text-slate-300 font-bold">—</span>
+                        )}
+                      </td>
+                      <td className="px-8 py-5">
+                        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                          !c.overall_score ? 'bg-slate-100 text-slate-400'
+                          : c.status === 'good'   ? 'bg-emerald-50 text-emerald-600'
+                          : c.status === 'medium' ? 'bg-amber-50 text-amber-600'
+                          : 'bg-red-50 text-red-600'
+                        }`}>
+                          {!c.overall_score ? 'Veri Yok'
+                            : c.status === 'good'   ? 'İyi'
+                            : c.status === 'medium' ? 'Orta'
+                            : '⚠️ Risk'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

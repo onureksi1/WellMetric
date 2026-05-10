@@ -18,6 +18,8 @@ import { SubscriptionRenewalService } from '../billing/services/subscription-ren
 import { CreditAlertService } from '../billing/services/credit-alert.service';
 import { TrainingService } from '../training/training.service';
 import { InAppNotificationService } from '../notification/in-app-notification.service';
+import { User } from '../user/entities/user.entity';
+import { PlatformSettings } from '../settings/entities/platform-settings.entity';
 
 @Injectable()
 export class CronService {
@@ -572,6 +574,120 @@ export class CronService {
       this.logger.error('Error in notifyExpiringCampaigns', e);
     } finally {
       await this.cronLockGuard.releaseLock('notifyExpiringCampaigns');
+    }
+  }
+
+  @Cron('0 8 * * 1', { timeZone: 'Europe/Istanbul' }) // Her pazartesi 08:00
+  async sendWeeklySummary() {
+    if (!(await this.cronLockGuard.canActivate({ getHandler: () => this.sendWeeklySummary } as any))) return;
+    
+    this.logger.info('Haftalık özet mailleri gönderiliyor...', { service: 'CronService' });
+
+    try {
+      // Tüm aktif danışmanları getir
+      const consultants = await this.dataSource.getRepository(User).find({
+        where: { role: 'consultant', is_active: true },
+      });
+
+      const settings = await this.dataSource.getRepository(PlatformSettings).findOne({ where: {} });
+      const period   = new Date().toLocaleDateString('tr-TR', {
+        month: 'long', year: 'numeric'
+      });
+
+      for (const consultant of consultants) {
+        try {
+          // Danışmanın firmalarını ve skorlarını getir
+          const companies = await this.dataSource.query(`
+            SELECT
+              c.name,
+              ws.score as overall_score,
+              ws_prev.score as prev_score,
+              (ws.score - COALESCE(ws_prev.score, ws.score)) as delta,
+              CASE
+                WHEN ws.score >= 70 THEN 'good'
+                WHEN ws.score >= 50 THEN 'medium'
+                WHEN ws.score IS NULL THEN 'no_data'
+                ELSE 'risk'
+              END as status
+            FROM companies c
+            LEFT JOIN wellbeing_scores ws
+              ON ws.company_id = c.id
+              AND ws.dimension = 'overall'
+              AND ws.period = TO_CHAR(DATE_TRUNC('month', NOW()), 'YYYY-MM')
+            LEFT JOIN wellbeing_scores ws_prev
+              ON ws_prev.company_id = c.id
+              AND ws_prev.dimension = 'overall'
+              AND ws_prev.period =
+                TO_CHAR(DATE_TRUNC('month', NOW() - INTERVAL '1 month'), 'YYYY-MM')
+            WHERE c.consultant_id = $1
+            ORDER BY ws.score ASC NULLS LAST
+          `, [consultant.id]);
+
+          if (companies.length === 0) continue;
+
+          // Şirket verilerini mail değişkenlerine çevir
+          const companiesForMail = companies.map((c: any) => ({
+            name:         c.name,
+            score:        c.overall_score
+                            ? Number(c.overall_score).toFixed(1)
+                            : '—',
+            score_color:  !c.overall_score ? '#888'
+                          : c.status === 'good'   ? '#1D9E75'
+                          : c.status === 'medium' ? '#F59E0B'
+                          : '#EF4444',
+            delta_text:   c.delta > 0.5
+                            ? `▲ +${Number(c.delta).toFixed(1)}`
+                          : c.delta < -0.5
+                            ? `▼ ${Number(c.delta).toFixed(1)}`
+                          : '—',
+            delta_color:  c.delta > 0.5 ? '#1D9E75'
+                          : c.delta < -0.5 ? '#EF4444' : '#888',
+            status_label: c.status === 'good'    ? 'İyi'
+                          : c.status === 'medium' ? 'Orta'
+                          : c.status === 'risk'   ? '⚠️ Risk'
+                          : 'Veri Yok',
+            status_bg:    c.status === 'good'    ? '#E1F5EE'
+                          : c.status === 'medium' ? '#FEF3C7'
+                          : c.status === 'risk'   ? '#FEF2F2'
+                          : '#F5F5F5',
+            status_color: c.status === 'good'    ? '#1D9E75'
+                          : c.status === 'medium' ? '#B45309'
+                          : c.status === 'risk'   ? '#EF4444'
+                          : '#888',
+          }));
+
+          await this.notificationService.sendMail({
+            to:   consultant.id,
+            slug: 'weekly_summary',
+            variables: {
+              consultant_name:  consultant.full_name,
+              period,
+              total_companies:  companies.length,
+              good_count:       companies.filter((c: any) =>
+                                  c.status === 'good').length,
+              risk_count:       companies.filter((c: any) =>
+                                  c.status === 'risk').length,
+              companies:        companiesForMail,
+              dashboard_url:    `${process.env.APP_URL}/consultant/dashboard`,
+              brand_name:       settings?.platform_name ?? 'Wellbeing Metric',
+              brand_logo_url:   settings?.platform_logo_url ?? '',
+            },
+          });
+
+          this.logger.info(`Haftalık özet gönderildi: ${consultant.email}`, { service: 'CronService' });
+
+        } catch (err) {
+          this.logger.error(
+            `Haftalık özet hatası: ${consultant.email}`,
+            { service: 'CronService' },
+            err
+          );
+        }
+      }
+    } catch (err) {
+      this.logger.error('sendWeeklySummary genel hatası', { service: 'CronService' }, err);
+    } finally {
+      await this.cronLockGuard.releaseLock('sendWeeklySummary');
     }
   }
 }

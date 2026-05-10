@@ -10,6 +10,10 @@ import { ResponseAnswer } from '../response/entities/response-answer.entity';
 import { ResponseAnswerSelection } from '../response/entities/response-answer-selection.entity';
 import { SurveyQuestion } from '../survey/entities/survey-question.entity';
 import { SurveyResponse } from '../response/entities/survey-response.entity';
+import { Company } from '../company/entities/company.entity';
+import { User } from '../user/entities/user.entity';
+import { NotificationService } from '../notification/notification.service';
+import { InAppNotificationService } from '../notification/in-app-notification.service';
 
 @Injectable()
 export class ScoreService {
@@ -18,9 +22,15 @@ export class ScoreService {
   constructor(
     @InjectRepository(WellbeingScore)
     private readonly scoreRepository: Repository<WellbeingScore>,
+    @InjectRepository(Company)
+    private readonly companyRepo: Repository<Company>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly dataSource: DataSource,
     @InjectQueue('score-queue') private scoreQueue: Queue,
     private readonly eventEmitter: EventEmitter2,
+    private readonly notificationService: NotificationService,
+    private readonly inAppNotificationService: InAppNotificationService,
   ) {}
 
   async recalculateScores() {
@@ -105,6 +115,36 @@ export class ScoreService {
           score: scoreValue,
           type: 'overall'
         });
+      }
+
+      // ── Risk erken uyarı kontrolü ───────────────────────────
+      try {
+        const company = await this.companyRepo.findOne({ where: { id: companyId } });
+        if (company?.consultant_id) {
+          // Önceki dönem skorunu bul (Genellikle 1 ay öncesi)
+          const prevPeriodDate = new Date(period + '-01');
+          prevPeriodDate.setMonth(prevPeriodDate.getMonth() - 1);
+          const prevPeriod = prevPeriodDate.toISOString().substring(0, 7);
+
+          const prevScoreRec = await this.scoreRepository.findOne({
+            where: {
+              company_id: companyId,
+              dimension: gs.dimension,
+              period: prevPeriod,
+              segment_type: IsNull()
+            }
+          });
+
+          await this.checkRiskAlert({
+            companyId,
+            consultantId: company.consultant_id,
+            dimension: gs.dimension,
+            newScore: scoreValue,
+            prevScore: prevScoreRec ? Number(prevScoreRec.score) : null
+          });
+        }
+      } catch (err) {
+        this.logger.error(`Risk alert check failed for ${companyId}`, err);
       }
     }
 
@@ -752,6 +792,90 @@ export class ScoreService {
       });
     } catch (err) {
       this.logger.error('[survey.submitted] Score recalculation failed', err);
+    }
+  }
+
+  // ── Risk erken uyarı ─────────────────────────────────────
+  private async checkRiskAlert(params: {
+    companyId:    string;
+    consultantId: string;
+    dimension:    string;
+    newScore:     number;
+    prevScore:    number | null;
+  }) {
+    const { companyId, consultantId, dimension,
+            newScore, prevScore } = params;
+
+    // Önceki skor yoksa ilk ölçüm — uyarı yok
+    if (prevScore === null) return;
+
+    const delta = newScore - prevScore;
+
+    // Risk koşulları:
+    // 1. Skor 45'in altına düştü (kritik bölge)
+    // 2. 5+ puan düştü (hızlı düşüş)
+    const isCritical = newScore < 45;
+    const isRapidDrop = delta <= -5;
+
+    if (!isCritical && !isRapidDrop) return;
+
+    const company = await this.companyRepo.findOne({
+      where: { id: companyId }
+    });
+
+    const dimLabel: Record<string, string> = {
+      overall:  'Genel',
+      mental:   'Zihinsel',
+      physical: 'Fiziksel',
+      social:   'Sosyal',
+      financial:'Finansal',
+      work:     'İş & Anlam',
+    };
+
+    const label = dimLabel[dimension] ?? dimension;
+    const alertType = isCritical ? 'critical' : 'drop';
+
+    // In-app bildirim:
+    await this.inAppNotificationService.create({
+      userId:  consultantId,
+      type:    'company_score_dropped',
+      titleTr: isCritical
+        ? `⚠️ Kritik Risk: ${company?.name} — ${label}`
+        : `📉 Skor Düşüşü: ${company?.name} — ${label}`,
+      titleEn: isCritical
+        ? `⚠️ Critical Risk: ${company?.name} — ${label}`
+        : `📉 Score Drop: ${company?.name} — ${label}`,
+      bodyTr: isCritical
+        ? `${label} skoru kritik bölgeye düştü: ${newScore.toFixed(1)} (önceki: ${prevScore.toFixed(1)})`
+        : `${label} skoru ${Math.abs(delta).toFixed(1)} puan düştü: ${prevScore.toFixed(1)} → ${newScore.toFixed(1)}`,
+      bodyEn: isCritical
+        ? `${label} score dropped to critical zone: ${newScore.toFixed(1)} (prev: ${prevScore.toFixed(1)})`
+        : `${label} score dropped ${Math.abs(delta).toFixed(1)} points: ${prevScore.toFixed(1)} → ${newScore.toFixed(1)}`,
+      link:    `/consultant/companies/${companyId}`,
+      metadata: {
+        company_id:  companyId,
+        dimension,
+        new_score:   newScore,
+        prev_score:  prevScore,
+        delta,
+        alert_type:  alertType,
+      },
+    });
+
+    // Mail bildirimi (kritik durumda):
+    if (isCritical) {
+      await this.notificationService.sendMail({
+        to:       consultantId,
+        slug:     'score_alert',
+        variables: {
+          company_name:  company?.name ?? '',
+          dimension:     label,
+          score:         newScore.toFixed(1),
+          prev_score:    prevScore.toFixed(1),
+          delta:         delta.toFixed(1),
+          dashboard_url: `${process.env.APP_URL}/consultant/companies/${companyId}`,
+        },
+      });
     }
   }
 }
