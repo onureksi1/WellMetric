@@ -16,7 +16,8 @@ import {
   X,
   CreditCard,
   Library,
-  Calendar
+  Calendar,
+  Palette
 } from 'lucide-react';
 import { useT } from '@/hooks/useT';
 import { useAuthStore } from '@/lib/store/auth.store';
@@ -137,6 +138,22 @@ export function ConsultantSidebar() {
               </Link>
             );
           })}
+
+          {/* White Label Link (Enterprise Only) */}
+          {(user as any)?.plan === 'enterprise' && (
+            <Link
+              href="/consultant/settings/white-label"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group",
+                pathname === '/consultant/settings/white-label'
+                  ? "bg-blue-50 text-blue-600 shadow-sm shadow-blue-100" 
+                  : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900"
+              )}
+            >
+              <Palette size={20} className={cn(pathname === '/consultant/settings/white-label' ? "text-blue-600" : "text-slate-400 group-hover:text-blue-600 transition-colors")} />
+              <span className="text-sm font-semibold tracking-tight">Marka Ayarları</span>
+            </Link>
+          )}
         </nav>
 
         {/* Footer */}

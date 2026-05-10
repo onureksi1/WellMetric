@@ -11,6 +11,7 @@ import { ReportHtmlHelper } from '../report/helpers/report-html.helper';
 import { ScoreService } from '../score/score.service';
 import { CreateReportDto, UpdateReportDto } from './dto/report.dto';
 import { InAppNotificationService } from '../notification/in-app-notification.service';
+import { WhiteLabelService } from '../white-label/white-label.service';
 
 @Injectable()
 export class ConsultantReportsService {
@@ -27,6 +28,7 @@ export class ConsultantReportsService {
     private readonly inAppNotifService: InAppNotificationService,
     private readonly reportHtmlHelper: ReportHtmlHelper,
     private readonly scoreService: ScoreService,
+    private readonly whiteLabelService: WhiteLabelService,
     private readonly logger: AppLogger,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -109,6 +111,10 @@ export class ConsultantReportsService {
       WHERE company_id = $1
     `, [report.companyId]);
 
+    // Danışmanın paketini ve white-label yetkisini kontrol et
+    const wlConfig = await this.whiteLabelService.getConfig(consultantId);
+    const isWhiteLabel = !!wlConfig?.brand_logo_url;
+
     // ── ReportHtmlHelper'a geçir ─────────────────────────────────
     return this.reportHtmlHelper.generatePdf({
       company_name:     report.company?.name ?? '',
@@ -118,9 +124,9 @@ export class ConsultantReportsService {
 
       brand_name:          setting.platform_name ?? 'Wellbeing Metric',
       brand_logo_url:      setting.platform_logo_url ?? '',
-      consultant_name:     report.consultant?.full_name ?? '',
-      consultant_logo_url: '',
-      is_white_label:      false,
+      consultant_name:     wlConfig?.brand_name || report.consultant?.full_name || '',
+      consultant_logo_url: wlConfig?.brand_logo_url ?? '',
+      is_white_label:      isWhiteLabel,
 
       scores,
       departments: deptScores.map((d: any) => ({
