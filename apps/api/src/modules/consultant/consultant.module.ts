@@ -66,7 +66,7 @@ import { WhiteLabelModule } from '../white-label/white-label.module';
     ReportModule,
     DepartmentModule,
     ScoreModule,
-    WhiteLabelModule,
+    forwardRef(() => WhiteLabelModule),
   ],
   controllers: [
     ConsultantController, 
