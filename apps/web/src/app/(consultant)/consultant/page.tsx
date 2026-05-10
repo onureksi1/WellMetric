@@ -13,8 +13,7 @@ import {
   Loader2,
   Zap,
   Mail,
-  CreditCard,
-  Target
+  CreditCard
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
