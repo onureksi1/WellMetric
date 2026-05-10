@@ -22,7 +22,11 @@ import {
   ChevronRight,
   Info,
   Plus,
-  CreditCard
+  CreditCard,
+  Users,
+  Trash2,
+  Edit,
+  UserPlus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
@@ -178,6 +182,7 @@ export default function SettingsPage() {
             <TabNavItem id="mail" icon={Mail} label={t('admin.settings.tabs.mail')} active={activeTab === 'mail'} onClick={setActiveTab} />
             <TabNavItem id="storage" icon={HardDrive} label={t('admin.settings.tabs.storage')} active={activeTab === 'storage'} onClick={setActiveTab} />
             <TabNavItem id="payment" icon={CreditCard} label={t('admin.settings.tabs.payment')} active={activeTab === 'payment'} onClick={setActiveTab} />
+            <TabNavItem id="admins" icon={Users} label={t('admin.settings.tabs.admins', { defaultValue: 'Yöneticiler' })} active={activeTab === 'admins'} onClick={setActiveTab} />
             <TabNavItem id="legal" icon={ShieldCheck} label={t('admin.settings.tabs.legal')} active={activeTab === 'legal'} onClick={setActiveTab} />
           </div>
         </div>
@@ -307,6 +312,7 @@ export default function SettingsPage() {
           {activeTab === 'mail' && <MailSettingsTab settings={settings} onRefresh={fetchSettings} t={t} />}
           {activeTab === 'storage' && <StorageSettingsTab settings={settings} onRefresh={fetchSettings} t={t} />}
           {activeTab === 'payment' && <PaymentSettingsTab t={t} />}
+          {activeTab === 'admins' && <AdminManagementTab t={t} />}
           {activeTab === 'legal' && <LegalSettingsTab settings={settings} onRefresh={fetchSettings} t={t} />}
         </div>
       </div>
@@ -1209,6 +1215,193 @@ function TextareaGroup({ label, value, onChange }: { label: string, value: strin
         rows={8}
         className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-4 py-3.5 text-sm font-medium outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary focus:bg-white transition-all resize-none"
       />
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// ADMIN MANAGEMENT TAB
+// ────────────────────────────────────────────────────────────────────────────
+
+function AdminManagementTab({ t }: { t: any }) {
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState<any>(null);
+  const [formLoading, setFormLoading] = useState(false);
+
+  const fetchAdmins = async () => {
+    try {
+      setLoading(true);
+      const res = await client.get('/admin/management');
+      setAdmins(res.data);
+    } catch (err) {
+      toast.error(t('admin.settings.admins.fetch_error', { defaultValue: 'Yöneticiler yüklenemedi' }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdmins();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm(t('admin.settings.admins.delete_confirm', { defaultValue: 'Bu yöneticiyi silmek istediğinize emin misiniz?' }))) return;
+    try {
+      await client.delete(`/admin/management/${id}`);
+      toast.success(t('admin.settings.admins.delete_success', { defaultValue: 'Yönetici başarıyla silindi' }));
+      fetchAdmins();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('common.error'));
+    }
+  };
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFormLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      if (editingAdmin) {
+        await client.put(`/admin/management/${editingAdmin.id}`, data);
+        toast.success(t('admin.settings.admins.update_success', { defaultValue: 'Yönetici güncellendi' }));
+      } else {
+        await client.post('/admin/management', data);
+        toast.success(t('admin.settings.admins.create_success', { defaultValue: 'Yeni yönetici eklendi' }));
+      }
+      setModalOpen(false);
+      setEditingAdmin(null);
+      fetchAdmins();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('common.error'));
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card title={t('admin.settings.admins.title', { defaultValue: 'Platform Yöneticileri' })}>
+        <div className="flex justify-between items-center mb-6">
+          <p className="text-sm text-slate-500 font-medium">
+            {t('admin.settings.admins.subtitle', { defaultValue: 'Sistem genelinde tam yetkiye sahip süper yöneticileri yönetin.' })}
+          </p>
+          <Button 
+            onClick={() => { setEditingAdmin(null); setModalOpen(true); }}
+            className="premium-gradient text-white flex gap-2 items-center px-4 py-2 rounded-xl text-xs font-bold"
+          >
+            <UserPlus size={16} />
+            {t('admin.settings.admins.add_new', { defaultValue: 'Yeni Yönetici Ekle' })}
+          </Button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="text-slate-400 font-bold uppercase tracking-widest text-[10px] bg-slate-50/50">
+              <tr>
+                <th className="py-4 px-4">{t('admin.settings.admins.name', { defaultValue: 'Ad Soyad' })}</th>
+                <th className="py-4 px-4">{t('admin.settings.admins.email', { defaultValue: 'E-posta' })}</th>
+                <th className="py-4 px-4">{t('admin.settings.admins.created_at', { defaultValue: 'Kayıt Tarihi' })}</th>
+                <th className="py-4 px-4 text-right">{t('common.actions')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="py-10 text-center text-slate-400 italic">
+                    <Loader2 className="animate-spin inline-block mr-2" size={16} />
+                    {t('common.loading')}
+                  </td>
+                </tr>
+              ) : admins.map((admin) => (
+                <tr key={admin.id} className="group hover:bg-slate-50/50 transition-colors">
+                  <td className="py-5 px-4 font-bold text-navy">{admin.full_name}</td>
+                  <td className="py-5 px-4 text-slate-500">{admin.email}</td>
+                  <td className="py-5 px-4 text-slate-400 text-xs">
+                    {new Date(admin.created_at).toLocaleDateString('tr-TR')}
+                  </td>
+                  <td className="py-5 px-4 text-right space-x-2">
+                    <button 
+                      onClick={() => { setEditingAdmin(admin); setModalOpen(true); }}
+                      className="p-2 text-slate-400 hover:text-primary transition-colors"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(admin.id)}
+                      className="p-2 text-slate-400 hover:text-danger transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 className="text-lg font-black text-navy tracking-tight">
+                {editingAdmin ? t('admin.settings.admins.edit_title', { defaultValue: 'Yönetici Düzenle' }) : t('admin.settings.admins.add_title', { defaultValue: 'Yeni Yönetici' })}
+              </h3>
+              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-navy transition-colors">
+                <XCircle size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={onSubmit} className="p-6 space-y-6">
+              <div className="space-y-4">
+                <InputGroup 
+                  label={t('admin.settings.admins.name', { defaultValue: 'Ad Soyad' })} 
+                  name="full_name" 
+                  defaultValue={editingAdmin?.full_name} 
+                  required 
+                />
+                <InputGroup 
+                  label={t('admin.settings.admins.email', { defaultValue: 'E-posta' })} 
+                  name="email" 
+                  type="email" 
+                  defaultValue={editingAdmin?.email} 
+                  required 
+                />
+                <InputGroup 
+                  label={t('admin.settings.admins.password', { defaultValue: 'Şifre' })} 
+                  name="password" 
+                  type="password" 
+                  placeholder={editingAdmin ? t('admin.settings.admins.password_placeholder', { defaultValue: 'Değiştirmek için doldurun' }) : '••••••••'}
+                  required={!editingAdmin}
+                  description={editingAdmin ? t('admin.settings.admins.password_hint', { defaultValue: 'Şifreyi değiştirmek istemiyorsanız boş bırakın.' }) : ''}
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => setModalOpen(false)} 
+                  className="flex-1 font-bold text-slate-400 py-3"
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={formLoading}
+                  className="flex-1 premium-gradient text-white py-3 rounded-xl font-bold shadow-lg shadow-primary/20"
+                >
+                  {formLoading ? <Loader2 className="animate-spin mr-2 inline" size={18} /> : <Save className="mr-2 inline" size={18} />}
+                  {t('common.save')}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
