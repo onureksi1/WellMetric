@@ -1,4 +1,5 @@
 'use client';
+// Trigger rebuild for admin management
 
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
