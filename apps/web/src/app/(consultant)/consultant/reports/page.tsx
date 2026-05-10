@@ -370,6 +370,7 @@ export default function ConsultantReportsPage() {
                       <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Building2 size={14} /> {report.company?.name}</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {report.period}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Globe size={14} /> {report.language?.toUpperCase() || 'TR'}</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {new Date(report.createdAt || report.created_at).toLocaleDateString('tr-TR')}</span>
                       </div>
                     </div>
