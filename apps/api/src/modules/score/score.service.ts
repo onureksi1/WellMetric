@@ -864,7 +864,7 @@ export class ScoreService {
 
     // Mail bildirimi (kritik durumda):
     if (isCritical) {
-      const consultant = await this.userRepository.findOne({ where: { id: consultantId } });
+      const consultant = await this.userRepo.findOne({ where: { id: consultantId } });
       if (consultant?.email) {
         await this.notificationService.sendEmail(
           consultant.email,
