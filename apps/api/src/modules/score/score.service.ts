@@ -864,18 +864,24 @@ export class ScoreService {
 
     // Mail bildirimi (kritik durumda):
     if (isCritical) {
-      await this.notificationService.sendMail({
-        to:       consultantId,
-        slug:     'score_alert',
-        variables: {
-          company_name:  company?.name ?? '',
-          dimension:     label,
-          score:         newScore.toFixed(1),
-          prev_score:    prevScore.toFixed(1),
-          delta:         delta.toFixed(1),
-          dashboard_url: `${process.env.APP_URL}/consultant/companies/${companyId}`,
-        },
-      });
+      const consultant = await this.userRepository.findOne({ where: { id: consultantId } });
+      if (consultant?.email) {
+        await this.notificationService.sendEmail(
+          consultant.email,
+          'score_alert',
+          {
+            company_name:  company?.name ?? '',
+            dimension:     label,
+            score:         newScore.toFixed(1),
+            prev_score:    prevScore.toFixed(1),
+            delta:         delta.toFixed(1),
+            dashboard_url: `${process.env.APP_URL}/consultant/companies/${companyId}`,
+            subject:       `⚠️ Kritik Risk: ${company?.name} — ${label}`,
+          },
+          companyId,
+          consultantId
+        );
+      }
     }
   }
 }

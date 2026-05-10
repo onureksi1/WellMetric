@@ -656,10 +656,10 @@ export class CronService {
                           : '#888',
           }));
 
-          await this.notificationService.sendMail({
-            to:   consultant.id,
-            slug: 'weekly_summary',
-            variables: {
+          await this.notificationService.sendEmail(
+            consultant.email,
+            'weekly_summary',
+            {
               consultant_name:  consultant.full_name,
               period,
               total_companies:  companies.length,
@@ -671,8 +671,11 @@ export class CronService {
               dashboard_url:    `${process.env.APP_URL}/consultant/dashboard`,
               brand_name:       settings?.platform_name ?? 'Wellbeing Metric',
               brand_logo_url:   settings?.platform_logo_url ?? '',
+              subject:          `📊 Haftalık Wellbeing Özeti — ${period}`,
             },
-          });
+            undefined,
+            consultant.id
+          );
 
           this.logger.info(`Haftalık özet gönderildi: ${consultant.email}`, { service: 'CronService' });
 
