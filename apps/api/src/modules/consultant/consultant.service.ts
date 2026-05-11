@@ -72,7 +72,13 @@ export class ConsultantService {
           total_employees: 0,
           avg_score: 0,
           avg_participation: 0,
-          plan_usage: { used: 0, max: plan?.max_companies || 5 }
+          plan_usage: { 
+            used: 0, 
+            max: plan?.max_companies || 3,
+            ai_enabled: plan?.ai_enabled ?? false,
+            white_label: plan?.white_label ?? false,
+            plan_name: plan?.plan || 'starter'
+          }
         },
         companies: [],
         alerts: [],
@@ -214,7 +220,13 @@ export class ConsultantService {
         avg_score: parseFloat(stats[0]?.avg_score || '0'),
         avg_participation: parseFloat(participation[0]?.avg_participation || '0'),
         active_surveys: activeSurveysRes[0]?.count || 0,
-        plan_usage: { used: companies.length, max: plan?.max_companies || 5 }
+        plan_usage: { 
+          used: companies.length, 
+          max: plan?.max_companies || 3,
+          ai_enabled: plan?.ai_enabled ?? false,
+          white_label: plan?.white_label ?? false,
+          plan_name: plan?.plan || 'starter'
+        }
       },
       companies: companyList,
       dimension_averages: dimensionAverages.map((d: any) => ({

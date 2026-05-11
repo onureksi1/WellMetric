@@ -328,7 +328,9 @@ function SettingsContent() {
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('settings.companies_used')}</p>
                   <div className="flex items-end gap-2">
-                    <span className="text-2xl font-bold text-slate-900">{planData?.used || 0} / {planData?.max || 5}</span>
+                    <span className="text-2xl font-bold text-slate-900">
+                      {planData?.max >= 999 ? `${planData?.used} / ${t('billing.upgrade.unlimited')}` : `${planData?.used || 0} / ${planData?.max || 3}`}
+                    </span>
                     {planData?.used >= planData?.max && <span className="text-xs text-red-500 font-medium mb-1">%100</span>}
                   </div>
                 </div>
@@ -336,7 +338,11 @@ function SettingsContent() {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('settings.ai_enabled')}</p>
                   <div className="flex items-center gap-2 text-emerald-600">
                     <Bot size={20} />
-                    <span className="text-sm font-bold uppercase">{tc('unlimited', 'Sınırsız')}</span>
+                    <span className="text-sm font-bold uppercase">
+                      {planData?.ai_enabled 
+                        ? (planData?.plan_name === 'enterprise' ? t('billing.upgrade.unlimited') : t('settings.included'))
+                        : t('settings.disabled')}
+                    </span>
                   </div>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">

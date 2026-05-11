@@ -390,6 +390,8 @@
     "employee_limit": "Çalışan Limiti/Firma",
     "ai_enabled": "AI Özellikler",
     "white_label": "White-label",
+    "included": "Dahil",
+    "disabled": "Pasif",
     "valid_until": "Geçerlilik",
     "upgrade": "Plan Yükselt",
     "upgrade_message": "Plan yükseltme talebinizi ileteceğiz.",
