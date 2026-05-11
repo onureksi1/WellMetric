@@ -54,26 +54,41 @@ export class MailTemplateService {
     for (const file of htmlFiles) {
       const slug = file.replace('.html', '');
       const exists = await this.templateRepository.findOne({ where: { slug } });
-      if (!exists) {
-        try {
-          const bodyTr = fs.readFileSync(path.join(trDir, file), 'utf-8');
-          let bodyEn: string | undefined;
-          const enPath = path.join(enDir, file);
-          if (fs.existsSync(enPath)) {
-            bodyEn = fs.readFileSync(enPath, 'utf-8');
-          }
+      
+      const bodyTr = fs.readFileSync(path.join(trDir, file), 'utf-8');
+      let bodyEn: string | undefined;
+      const enPath = path.join(enDir, file);
+      if (fs.existsSync(enPath)) {
+        bodyEn = fs.readFileSync(enPath, 'utf-8');
+      }
 
-          await this.templateRepository.save({
-            slug,
-            subject_tr: slug.replace(/_/g, ' '),
-            subject_en: slug.replace(/_/g, ' '),
-            body_tr: bodyTr,
-            body_en: bodyEn,
-            variables: [],
-            description: `Auto-synced from file: ${file}`,
-            is_active: true
-          });
-          this.logger.log(`Template '${slug}' auto-synced to database.`);
+      const isPlaceholder = exists && (
+        exists.body_tr?.includes('HTML dosyasından okunacak') || 
+        exists.body_tr?.length < 50
+      );
+
+      if (!exists || isPlaceholder) {
+        try {
+          if (!exists) {
+            await this.templateRepository.save({
+              slug,
+              subject_tr: slug.replace(/_/g, ' '),
+              subject_en: slug.replace(/_/g, ' '),
+              body_tr: bodyTr,
+              body_en: bodyEn,
+              variables: [],
+              description: `Auto-synced from file: ${file}`,
+              is_active: true
+            });
+            this.logger.log(`Template '${slug}' auto-synced to database.`);
+          } else {
+            await this.templateRepository.update(exists.id, {
+              body_tr: bodyTr,
+              body_en: bodyEn,
+              updated_at: new Date()
+            });
+            this.logger.log(`Template '${slug}' updated from file (placeholder overwritten).`);
+          }
         } catch (err) {
           this.logger.error(`Failed to sync template ${slug}:`, err.message);
         }
