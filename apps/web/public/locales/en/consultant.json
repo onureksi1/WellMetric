@@ -11,6 +11,7 @@
     "settings": "Settings",
     "logout": "Logout"
   },
+  "company": "Company",
   "trainer_dashboard": {
     "title": "Consultant Panel",
     "subtitle": "Welcome back, how are your companies doing today?",
@@ -26,6 +27,8 @@
     },
     "comparison_table": "Company Comparison",
     "health_map": "Health Map",
+    "dimension_avgs": "Dimension Averages",
+    "company_summary": "Companies Overview",
     "risk_alerts": "Risk Alerts",
     "no_alerts": "All companies are at normal levels",
     "view_all": "View All"
@@ -494,6 +497,21 @@
       "included": "INCLUDED",
       "credit_disclaimer": "Credits are renewed every billing cycle and do not roll over to the next month.",
       "footer": "All plans are in USD. Taxes not included. Cancel anytime."
+    }
+  },
+  "common": {
+    "dimensions": {
+      "physical": "Physical",
+      "mental": "Mental",
+      "social": "Social",
+      "financial": "Financial",
+      "work": "Work & Purpose"
+    },
+    "status": {
+      "good": "Good",
+      "medium": "Medium",
+      "risk": "At Risk",
+      "no_data": "No Data"
     }
   }
 }

@@ -134,28 +134,28 @@ export default function ConsultantDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
               {
-                label: 'Toplam Firma',
+                label: t('trainer_dashboard.metrics.total_companies'),
                 value: overview.summary.total,
                 color: 'text-slate-900',
                 bg: 'bg-white',
                 border: 'border-slate-200'
               },
               {
-                label: 'İyi Durumda',
+                label: t('common.status.good'),
                 value: overview.summary.good,
                 color: 'text-emerald-600',
                 bg: 'bg-emerald-50',
                 border: 'border-emerald-100'
               },
               {
-                label: 'Risk Altında',
+                label: t('common.status.risk'),
                 value: overview.summary.at_risk,
                 color: 'text-red-600',
                 bg: 'bg-red-50',
                 border: 'border-red-100'
               },
               {
-                label: 'Veri Yok',
+                label: t('common.status.no_data'),
                 value: overview.summary.no_data,
                 color: 'text-slate-400',
                 bg: 'bg-slate-50',
@@ -179,7 +179,13 @@ export default function ConsultantDashboard() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-slate-50/50 border-b-2 border-slate-50">
-                    {['Firma', 'Sektör', 'Skor', 'Değişim', 'Durum'].map(h => (
+                    {[
+                      t('companies.columns.name'), 
+                      t('companies.create.industry'), 
+                      t('companies.columns.score'), 
+                      t('companies.columns.change'), 
+                      t('companies.columns.status')
+                    ].map(h => (
                       <th key={h} className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         {h}
                       </th>
@@ -224,10 +230,10 @@ export default function ConsultantDashboard() {
                           : c.status === 'medium' ? 'bg-amber-50 text-amber-600'
                           : 'bg-red-50 text-red-600'
                         }`}>
-                          {!c.overall_score ? 'Veri Yok'
-                            : c.status === 'good'   ? 'İyi'
-                            : c.status === 'medium' ? 'Orta'
-                            : '⚠️ Risk'}
+                          {!c.overall_score ? t('common.status.no_data')
+                            : c.status === 'good'   ? t('common.status.good')
+                            : c.status === 'medium' ? t('common.status.medium')
+                            : `⚠️ ${t('common.status.risk')}`}
                         </span>
                       </td>
                     </tr>

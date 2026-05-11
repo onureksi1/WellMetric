@@ -11,6 +11,7 @@
     "settings": "Ayarlar",
     "logout": "Çıkış Yap"
   },
+  "company": "Firma",
   "trainer_dashboard": {
     "title": "Eğitmen Paneli",
     "subtitle": "Hoş geldiniz, bugün firmalarınızın durumu nasıl?",
@@ -504,6 +505,21 @@
       "included": "DAHİL",
       "credit_disclaimer": "Krediler her fatura döneminde yenilenir ve bir sonraki aya devredilmez.",
       "footer": "Tüm fiyatlar USD cinsindendir. Vergiler dahil değildir. İstediğiniz zaman iptal edebilirsiniz."
+    }
+  },
+  "common": {
+    "dimensions": {
+      "physical": "Fiziksel",
+      "mental": "Zihinsel",
+      "social": "Sosyal",
+      "financial": "Finansal",
+      "work": "İş ve Anlam"
+    },
+    "status": {
+      "good": "İyi",
+      "medium": "Orta",
+      "risk": "Risk",
+      "no_data": "Veri Yok"
     }
   }
 }
